@@ -16,9 +16,6 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Today as TodayIcon,
-  LocationOn as LocationIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
   FilterList as FilterListIcon
 } from '@mui/icons-material';
 import { useScheduleStore } from '../../stores/useScheduleStore';
@@ -34,8 +31,8 @@ type ViewType = 'week' | 'day' | 'month';
 const FALLBACK_COLOR = '#6b7280';
 const HOUR_HEIGHT = 52;
 const RED_BAND = '#c53030';
-const MIN_BLOCK_HEIGHT = 56;
-const BAND_WIDTH = 20;
+const MIN_BLOCK_HEIGHT = 54;
+const BAND_WIDTH = 18;
 
 type VisualKind = 'DO' | 'LECTURE' | 'EXAM' | 'DUE';
 
@@ -124,10 +121,10 @@ const deriveVisual = (kind: VisualKind, baseColor: string) => {
       };
     case 'LECTURE':
       return {
-        fill: courseLight,
-        border: hexToRgba(course, 0.65),
+        fill: lighten(course, 0.6),
+        border: hexToRgba(course, 0.35),
         band: course,
-        text: darken(course, 0.45),
+        text: darken(course, 0.55),
         subtle: darken(course, 0.25),
       };
     case 'DO':
@@ -744,28 +741,29 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                           visualKind === 'DUE' ? (
                             <Box
                               sx={{
-                                width: 64,
-                                minWidth: 64,
+                                width: 52,
+                                minWidth: 52,
                                 backgroundColor: visual.band,
                                 color: '#fff',
-                                borderRadius: 0.75,
+                                borderRadius: 0.5,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: 0.25,
+                                gap: 0.1,
                                 textTransform: 'uppercase',
-                                letterSpacing: 0.5,
-                                fontWeight: 800
+                                letterSpacing: 0.4,
+                                fontWeight: 800,
+                                py: 0.25
                               }}
                             >
-                              <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800 }}>
+                              <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800, fontSize: '10px' }}>
                                 DUE
                               </Typography>
-                              <Typography variant="h6" sx={{ lineHeight: 1, fontWeight: 900, fontSize: 18 }}>
+                              <Typography variant="h6" sx={{ lineHeight: 1, fontWeight: 900, fontSize: 16 }}>
                                 {format(startTime, 'd')}
                               </Typography>
-                              <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800 }}>
+                              <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800, fontSize: '10px' }}>
                                 {format(startTime, 'MMM').toUpperCase()}
                               </Typography>
                             </Box>
@@ -787,35 +785,39 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 color: visual.text,
                                 cursor: 'move',
                                 zIndex: event.type === 'deadline' ? 3 : 2,
-                                ml: 0.25,
-                                mr: 0.25,
-                                borderRadius: 1,
-                                border: `1.5px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
-                                boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                                mx: 0.1,
+                                borderRadius: 0.5,
+                                border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
                                 overflow: 'hidden',
                                 '&:hover': {
-                                  boxShadow: '0 10px 22px rgba(0,0,0,0.1)',
-                                  transition: 'all 0.15s'
+                                  boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
+                                  transition: 'all 0.12s'
                                 }
                               }}
                               onClick={() => handleEventClick(event)}
                           >
-                            <CardContent sx={{ p: 0.75, '&:last-child': { pb: 0.75 }, height: '100%', display: 'flex', gap: 0.75, alignItems: 'stretch' }}>
+                            <CardContent sx={{ p: 0.5, '&:last-child': { pb: 0.5 }, height: '100%', display: 'flex', gap: 0.5, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
-                                  <Stack spacing={0.3} sx={{ minWidth: 0, alignSelf: 'center' }}>
+                                  <Stack spacing={0.15} sx={{ minWidth: 0, alignSelf: 'center' }}>
                                     <Typography 
                                       variant="caption" 
                                       fontWeight={800} 
                                       noWrap
-                                      sx={{ fontSize: '12px', letterSpacing: 0.4, color: '#fff' }}
+                                      sx={{ fontSize: '11px', letterSpacing: 0.3, color: '#fff' }}
                                     >
                                       {event.title}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '10px', color: '#fff' }} noWrap>
-                                      {course?.code ? `${course.code} • ` : ''}{format(startTime, 'h:mm a')}
+                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
+                                      {format(startTime, 'h:mm a')}
                                     </Typography>
+                                    {course?.code && (
+                                      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
+                                        {course.code}
+                                      </Typography>
+                                    )}
                                   </Stack>
                                 </>
                               ) : (
@@ -824,7 +826,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                     sx={{
                                       width: BAND_WIDTH,
                                       minWidth: BAND_WIDTH,
-                                      borderRadius: 0.75,
                                       backgroundColor: visual.band,
                                       color: getTextOn(visual.band),
                                       display: 'flex',
@@ -835,30 +836,27 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                       fontSize: '10px',
                                       fontWeight: 800,
                                       letterSpacing: 0.5,
-                                      px: 0.25
+                                      px: 0.2
                                     }}
                                   >
                                     {bandLabel}
                                   </Box>
-                                  <Stack spacing={0.3} sx={{ minWidth: 0 }}>
+                                  <Stack spacing={0.2} sx={{ minWidth: 0 }}>
                                     <Typography 
                                       variant="caption" 
                                       fontWeight={800} 
                                       noWrap
-                                      sx={{ fontSize: '12px', letterSpacing: 0.4 }}
+                                      sx={{ fontSize: '11px', letterSpacing: 0.3 }}
                                     >
                                       {event.title}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '10px' }} noWrap>
-                                      {course?.code ? `${course.code} • ` : ''}{format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
+                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9.5px' }} noWrap>
+                                      {format(startTime, 'h:mm a')} – {format(endTime, 'h:mm a')}
                                     </Typography>
-                                    {event.location && (
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                        <LocationIcon sx={{ fontSize: 12 }} />
-                                        <Typography variant="caption" sx={{ opacity: 0.9 }} noWrap>
-                                          {event.location}
-                                        </Typography>
-                                      </Box>
+                                    {course?.code && (
+                                      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px' }} noWrap>
+                                        {course.code}
+                                      </Typography>
                                     )}
                                   </Stack>
                                 </>
@@ -883,13 +881,13 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const visualKind = resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
                       const visual = deriveVisual(visualKind, courseColor);
                       const cardHeight = Math.max(MIN_BLOCK_HEIGHT, duration * HOUR_HEIGHT - 4);
-                      const bandLabel = visualKind === 'DUE'
-                        ? 'DUE'
-                        : visualKind === 'EXAM'
-                        ? 'EXAM'
-                        : visualKind === 'LECTURE'
-                        ? 'LECTURE'
-                        : getBandLabelForBlock(task?.type, 'DO');
+                        const bandLabel = visualKind === 'DUE'
+                          ? 'DUE'
+                          : visualKind === 'EXAM'
+                          ? 'EXAM'
+                          : visualKind === 'LECTURE'
+                          ? 'LECTURE'
+                          : getBandLabelForBlock(task?.type, 'DO');
 
                       const column = positionData?.column || 0;
                       const totalColumns = positionData?.totalColumns || 1;
@@ -899,28 +897,29 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const datePill = visualKind === 'DUE' && (
                         <Box
                           sx={{
-                            width: 64,
-                            minWidth: 64,
+                            width: 52,
+                            minWidth: 52,
                             backgroundColor: visual.band,
                             color: '#fff',
-                            borderRadius: 0.75,
+                            borderRadius: 0.5,
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: 0.25,
+                            gap: 0.1,
                             textTransform: 'uppercase',
-                            letterSpacing: 0.5,
-                            fontWeight: 800
+                            letterSpacing: 0.4,
+                            fontWeight: 800,
+                            py: 0.25
                           }}
                         >
-                          <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800 }}>
+                          <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800, fontSize: '10px' }}>
                             DUE
                           </Typography>
-                          <Typography variant="h6" sx={{ lineHeight: 1, fontWeight: 900, fontSize: 18 }}>
+                          <Typography variant="h6" sx={{ lineHeight: 1, fontWeight: 900, fontSize: 16 }}>
                             {format(startTime, 'd')}
                           </Typography>
-                          <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800 }}>
+                          <Typography variant="caption" sx={{ lineHeight: 1, fontWeight: 800, fontSize: '10px' }}>
                             {format(startTime, 'MMM').toUpperCase()}
                           </Typography>
                         </Box>
@@ -940,37 +939,41 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               width,
                               backgroundColor: visual.fill,
                               color: visual.text,
-                              borderRadius: 1,
+                              borderRadius: 0.5,
                               overflow: 'hidden',
                               cursor: 'move',
                               zIndex: visualKind === 'EXAM' || visualKind === 'DUE' ? 3 : 1,
-                              ml: 0.25,
-                              mr: 0.25,
-                              border: `1.5px solid ${visual.border}`,
-                              boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                              mx: 0.1,
+                              border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
+                              boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
                               '&:hover': {
-                                boxShadow: '0 10px 22px rgba(0,0,0,0.1)',
-                                transition: 'all 0.15s'
+                                boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
+                                transition: 'all 0.12s'
                               }
                             }}
                             onClick={() => handleBlockClick(block)}
                           >
-                            <CardContent sx={{ p: 0.75, '&:last-child': { pb: 0.75 }, height: '100%', display: 'flex', gap: 0.75, alignItems: 'stretch' }}>
+                            <CardContent sx={{ p: 0.5, '&:last-child': { pb: 0.5 }, height: '100%', display: 'flex', gap: 0.5, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
-                                  <Stack spacing={0.3} sx={{ minWidth: 0, alignSelf: 'center' }}>
+                                  <Stack spacing={0.15} sx={{ minWidth: 0, alignSelf: 'center' }}>
                                     <Typography
                                       variant="caption"
                                       fontWeight={800}
                                       noWrap
-                                      sx={{ fontSize: '12px', letterSpacing: 0.4, color: '#fff' }}
+                                      sx={{ fontSize: '11px', letterSpacing: 0.3, color: '#fff' }}
                                     >
                                       {task?.title || 'Deadline'}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '10px', color: '#fff' }} noWrap>
-                                      {course?.code ? `${course.code} • ` : ''}{format(startTime, 'h:mm a')}
+                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
+                                      {format(startTime, 'h:mm a')}
                                     </Typography>
+                                    {course?.code && (
+                                      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
+                                        {course.code}
+                                      </Typography>
+                                    )}
                                   </Stack>
                                 </>
                               ) : (
@@ -979,7 +982,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                     sx={{
                                       width: BAND_WIDTH,
                                       minWidth: BAND_WIDTH,
-                                      borderRadius: 0.75,
                                       backgroundColor: visual.band,
                                       color: getTextOn(visual.band),
                                       display: 'flex',
@@ -990,31 +992,26 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                       fontSize: '10px',
                                       fontWeight: 800,
                                       letterSpacing: 0.5,
-                                      px: 0.25
+                                      px: 0.2
                                     }}
                                   >
                                     {bandLabel}
                                   </Box>
-                                  <Stack spacing={0.3} sx={{ minWidth: 0 }}>
+                                  <Stack spacing={0.2} sx={{ minWidth: 0 }}>
                                     <Typography
                                       variant="caption"
                                       fontWeight={800}
                                       noWrap
-                                      sx={{ fontSize: '12px', letterSpacing: 0.4 }}
+                                      sx={{ fontSize: '11px', letterSpacing: 0.3 }}
                                     >
                                       {task?.title || 'Study Session'}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '10px' }} noWrap>
+                                    <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9.5px' }} noWrap>
                                       {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
                                     </Typography>
                                     {course && (
-                                      <Typography variant="caption" sx={{ opacity: 0.9 }} noWrap>
+                                      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px' }} noWrap>
                                         {course.code}
-                                      </Typography>
-                                    )}
-                                    {task?.description && (
-                                      <Typography variant="caption" color="text.secondary" noWrap>
-                                        {task.description}
                                       </Typography>
                                     )}
                                   </Stack>

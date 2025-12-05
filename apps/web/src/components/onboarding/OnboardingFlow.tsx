@@ -912,7 +912,10 @@ const importCanvasCourses = async () => {
 
         if (coursesNeedingMeetings.length > 0) {
           setPendingMeetingCourses(coursesNeedingMeetings)
-          setMeetingDrafts([{ dayOfWeek: 1, startTime: '09:00', endTime: '10:00', type: 'lecture', location: '' }])
+          const first = coursesNeedingMeetings[0]
+          const firstId = first?.canvasId?.toString() || first?.id?.toString()
+          const defaultSlots = [{ dayOfWeek: 1, startTime: '09:00', endTime: '10:00', type: 'lecture', location: '' }]
+          setMeetingDrafts(firstId ? { [firstId]: { slots: defaultSlots } } : {})
           setMeetingDialogOpen(true)
           setImportStatus(`📅 Imported ${selectedImportedCourses.length} courses. Add class meeting times to block your calendar.`)
         } else {
@@ -945,7 +948,10 @@ const importCanvasCourses = async () => {
   const startNextMeetingCourse = (remaining: any[]) => {
     if (remaining.length > 0) {
       setPendingMeetingCourses(remaining)
-      setMeetingDrafts([{ dayOfWeek: 1, startTime: '09:00', endTime: '10:00', type: 'lecture', location: '' }])
+      const next = remaining[0]
+      const nextId = next?.canvasId?.toString() || next?.id?.toString()
+      const defaultSlots = [{ dayOfWeek: 1, startTime: '09:00', endTime: '10:00', type: 'lecture', location: '' }]
+      setMeetingDrafts(nextId ? { [nextId]: { slots: defaultSlots } } : {})
       setMeetingDialogOpen(true)
     } else {
       setPendingMeetingCourses([])
@@ -960,7 +966,7 @@ const importCanvasCourses = async () => {
     if (!currentCourse) return
 
     const courseId = currentCourse.canvasId?.toString() || currentCourse.id?.toString() || currentCourse.id
-    const draft = meetingDrafts[courseId]
+    const draft = Array.isArray(meetingDrafts) ? undefined : meetingDrafts[courseId]
     const cleanedSlots = (draft?.slots || [])
       .filter((item: any) => item?.start || item?.end)
       .map((item: any) => ({
@@ -1823,9 +1829,15 @@ const importCanvasCourses = async () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 We couldn't find lecture times for <strong>{pendingMeetingCourses[0].name}</strong>. Add recurring times so study blocks don't overlap class.
               </Typography>
+              {(() => {
+                const current = pendingMeetingCourses[0]
+                const courseId = current?.canvasId?.toString() || current?.id?.toString() || ''
+                const draft = (Array.isArray(meetingDrafts) ? {} : meetingDrafts[courseId]) || { slots: [], format: 'in-person', location: '' }
+                const slots = draft.slots || []
+                return (
               <Stack spacing={1}>
                 {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((day, idx) => {
-                  const draft = meetingDrafts[idx] || { dayOfWeek: idx, startTime: '', endTime: '' }
+                  const slot = slots[idx] || { dayOfWeek: idx, startTime: '', endTime: '' }
                   return (
                     <Box
                       key={day}
@@ -1840,12 +1852,15 @@ const importCanvasCourses = async () => {
                         size="small"
                         type="time"
                         label="Start"
-                        value={draft.startTime}
+                        value={slot.startTime}
                         onChange={(e) => {
                           const value = e.target.value
-                          const updated = Array.isArray(meetingDrafts) ? [...meetingDrafts] : []
-                          updated[idx] = { ...(updated[idx] || { dayOfWeek: idx }), startTime: value }
-                          setMeetingDrafts(updated)
+                          const updatedSlots = [...slots]
+                          updatedSlots[idx] = { ...(updatedSlots[idx] || { dayOfWeek: idx }), startTime: value }
+                          setMeetingDrafts({
+                            ...(Array.isArray(meetingDrafts) ? {} : meetingDrafts),
+                            [courseId]: { ...(draft || {}), slots: updatedSlots }
+                          })
                         }}
                         inputProps={{ step: 300 }}
                       />
@@ -1853,12 +1868,15 @@ const importCanvasCourses = async () => {
                         size="small"
                         type="time"
                         label="End"
-                        value={draft.endTime}
+                        value={slot.endTime}
                         onChange={(e) => {
                           const value = e.target.value
-                          const updated = Array.isArray(meetingDrafts) ? [...meetingDrafts] : []
-                          updated[idx] = { ...(updated[idx] || { dayOfWeek: idx }), endTime: value }
-                          setMeetingDrafts(updated)
+                          const updatedSlots = [...slots]
+                          updatedSlots[idx] = { ...(updatedSlots[idx] || { dayOfWeek: idx }), endTime: value }
+                          setMeetingDrafts({
+                            ...(Array.isArray(meetingDrafts) ? {} : meetingDrafts),
+                            [courseId]: { ...(draft || {}), slots: updatedSlots }
+                          })
                         }}
                         inputProps={{ step: 300 }}
                       />
@@ -1870,8 +1888,11 @@ const importCanvasCourses = async () => {
                     select
                     size="small"
                     label="Format"
-                    value={meetingDrafts.format || 'in-person'}
-                    onChange={(e) => setMeetingDrafts({ ...meetingDrafts, format: e.target.value })}
+                    value={draft.format || 'in-person'}
+                    onChange={(e) => setMeetingDrafts({
+                      ...(Array.isArray(meetingDrafts) ? {} : meetingDrafts),
+                      [courseId]: { ...(draft || {}), format: e.target.value, slots }
+                    })}
                     sx={{ minWidth: 180 }}
                   >
                     <MenuItem value="in-person">In person</MenuItem>
@@ -1882,11 +1903,16 @@ const importCanvasCourses = async () => {
                     fullWidth
                     size="small"
                     label="Location / Link"
-                    value={meetingDrafts.location || ''}
-                    onChange={(e) => setMeetingDrafts({ ...meetingDrafts, location: e.target.value })}
+                    value={draft.location || ''}
+                    onChange={(e) => setMeetingDrafts({
+                      ...(Array.isArray(meetingDrafts) ? {} : meetingDrafts),
+                      [courseId]: { ...(draft || {}), location: e.target.value, slots }
+                    })}
                   />
                 </Box>
               </Stack>
+                )
+              })()}
               <FormHelperText sx={{ mt: 1 }}>
                 You can edit these later from Courses, but adding now prevents study blocks from overlapping class.
               </FormHelperText>

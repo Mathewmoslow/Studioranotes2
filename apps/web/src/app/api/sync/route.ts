@@ -423,9 +423,18 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(result)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error syncing data:', error)
     const message = error instanceof Error ? error.message : 'Unknown error'
+
+    // Common Prisma connectivity issue (e.g., wrong DATABASE_URL or no network)
+    if (typeof error?.code === 'string' && error.code === 'P1001') {
+      return NextResponse.json(
+        { error: 'Database unreachable', details: message, hint: 'Check DATABASE_URL/DIRECT_URL and network access.' },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json({ error: 'Sync failed', details: message }, { status: 500 })
   }
 }
