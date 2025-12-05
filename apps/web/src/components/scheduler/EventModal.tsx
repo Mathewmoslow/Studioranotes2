@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Event } from '@studioranotes/types';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import styles from './EventModal.module.css';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { Star, StarBorder } from '@mui/icons-material';
@@ -333,6 +333,9 @@ const EventModal: React.FC<EventModalProps> = ({ event, timeBlock, courses, onCl
     const course = task ? getCourse(task.courseId) : null;
     const startTime = ensureDate(block.startTime);
     const endTime = ensureDate(block.endTime);
+    const trueDueDate = task?.dueDate ? ensureDate(task.dueDate) : null;
+    const bufferDays = typeof task?.bufferDays === 'number' ? task.bufferDays : null;
+    const bufferTarget = trueDueDate && bufferDays !== null ? subDays(trueDueDate, bufferDays) : null;
     
     return (
       <div className={styles.modalOverlay} onClick={onClose}>
@@ -383,8 +386,17 @@ const EventModal: React.FC<EventModalProps> = ({ event, timeBlock, courses, onCl
               </div>
               
               <div className={styles.infoRow}>
-                <span className={styles.label}>Due Date:</span>
-                <span>{task ? format(ensureDate(task.dueDate), 'MMMM d, yyyy') : 'No due date'}</span>
+                <span className={styles.label}>True Due Date:</span>
+                <span>{trueDueDate ? format(trueDueDate, 'MMMM d, yyyy h:mm a') : 'No due date'}</span>
+              </div>
+              
+              <div className={styles.infoRow}>
+                <span className={styles.label}>Buffer Target:</span>
+                <span>
+                  {bufferTarget
+                    ? `${format(bufferTarget, 'MMMM d, yyyy h:mm a')} (${bufferDays}d before due)`
+                    : 'No buffer applied'}
+                </span>
               </div>
               
               <div className={styles.infoRow}>
