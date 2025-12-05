@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mi>T</mi><mi>M</mi><mi>L</mi><mtext> </mtext><mi>w</mi><mi>i</mi><mi>t</mi><mi>h</mi><mtext> </mtext><mi>I</mi><mi>n</mi><mi>l</mi><mi>i</mi><mi>n</mi><mi>e</mi><mtext> </mtext><mi>C</mi><mi>a</mi><mi>l</mi><mi>e</mi><mi>n</mi><mi>d</mi><mi>a</mi><mi>r</mi></mrow><annotation encoding="application/x-tex">HTML with Inline Calendar</annotation></semantics></math>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nursing Schedule - Working Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 400px;
+        }
+        
+        .right-panel {
+            flex: 2;
+        }
+        
+        .module-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .module-header {
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .obgyn-header { background-color: #2196F3; }
+        .adulthealth-header { background-color: #4CAF50; }
+        .nclex-header { background-color: #9C27B0; }
+        .geronto-header { background-color: #FF9800; }
+        
+        .module-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .module-card.collapsed .module-content {
+            max-height: 0;
+        }
+        
+        .assignments {
+            padding: 15px;
+        }
+        
+        .assignment-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .assignment-checkbox {
+            margin-right: 10px;
+        }
+        
+        .assignment-text {
+            flex: 1;
+        }
+        
+        .assignment-date {
+            font-size: 12px;
+            color: #999;
+            margin-left: 10px;
+        }
+        
+        /* Calendar Styles */
+        .calendar-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-views {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn:hover {
+            background: #1976D2;
+        }
+        
+        .btn.active {
+            background: #1565C0;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            margin-top: 20px;
+        }
+        
+        .calendar-day {
+            background: white;
+            min-height: 100px;
+            padding: 5px;
+        }
+        
+        .calendar-day-header {
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .calendar-day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .event {
+            padding: 2px 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 11px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .event.lecture { background-color: #2196F3; }
+        .event.clinical { background-color: #4CAF50; }
+        .event.exam { background-color: #f44336; }
+        .event.study { background-color: #000000; }
+        
+        .week-view {
+            display: none;
+        }
+        
+        .week-view.active {
+            display: block;
+        }
+        
+        .time-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+        }
+        
+        .time-slot {
+            background: white;
+            min-height: 60px;
+            padding: 5px;
+            position: relative;
+        }
+        
+        .time-label {
+            background: #f0f0f0;
+            padding: 5px;
+            text-align: right;
+            font-size: 12px;
+        }
+        
+        .scheduler-controls {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .preferences-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .preference-item {
+            margin-bottom: 10px;
+        }
+        
+        .preference-item label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .preference-item input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Summer 2025 Nursing Schedule</h1>
+        <div>Week <span id="current-week">1</span></div>
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <h2>Module Assignments</h2>
+            <div id="module-cards"></div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="scheduler-controls">
+                <h3>Adaptive Scheduler</h3>
+                <button class="btn" onclick="generateStudySchedule()">Generate Study Schedule</button>
+                <button class="btn" onclick="clearStudyBlocks()">Clear Study Blocks</button>
+                <div id="scheduler-status" style="margin-top: 10px;"></div>
+            </div>
+            
+            <div class="preferences-panel">
+                <h3>Study Preferences</h3>
+                <div class="preference-item">
+                    <label>Max daily study hours:</label>
+                    <input type="number" id="daily-max" value="6" min="1" max="12">
+                </div>
+                <div class="preference-item">
+                    <label>Max weekend study hours:</label>
+                    <input type="number" id="weekend-max" value="4" min="1" max="8">
+                </div>
+                <div class="preference-item">
+                    <label>Preferred study block duration (hours):</label>
+                    <input type="number" id="block-duration" value="1.5" min="0.5" max="3" step="0.5">
+                </div>
+            </div>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="btn" onclick="previousWeek()">← Previous</button>
+                        <button class="btn" onclick="nextWeek()">Next →</button>
+                    </div>
+                    <h3 id="week-range">May 5-11, 2025</h3>
+                    <div class="calendar-views">
+                        <button class="btn active" onclick="setView('month')">Month</button>
+                        <button class="btn" onclick="setView('week')">Week</button>
+                    </div>
+                </div>
+                
+                <div id="month-view" class="month-view">
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+                
+                <div id="week-view" class="week-view">
+                    <div class="time-grid" id="time-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Module data
+        const modules = {
+            1: {
+                obgyn: {
+                    title: "Module 1: Women's Health, Fetal Development",
+                    assignments: [
+                        { id: 'ob1-1', text: "Chapter 1-3 Reading", date: new Date('2025-05-11'), type: "reading", hours: 3 },
+                        { id: 'ob1-2', text: "Chapter 4-6 Reading", date: new Date('2025-05-11'), type: "reading", hours: 3 },
+                        { id: 'ob1-3', text: "Videos: Women's Health", date: new Date('2025-05-11'), type: "video", hours: 1 },
+                        { id: 'ob1-4', text: "Module 1 Quiz", date: new Date('2025-05-18'), type: "quiz", hours: 1.5 }
+                    ]
+                },
+                adulthealth: {
+                    title: "Module 1: Cardiology",
+                    assignments: [
+                        { id: 'ah1-1', text: "Dosage Calculation Quiz", date: new Date('2025-05-07'), type: "quiz", hours: 2 },
+                        { id: 'ah1-2', text: "Cardiology Reading", date: new Date('2025-05-13'), type: "reading", hours: 2.5 },
+                        { id: 'ah1-3', text: "Cardiac Videos", date: new Date('2025-05-13'), type: "video", hours: 1 },
+                        { id: 'ah1-4', text: "Cardiology Quiz", date: new Date('2025-05-14'), type: "quiz", hours: 1 }
+                    ]
+                },
+                nclex: {
+                    title: "Module 1: Health Assessment",
+                    assignments: [
+                        { id: 'nc1-1', text: "Attestation Quiz", date: new Date('2025-05-05'), type: "quiz", hours: 0.5 },
+                        { id: 'nc1-2', text: "Health Assessment Reading", date: new Date('2025-05-11'), type: "reading", hours: 2 },
+                        { id: 'nc1-3', text: "HESI Prep", date: new Date('2025-05-12'), type: "prep", hours: 1.5 }
+                    ]
+                },
+                geronto: {
+                    title: "Module 1: Introduction",
+                    assignments: [
+                        { id: 'ge1-1', text: "CastleBranch Quiz", date: new Date('2025-05-12'), type: "quiz", hours: 0.5 },
+                        { id: 'ge1-2', text: "Legal/Ethical Reading", date: new Date('2025-05-14'), type: "reading", hours: 2 },
+                        { id: 'ge1-3', text: "Intro Videos", date: new Date('2025-05-13'), type: "video", hours: 0.5 }
+                    ]
+                }
+            }
+        };
+
+        // Essential events
+        const essentialEvents = [
+            { date: new Date('2025-05-05'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-05-05'), title: 'NCLEX Orientation', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-05-06'), title: 'OB Clinical', type: 'clinical', time: '1:00 PM' },
+            { date: new Date('2025-05-07'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-05-07'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-05-08'), title: 'Adult Health Clinical', type: 'clinical', time: '6:00 AM' }
+        ];
+
+        let currentWeek = 1;
+        let currentView = 'month';
+        let studyBlocks = [];
+        let completedAssignments = new Set();
+        let scheduler = null;
+
+        // Load saved state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('nursingSchedulerState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                completedAssignments = new Set(state.completedAssignments || []);
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            const state = {
+                completedAssignments: Array.from(completedAssignments)
+            };
+            localStorage.setItem('nursingSchedulerState', JSON.stringify(state));
+        }
+
+        // Generate module cards
+        function generateModuleCards() {
+            const container = document.getElementById('module-cards');
+            container.innerHTML = '';
+            
+            const weekModules = modules[currentWeek] || {};
+            
+            Object.entries(weekModules).forEach(([course, module]) => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                
+                const assignmentsHtml = module.assignments.map((a) => `
+                    <div class="assignment-item">
+                        <input type="checkbox" 
+                               class="assignment-checkbox" 
+                               id="${a.id}"
+                               ${completedAssignments.has(a.id) ? 'checked' : ''}
+                               onchange="toggleAssignment('${a.id}')">
+                        <span class="assignment-text">${a.text}</span>
+                        <span class="assignment-date">${a.date.toLocaleDateString()}</span>
+                    </div>
+                `).join('');
+                
+                card.innerHTML = `
+                    <div class="module-header ${course}-header" onclick="toggleModule(this)">
+                        <div>${module.title}</div>
+                        <span>▼</span>
+                    </div>
+                    <div class="module-content">
+                        <div class="assignments">
+                            ${assignmentsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Toggle module expansion
+        function toggleModule(header) {
+            const card = header.closest('.module-card');
+            card.classList.toggle('collapsed');
+        }
+
+        // Toggle assignment completion
+        function toggleAssignment(id) {
+            if (completedAssignments.has(id)) {
+                completedAssignments.delete(id);
+            } else {
+                completedAssignments.add(id);
+            }
+            saveState();
+        }
+
+        // Generate calendar
+        function generateCalendar() {
+            if (currentView === 'month') {
+                generateMonthView();
+            } else {
+                generateWeekView();
+            }
+        }
+
+        // Generate month view
+        function generateMonthView() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Day headers
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            days.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Get first day of month
+            const year = 2025;
+            const month = 4 + Math.floor((currentWeek - 1) / 4); // May = 4
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startPadding = firstDay.getDay();
+            
+            // Empty cells before first day
+            for (let i = 0; i < startPadding; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day';
+                grid.appendChild(emptyCell);
+            }
+            
+            // Days of the month
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'calendar-day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+                
+                // Add events
+                const dayEvents = [...essentialEvents, ...studyBlocks].filter(e => {
+                    return e.date.toDateString() === date.toDateString();
+                });
+                
+                dayEvents.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = `event ${event.type}`;
+                    eventDiv.textContent = event.title;
+                    eventDiv.onclick = () => alert(`${event.title}\n${event.time || 'All day'}`);
+                    dayCell.appendChild(eventDiv);
+                });
+                
+                grid.appendChild(dayCell);
+            }
+        }
+
+        // Generate week view
+        function generateWeekView() {
+            const grid = document.getElementById('time-grid');
+            grid.innerHTML = '';
+            
+            // Time labels
+            for (let hour = 6; hour <= 22; hour++) {
+                const timeLabel = document.createElement('div');
+                timeLabel.className = 'time-label';
+                timeLabel.textContent = `${hour % 12 || 12}:00 ${hour < 12 ? 'AM' : 'PM'}`;
+                grid.appendChild(timeLabel);
+                
+                // Day slots
+                for (let day = 0; day < 7; day++) {
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+                    grid.appendChild(timeSlot);
+                }
+            }
+        }
+
+        // Set calendar view
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.calendar-views .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.getElementById('month-view').style.display = view === 'month' ? 'block' : 'none';
+            document.getElementById('week-view').style.display = view === 'week' ? 'block' : 'none';
+            
+            generateCalendar();
+        }
+
+        // Generate study schedule
+        function generateStudySchedule() {
+            studyBlocks = [];
+            const status = document.getElementById('scheduler-status');
+            status.textContent = 'Generating study schedule...';
+            
+            const dailyMax = parseInt(document.getElementById('daily-max').value);
+            const weekendMax = parseInt(document.getElementById('weekend-max').value);
+            const blockDuration = parseFloat(document.getElementById('block-duration').value);
+            
+            const weekModules = modules[currentWeek] || {};
+            const assignments = [];
+            
+            // Collect all incomplete assignments
+            Object.entries(weekModules).forEach(([course, module]) => {
+                module.assignments.forEach(assignment => {
+                    if (!completedAssignments.has(assignment.id)) {
+                        assignments.push({ ...assignment, course });
+                    }
+                });
+            });
+            
+            // Sort by due date
+            assignments.sort((a, b) => a.date - b.date);
+            
+            // Schedule each assignment
+            assignments.forEach(assignment => {
+                const daysBeforeDue = 3;
+                const startDate = new Date(assignment.date);
+                startDate.setDate(startDate.getDate() - daysBeforeDue);
+                
+                let hoursScheduled = 0;
+                let currentDate = new Date(startDate);
+                
+                while (hoursScheduled < assignment.hours && currentDate <= assignment.date) {
+                    const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+                    const maxToday = isWeekend ? weekendMax : dailyMax;
+                    
+                    // Check how many hours already scheduled for this day
+                    const existingHours = studyBlocks
+                        .filter(b => b.date.toDateString() === currentDate.toDateString())
+                        .reduce((sum, b) => sum + b.hours, 0);
+                    
+                    if (existingHours < maxToday) {
+                        const hoursToSchedule = Math.min(
+                            blockDuration,
+                            assignment.hours - hoursScheduled,
+                            maxToday - existingHours
+                        );
+                        
+                        studyBlocks.push({
+                            date: new Date(currentDate),
+                            title: `${assignment.course.toUpperCase()}: ${assignment.text}`,
+                            type: 'study',
+                            hours: hoursToSchedule
+                        });
+                        
+                        hoursScheduled += hoursToSchedule;
+                    }
+                    
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            });
+            
+            status.textContent = `Scheduled ${studyBlocks.length} study blocks`;
+            generateCalendar();
+        }
+
+        // Clear study blocks
+        function clearStudyBlocks() {
+            studyBlocks = [];
+            generateCalendar();
+            document.getElementById('scheduler-status').textContent = 'Study blocks cleared';
+        }
+
+        // Navigation
+        function previousWeek() {
+            if (currentWeek > 1) {
+                currentWeek--;
+                updateWeekDisplay();
+            }
+        }
+
+        function nextWeek() {
+            if (currentWeek < 14) {
+                currentWeek++;
+                updateWeekDisplay();
+            }
+        }
+
+        function updateWeekDisplay() {
+            document.getElementById('current-week').textContent = currentWeek;
+            
+            const weekStart = new Date(2025, 4, 5 + (currentWeek - 1) * 7);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            document.getElementById('week-range').textContent = 
+                `${weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, 2025`;
+            
+            generateModuleCards();
+            generateCalendar();
+        }
+
+        // Initialize
+        loadState();
+        generateModuleCards();
+        generateCalendar();
+    </script>
+</body>
+</html>
+Improve
+Explain

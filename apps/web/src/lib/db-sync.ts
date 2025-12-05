@@ -1,0 +1,296 @@
+import { debounce } from 'lodash'
+
+interface SyncState {
+  courses: any[]
+  tasks: any[]
+  notes: any[]
+  studyBlocks: any[]
+  preferences: any
+  onboardingCompleted: boolean
+}
+
+class DatabaseSync {
+  private syncInProgress = false
+  private syncQueue: SyncState | null = null
+  private lastSyncTime: Date | null = null
+
+  // Debounced sync function to prevent too many API calls
+  private debouncedSync = debounce(async (data: SyncState) => {
+    if (this.syncInProgress) {
+      this.syncQueue = data
+      return
+    }
+
+    try {
+      this.syncInProgress = true
+
+      const response = await fetch('/api/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      if (!response.ok) {
+        console.warn('⚠️ DB Sync skipped: API returned non-OK response', {
+          status: response.status,
+          statusText: response.statusText
+        })
+        this.syncInProgress = false
+        return
+      }
+
+      const result = await response.json()
+      this.lastSyncTime = new Date()
+      console.log('✅ Data synced to database:', result)
+
+      // If there's a queued sync, process it
+      if (this.syncQueue) {
+        const queuedData = this.syncQueue
+        this.syncQueue = null
+        this.syncInProgress = false
+        this.debouncedSync(queuedData)
+      } else {
+        this.syncInProgress = false
+      }
+    } catch (error) {
+      console.warn('⚠️ Sync skipped (likely offline):', error)
+      this.syncInProgress = false
+    }
+  }, 2000) // 2 second debounce
+
+  // Sync data to database
+  async syncToDatabase(data: SyncState) {
+    this.debouncedSync(data)
+  }
+
+  // Load data from database
+  async loadFromDatabase(): Promise<SyncState | null> {
+    try {
+      const response = await fetch('/api/sync', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        console.warn('⚠️ DB load skipped: API returned non-OK response', {
+          status: response.status,
+          statusText: response.statusText
+        })
+        return null
+      }
+
+      const data = await response.json()
+      console.log('✅ Data loaded from database')
+      return data
+    } catch (error) {
+      console.warn('⚠️ DB load skipped (likely offline):', error)
+      return null
+    }
+  }
+
+  // Check if sync is needed
+  shouldSync(): boolean {
+    if (!this.lastSyncTime) return true
+    const fiveMinutes = 5 * 60 * 1000
+    return Date.now() - this.lastSyncTime.getTime() > fiveMinutes
+  }
+
+  // Force immediate sync
+  async forceSync(data: SyncState) {
+    this.debouncedSync.cancel()
+    await this.syncToDatabase(data)
+  }
+}
+
+// Create singleton instance
+export const dbSync = new DatabaseSync()
+
+// Helper hook for React components
+import { useEffect, useRef } from 'react'
+import { useScheduleStore } from '@/stores/useScheduleStore'
+import { useSession } from 'next-auth/react'
+
+export function useDatabaseSync() {
+  const { data: session, status } = useSession()
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const {
+    courses,
+    tasks,
+    timeBlocks,
+    events,
+    preferences,
+    settings
+  } = useScheduleStore()
+
+  // Initial load from database (only when authenticated)
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.email) {
+      return
+    }
+
+    const loadData = async () => {
+      try {
+        // Check if we already have data in the store (from onboarding or local storage)
+        const currentState = useScheduleStore.getState()
+        const hasLocalData = currentState.courses.length > 0 || currentState.tasks.length > 0
+
+        console.log('🔍 DB Sync: Checking for existing data...', {
+          hasLocalData,
+          coursesCount: currentState.courses.length,
+          tasksCount: currentState.tasks.length
+        })
+
+        // Only load from database if we don't have local data
+        // This prevents overwriting freshly imported courses from onboarding
+        if (!hasLocalData) {
+          console.log('📥 DB Sync: No local data found, loading from database...')
+          const data = await dbSync.loadFromDatabase()
+
+          if (data && data.courses) {
+            console.log('✅ DB Sync: Loaded data from database:', {
+              coursesCount: data.courses.length,
+              tasksCount: data.tasks.length
+            })
+            // Update store with database data
+            useScheduleStore.setState({
+              courses: data.courses,
+              tasks: data.tasks
+            })
+          } else {
+            console.log('📭 DB Sync: No data in database')
+          }
+        } else {
+          console.log('💾 DB Sync: Using existing local data, skipping database load')
+          // Sync local data to database instead
+          const validBlocks = currentState.timeBlocks.filter(block => {
+            const start = new Date(block.startTime)
+            const end = new Date(block.endTime)
+            return start instanceof Date && end instanceof Date && !isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start
+          })
+          const syncData: SyncState = {
+            courses: currentState.courses,
+            tasks: currentState.tasks,
+            notes: [],
+            studyBlocks: validBlocks,
+            preferences: currentState.preferences,
+            onboardingCompleted: true
+          }
+          dbSync.syncToDatabase(syncData)
+        }
+      } catch (error) {
+        // Silently handle errors - user might not have data yet
+        console.log('⚠️ DB Sync: Error loading data:', error)
+      }
+    }
+
+    loadData()
+  }, [status, session])
+
+  // Auto-sync to database on changes (only when authenticated)
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.email) {
+      return
+    }
+
+    const syncData: SyncState = {
+      courses,
+      tasks,
+      notes: [],
+      studyBlocks: timeBlocks.filter(block => {
+        const start = new Date(block.startTime)
+        const end = new Date(block.endTime)
+        return start instanceof Date && end instanceof Date && !isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start
+      }),
+      preferences,
+      onboardingCompleted: true
+    }
+
+    dbSync.syncToDatabase(syncData)
+  }, [courses, tasks, timeBlocks, preferences, status, session])
+
+  // Periodic sync every 5 minutes (only when authenticated)
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.email) {
+      return
+    }
+
+    syncIntervalRef.current = setInterval(() => {
+      if (dbSync.shouldSync()) {
+        const syncData: SyncState = {
+          courses,
+          tasks,
+          notes: [],
+          studyBlocks: timeBlocks.filter(block => {
+            const start = new Date(block.startTime)
+            const end = new Date(block.endTime)
+            return start instanceof Date && end instanceof Date && !isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start
+          }),
+          preferences,
+          onboardingCompleted: true
+        }
+        dbSync.syncToDatabase(syncData)
+      }
+    }, 5 * 60 * 1000)
+
+    return () => {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current)
+      }
+    }
+  }, [courses, tasks, timeBlocks, preferences, status, session])
+
+  // Sync before unload (only when authenticated)
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.user?.email) {
+      return
+    }
+
+    const handleBeforeUnload = () => {
+      const syncData: SyncState = {
+        courses,
+        tasks,
+        notes: [],
+        studyBlocks: timeBlocks,
+        preferences,
+        onboardingCompleted: true
+      }
+      dbSync.forceSync(syncData)
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [courses, tasks, timeBlocks, preferences, status, session])
+
+  return {
+    syncToDatabase: () => {
+      const syncData: SyncState = {
+        courses,
+        tasks,
+        notes: [],
+        studyBlocks: timeBlocks,
+        preferences,
+        onboardingCompleted: true
+      }
+      return dbSync.syncToDatabase(syncData)
+    },
+    loadFromDatabase: dbSync.loadFromDatabase.bind(dbSync),
+    forceSync: () => {
+      const syncData: SyncState = {
+        courses,
+        tasks,
+        notes: [],
+        studyBlocks: timeBlocks,
+        preferences,
+        onboardingCompleted: true
+      }
+      return dbSync.forceSync(syncData)
+    }
+  }
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Summer 2025 Complete Schedule Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
+  <link rel="stylesheet" href="css/styles.css"></head>
+<body>
+  <!-- Semester at a glance bar -->
+  <div class="semester-bar">
+    <span>Semester at a glance:</span>
+    <a href="https://studyhubmatt.neocities.org/SummerSchedule2025/obgyn-planner" class="semester-link">OBGYN</a>
+    |
+    <a href="https://studyhubmatt.neocities.org/SummerSchedule2025/nclex-immersion" class="semester-link">NCLEX IMMERSION</a>
+    |
+    <a href="https://studyhubmatt.neocities.org/SummerSchedule2025/Gerontology-planner" class="semester-link">GERONTOLOGY</a>
+    |
+    <a href="https://studyhubmatt.neocities.org/SummerSchedule2025/adulthealth-planner" class="semester-link">ADULT HEALTH</a>
+  </div>
+  
+  <!-- (Optionally keep your page title below it) -->
+  <div class="header">
+    <h1>Summer 2025 Complete Schedule</h1>
+  </div>
+  
+  <div class="container">
+    <!-- Current Week Modules Section - REPLACED WITH DYNAMIC VERSION -->
+    <div class="module-section">
+      <h3>Current Module Assignments</h3>
+      <div class="module-container" id="module-container">
+        <!-- Module cards will be generated here dynamically -->
+      </div>
+    </div>
+    
+    <!-- Week selector -->
+    <div class="week-selection">
+      <div class="week-nav-header">
+        <h3>Jump to Week:</h3>
+        <div class="course-selector">
+          <label for="course-select">Select Course:</label>
+          <select id="course-select">
+            <option value="all">All Courses</option>
+            <option value="obgyn">OB/GYN</option>
+            <option value="adulthealth">Adult Health</option>
+            <option value="nclex">NCLEX Immersion</option>
+            <option value="geronto">Gerontological Nursing</option>
+          </select>
+        </div>
+      </div>
+      <div class="week-button-grid">
+        <button class="week-button" onclick="jumpToWeekAndCourse(1)">Week 1</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(2)">Week 2</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(3)">Week 3</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(4)">Week 4</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(5)">Week 5</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(6)">Week 6</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(7)">Week 7</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(8)">Week 8</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(9)">Week 9</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(10)">Week 10</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(11)">Week 11</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(12)">Week 12</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(13)">Week 13</button>
+        <button class="week-button" onclick="jumpToWeekAndCourse(14)">Week 14</button>
+      </div>
+    </div>
+    
+    <!-- Add this right after the week selection section -->
+    <div class="class-info-section">
+      <h3>Current/Upcoming Assignments</h3>
+      <!-- Assignment content will be dynamically loaded here -->
+    </div>
+
+    <!-- Calendar views -->
+    <div class="views">
+      <div id="month"></div>
+      <div id="week"></div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="color-box lecture"></div>
+        <span>Lectures</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box clinical"></div>
+        <span>Clinical</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box exam"></div>
+        <span>Exams</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box drill"></div>
+        <span>Practice Questions</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box prep"></div>
+        <span>Prep Work</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box remediation"></div>
+        <span>Remediation</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box review"></div>
+        <span>Reviews</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box admin"></div>
+        <span>Admin</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box plan"></div>
+        <span>Planning</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-box geronto"></div>
+        <span>Gerontological</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Event popup template -->
+  <div id="popup-container"></div>
+<!-- put this in <head> or just before app.js -->
+
+  <!-- 1. FullCalendar global (no type="module") -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <!-- 3. Your module -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
+
+
+
+
+

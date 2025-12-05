@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Summer 2025 Complete Schedule Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Semester at a glance bar -->
+  <div class="semester-bar">
+    <span>Semester at a glance:</span>
+    <a href="obgyn-planner.html" class="semester-link">OBGYN</a>
+    |
+    <a href="nclex-immersion.html" class="semester-link">NCLEX IMMERSION</a>
+    |
+    <a href="gerontology-planner.html" class="semester-link">GERONTOLOGY</a>
+    |
+    <a href="adulthealth-planner.html" class="semester-link">ADULT HEALTH</a>
+  </div>
+  
+  <div class="header">
+    <h1>Summer 2025 Complete Schedule</h1>
+    <p class="semester-dates">May 5 - August 8, 2025</p>
+  </div>
+  
+  <div class="container">
+    <!-- Current Week Overview -->
+    <div class="current-week-section">
+      <h3>Current Week Overview</h3>
+      <div class="week-cards" id="current-week-cards">
+        <!-- Dynamic content will be inserted here -->
+      </div>
+    </div>
+
+    <!-- Course Quick Links -->
+    <div class="course-grid">
+      <div class="course-card obgyn">
+        <h3>OB/GYN (NURS330)</h3>
+        <p>Mondays 9:00am-12:00pm</p>
+        <p>Clinical: Tuesdays 6:00am-4:00pm</p>
+        <div class="upcoming-items">
+          <h4>Upcoming:</h4>
+          <ul>
+            <li>Module reading due Sunday</li>
+            <li>Clinical Tuesday</li>
+            <li>Check adaptive quiz dates</li>
+          </ul>
+        </div>
+        <a href="obgyn-planner.html" class="course-link">View Full Schedule →</a>
+      </div>
+
+      <div class="course-card adulthealth">
+        <h3>Adult Health I (NURS310)</h3>
+        <p>Wednesdays 9:05am-12:10pm</p>
+        <p>Clinical: Thursdays 6:00am-4:00pm</p>
+        <div class="upcoming-items">
+          <h4>Upcoming:</h4>
+          <ul>
+            <li>Module quiz due 15 min before class</li>
+            <li>Clinical Thursday</li>
+            <li>vSims check calendar</li>
+          </ul>
+        </div>
+        <a href="adulthealth-planner.html" class="course-link">View Full Schedule →</a>
+      </div>
+
+      <div class="course-card nclex">
+        <h3>NCLEX Immersion (NURS335)</h3>
+        <p>Mondays 2:00pm-5:00pm</p>
+        <p>Location varies: Zoom/On-campus</p>
+        <div class="upcoming-items">
+          <h4>Upcoming:</h4>
+          <ul>
+            <li>HESI prep 50 questions</li>
+            <li>Quiz before HESI</li>
+            <li>Remediation after HESI</li>
+          </ul>
+        </div>
+        <a href="nclex-immersion.html" class="course-link">View Full Schedule →</a>
+      </div>
+
+      <div class="course-card geronto">
+        <h3>Gerontology (NURS315)</h3>
+        <p>Wednesdays 1:00pm-4:00pm</p>
+        <p>Location: NB103</p>
+        <div class="upcoming-items">
+          <h4>Upcoming:</h4>
+          <ul>
+            <li>Module quiz in class</li>
+            <li>Team project work</li>
+            <li>CoursePoint assignments</li>
+          </ul>
+        </div>
+        <a href="gerontology-planner.html" class="course-link">View Full Schedule →</a>
+      </div>
+    </div>
+
+    <!-- Weekly Schedule -->
+    <div class="weekly-schedule">
+      <h3>Weekly Class Schedule</h3>
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>6:00am-4:00pm</td>
+            <td>-</td>
+            <td class="obgyn">OB Clinical<br><small>(Group B)</small></td>
+            <td>-</td>
+            <td class="adulthealth">Adult Health Clinical</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>9:00am-12:00pm</td>
+            <td class="obgyn">OBGYN Lecture<br><small>(CC 226/227)</small></td>
+            <td>-</td>
+            <td class="adulthealth">Adult Health Lecture<br><small>(CC 226/227)</small></td>
+            <td>-</td>
+            <td>Study Time</td>
+          </tr>
+          <tr>
+            <td>1:00pm-4:00pm</td>
+            <td>-</td>
+            <td>-</td>
+            <td class="geronto">Gerontology<br><small>(NB103)</small></td>
+            <td>Lab (select weeks)</td>
+            <td>Study Time</td>
+          </tr>
+          <tr>
+            <td>2:00pm-5:00pm</td>
+            <td class="nclex">NCLEX Immersion<br><small>(Location varies)</small></td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Key Dates -->
+    <div class="key-dates">
+      <h3>Important Dates - Summer 2025</h3>
+      <div class="dates-grid">
+        <div class="date-item">
+          <h4>May</h4>
+          <ul>
+            <li>May 5: Semester begins</li>
+            <li>May 26: Memorial Day (No classes)</li>
+          </ul>
+        </div>
+        <div class="date-item">
+          <h4>June</h4>
+          <ul>
+            <li>June 19: Juneteenth (No clinical)</li>
+            <li>Mid-term exams</li>
+          </ul>
+        </div>
+        <div class="date-item">
+          <h4>July</h4>
+          <ul>
+            <li>July 4: Independence Day</li>
+            <li>July 28: HESI exams</li>
+          </ul>
+        </div>
+        <div class="date-item">
+          <h4>August</h4>
+          <ul>
+            <li>Aug 4-7: Finals week</li>
+            <li>Aug 8: Semester ends</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Study Resources -->
+    <div class="resources">
+      <h3>Study Resources</h3>
+      <div class="resource-links">
+        <a href="https://ahu.instructure.com" target="_blank" class="resource-btn">Canvas</a>
+        <a href="https://evolve.elsevier.com" target="_blank" class="resource-btn">Evolve/HESI</a>
+        <a href="https://thepoint.lww.com" target="_blank" class="resource-btn">CoursePoint</a>
+        <a href="https://sherpath.elsevier.com" target="_blank" class="resource-btn">Sherpath</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Add current week highlighting
+    function updateCurrentWeek() {
+      const today = new Date();
+      const semesterStart = new Date('2025-05-05');
+      const weekNum = Math.ceil((today - semesterStart) / (7 * 24 * 60 * 60 * 1000));
+      
+      const weekDisplay = document.createElement('div');
+      weekDisplay.className = 'current-week-indicator';
+      weekDisplay.innerHTML = `<strong>Week ${weekNum} of 14</strong>`;
+      document.querySelector('.header').appendChild(weekDisplay);
+    }
+    
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', updateCurrentWeek);
+  </script>
+</body>
+</html>

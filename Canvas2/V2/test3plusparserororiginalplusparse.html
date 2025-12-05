@@ -1,0 +1,3019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer 2025 Complete Schedule Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background-color: #f5f5f5;
+        color: #333;
+    }
+    
+    .header {
+        background-color: #fff;
+        border-bottom: 1px solid #ddd;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header h1 {
+        font-size: 24px;
+        font-weight: 400;
+    }
+    
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+    }
+    
+    .left-panel {
+        flex: 1;
+        min-width: 400px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .right-panel {
+        flex: 2;
+    }
+    
+    /* Module Cards */
+    .module-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .module-card {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .module-header {
+        padding: 15px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .obgyn-header { background-color: #2196F3; }
+    .adulthealth-header { background-color: #4CAF50; }
+    .nclex-header { background-color: #9C27B0; }
+    .geronto-header { background-color: #FF9800; }
+    
+    .module-title {
+        font-weight: 500;
+        font-size: 16px;
+    }
+    
+    .module-status {
+        background: rgba(255,255,255,0.3);
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+    
+    .collapse-icon {
+        font-size: 20px;
+        transition: transform 0.3s;
+    }
+    
+    .module-card.collapsed .collapse-icon {
+        transform: rotate(-90deg);
+    }
+    
+    .module-content {
+        max-height: 500px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .module-card.collapsed .module-content {
+        max-height: 0;
+    }
+    
+    .module-info {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .key-topics {
+        padding: 15px;
+        background-color: #f9f9f9;
+    }
+    
+    .key-topics h4 {
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .key-topics p {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #666;
+    }
+    
+    .assignments {
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .assignment-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .assignment-item:last-child {
+        border-bottom: none;
+    }
+    
+    .assignment-checkbox {
+        width: 18px;
+        height: 18px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    
+    .assignment-text {
+        flex: 1;
+        font-size: 14px;
+    }
+    
+    .assignment-date {
+        font-size: 12px;
+        color: #999;
+        margin-left: 10px;
+    }
+    
+    .class-info {
+        padding: 15px;
+        background-color: #f0f7ff;
+        font-size: 14px;
+    }
+    
+    .class-info strong {
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .progress-bar {
+        height: 4px;
+        background-color: #e0e0e0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background-color: #4CAF50;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    
+    .action-buttons {
+        padding: 15px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-primary {
+        background-color: #2196F3;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    /* Week/Course Selectors */
+    .selectors {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: #f5f5f5;
+        padding: 10px 0;
+        z-index: 10;
+    }
+    
+    .selector-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .selector-group label {
+        font-weight: 500;
+    }
+    
+    select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        background-color: white;
+    }
+    
+    /* Calendar */
+    .calendar-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .calendar-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .tab {
+        padding: 8px 16px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+    }
+    
+    .tab.active {
+        background: #2196F3;
+        color: white;
+        border-color: #2196F3;
+    }
+    
+    .calendar-view {
+        display: none;
+    }
+    
+    .calendar-view.active {
+        display: block;
+    }
+    
+    /* Legend */
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 15px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 4px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+    }
+    
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+    }
+    
+    /* Calendar Event Colors */
+    .fc-event {
+        border: none;
+        padding: 2px 4px;
+        margin: 1px 0;
+        font-size: 11px;
+    }
+    
+    /* Week View List */
+    .week-schedule {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .day-section {
+        margin-bottom: 25px;
+    }
+    
+    .day-header {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #eee;
+    }
+    
+    .time-slot {
+        display: flex;
+        gap: 15px;
+        padding: 8px 0;
+        align-items: center;
+    }
+    
+    .time {
+        width: 140px;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .event {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 4px;
+        color: white;
+        font-size: 14px;
+    }
+    
+    /* Event type colors */
+    .lecture { background-color: #2196F3; }
+    .clinical { background-color: #4CAF50; }
+    .exam { background-color: #f44336; }
+    .quiz { background-color: #FF9800; }
+    .assignment { background-color: #9C27B0; }
+    .prep { background-color: #00BCD4; }
+    .simulation { background-color: #8BC34A; }
+    .study { 
+        background-color: #000000; 
+        color: #ffffff !important;
+        border: 1px solid #333;
+    }
+    
+    /* Study blocks */
+    .fc-event.study {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #333 !important;
+    }
+    
+    /* Enhanced Debug Console */
+    #debug-console {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1a1a1a;
+        color: #fff;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        height: 250px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+    }
+    
+    .debug-header {
+        background: #2d2d2d;
+        padding: 8px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #444;
+    }
+    
+    .debug-title {
+        font-weight: bold;
+        color: #0f0;
+    }
+    
+    .debug-controls {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .debug-btn {
+        background: #444;
+        color: #fff;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 11px;
+    }
+    
+    .debug-btn:hover {
+        background: #555;
+    }
+    
+    .debug-btn.minimize {
+        background: #f59e0b;
+    }
+    
+    .debug-btn.clear {
+        background: #ef4444;
+    }
+    
+    .debug-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        background: #0d0d0d;
+    }
+    
+    .debug-entry {
+        margin: 3px 0;
+        padding: 5px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    
+    .debug-timestamp {
+        color: #888;
+        margin-right: 8px;
+    }
+    
+    .debug-log {
+        background: rgba(59, 130, 246, 0.1);
+        color: #93c5fd;
+    }
+    
+    .debug-error {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-left: 3px solid #ef4444;
+    }
+    
+    .debug-warn {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+        border-left: 3px solid #f59e0b;
+    }
+    
+    .debug-success {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border-left: 3px solid #10b981;
+    }
+    
+    .debug-info {
+        background: rgba(99, 102, 241, 0.2);
+        color: #a5b4fc;
+        border-left: 3px solid #6366f1;
+    }
+    
+    .debug-function {
+        background: rgba(139, 92, 246, 0.2);
+        color: #c4b5fd;
+        font-style: italic;
+    }
+    
+    .debug-event {
+        background: rgba(236, 72, 153, 0.2);
+        color: #f9a8d4;
+    }
+    
+    .debug-console.minimized {
+        height: 40px;
+    }
+    
+    .debug-console.minimized .debug-content {
+        display: none;
+    }
+    
+    .debug-stats {
+        display: flex;
+        gap: 20px;
+        padding: 5px 15px;
+        background: #1a1a1a;
+        border-top: 1px solid #333;
+        font-size: 11px;
+        color: #888;
+    }
+    
+    .debug-stat {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .debug-stat-value {
+        color: #fff;
+        font-weight: bold;
+    }
+    
+    .debug-stack {
+        margin-top: 5px;
+        padding: 5px;
+        background: rgba(0,0,0,0.3);
+        font-size: 10px;
+        color: #888;
+        border-radius: 3px;
+    }
+    
+    /* Adaptive scheduler controls */
+    .scheduler-controls {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .scheduler-controls h3 {
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+    
+    .scheduler-button {
+        background: #2196F3;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    
+    .scheduler-button:hover {
+        background: #1976D2;
+    }
+    
+    /* Calendar specific fixes */
+    #calendar-month, #calendar-week {
+        min-height: 600px;
+    }
+    
+    /* Scheduler Settings */
+    .scheduler-settings {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .scheduler-settings .setting-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .scheduler-settings label {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .scheduler-settings input {
+        width: 60px;
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    #scheduler-status {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+    }
+    
+    .progress-text {
+        padding: 10px 15px;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    /* Document Parser Styles */
+    .parser-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+    
+    .parser-content {
+        position: relative;
+        background: white;
+        margin: 50px auto;
+        width: 90%;
+        max-width: 800px;
+        height: 80vh;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .parser-header {
+        padding: 20px;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .parser-body {
+        flex: 1;
+        display: flex;
+        padding: 20px;
+        gap: 20px;
+        overflow: hidden;
+    }
+    
+    .parser-input {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .parser-output {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .parser-textarea {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 14px;
+        resize: none;
+    }
+    
+    .parser-results {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow-y: auto;
+        background: #f9f9f9;
+    }
+    
+    .parser-footer {
+        padding: 20px;
+        border-top: 1px solid #ddd;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    .import-button {
+        padding: 10px 20px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .import-button:hover {
+        background: #45a049;
+    }
+    
+    .error-message {
+        background: #ffebee;
+        border: 1px solid #f44336;
+        color: #c62828;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    
+    .success-message {
+        background: #e8f5e9;
+        border: 1px solid #4caf50;
+        color: #2e7d32;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+    
+    .parsed-item {
+        background: white;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .parsed-item h4 {
+        margin-bottom: 5px;
+    }
+    
+    .template-select {
+        width: 200px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+</style>
+</head>
+<body>
+    <!-- Enhanced Debug Console -->
+    <div id="debug-console" class="debug-console">
+        <div class="debug-header">
+            <div class="debug-title">🛠️ Debug Console</div>
+            <div class="debug-controls">
+                <button class="debug-btn clear" onclick="clearDebugConsole()">Clear</button>
+                <button class="debug-btn minimize" onclick="toggleDebugConsole()">Minimize</button>
+            </div>
+        </div>
+        <div class="debug-content" id="debug-content">
+            <div class="debug-entry debug-info">
+                <span class="debug-timestamp">[00:00:00]</span>
+                Debug console initialized. Ready to capture logs...
+            </div>
+        </div>
+        <div class="debug-stats" id="debug-stats">
+            <div class="debug-stat">
+                Logs: <span class="debug-stat-value" id="log-count">0</span>
+            </div>
+            <div class="debug-stat">
+                Errors: <span class="debug-stat-value" id="error-count">0</span>
+            </div>
+            <div class="debug-stat">
+                Warnings: <span class="debug-stat-value" id="warn-count">0</span>
+            </div>
+        </div>
+    </div>
+<div class="header">
+<h1>Summer 2025 Nursing Schedule</h1>
+<div>
+    <button class="btn" onclick="showParser()">Import Documents</button>
+    <button class="btn" onclick="exportData()">Export Data</button>
+    <button class="btn" onclick="showImportDialog()">Import Data</button>
+    <span style="margin-left: 20px;">Current Week: <span id="current-week">Week 1</span></span>
+</div>
+</div>
+<div class="container">
+    <div class="left-panel">
+        <h2 style="margin-bottom: 15px;">Week <span id="week-number">1</span> Module Assignments</h2>
+    <div class="selectors">
+        <div class="selector-group">
+            <label>Jump to Week:</label>
+            <select id="week-selector" onchange="changeWeek(this.value)">
+                <option value="1" selected>Week 1</option>
+                <option value="2">Week 2</option>
+                <option value="3">Week 3</option>
+                <option value="4">Week 4</option>
+                <option value="5">Week 5</option>
+                <option value="6">Week 6</option>
+                <option value="7">Week 7</option>
+                <option value="8">Week 8</option>
+                <option value="9">Week 9</option>
+                <option value="10">Week 10</option>
+                <option value="11">Week 11</option>
+                <option value="12">Week 12</option>
+                <option value="13">Week 13</option>
+                <option value="14">Week 14</option>
+            </select>
+        </div>
+        <div class="selector-group">
+            <label>Select Course:</label>
+            <select id="course-selector" onchange="filterByCourse(this.value)">
+                <option value="all">All Courses</option>
+                <option value="obgyn">OB/GYN</option>
+                <option value="adulthealth">Adult Health</option>
+                <option value="nclex">NCLEX</option>
+                <option value="geronto">Gerontology</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="module-cards" id="module-cards">
+        <!-- Module cards will be dynamically generated here -->
+    </div>
+</div>
+
+<div class="right-panel">
+    <div class="scheduler-controls">
+        <h3>Adaptive Scheduler</h3>
+        <div class="scheduler-settings">
+            <div class="setting-group">
+                <label>Daily Max Hours:</label>
+                <input type="number" id="daily-max" value="6" min="1" max="12">
+            </div>
+            <div class="setting-group">
+                <label>Weekend Max Hours:</label>
+                <input type="number" id="weekend-max" value="4" min="1" max="8">
+            </div>
+            <div class="setting-group">
+                <label>Block Duration:</label>
+                <input type="number" id="block-duration" value="1.5" min="0.5" max="3" step="0.5">
+            </div>
+        </div>
+        <button class="scheduler-button" onclick="generateStudySchedule()">Generate Study Schedule</button>
+        <button class="scheduler-button" onclick="clearStudyBlocks()">Clear Study Blocks</button>
+        <div id="scheduler-status"></div>
+    </div>
+    
+    <div class="calendar-container">
+        <div class="calendar-tabs">
+            <div class="tab active" data-view="month">Month</div>
+            <div class="tab" data-view="week">Week</div>
+            <div class="tab" data-view="list">List</div>
+        </div>
+        
+        <div id="month-view" class="calendar-view active">
+            <div id="calendar-month"></div>
+        </div>
+        
+        <div id="week-view" class="calendar-view">
+            <div id="calendar-week"></div>
+        </div>
+        
+        <div id="list-view" class="calendar-view">
+            <div class="week-schedule" id="week-schedule">
+                <!-- Week schedule will be populated here -->
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color lecture"></div>
+                <span>Lectures</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color clinical"></div>
+                <span>Clinical</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color exam"></div>
+                <span>Exams</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color quiz"></div>
+                <span>Quizzes</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color prep"></div>
+                <span>Prep Work</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color assignment"></div>
+                <span>Assignments</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color simulation"></div>
+                <span>Simulation</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color study"></div>
+                <span>Study Time</span>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Document Parser Modal -->
+<div id="parser-modal" class="parser-modal">
+    <div class="parser-content">
+        <div class="parser-header">
+            <h2>Import Course Documents</h2>
+            <button class="btn" onclick="hideParser()">Close</button>
+        </div>
+        
+        <div class="parser-body">
+            <div class="parser-input">
+                <h3>Input Document</h3>
+                <div style="margin: 10px 0;">
+                    <select class="template-select" id="template-select" onchange="loadTemplate()">
+                        <option value="">Select template...</option>
+                        <option value="canvas">Canvas Copy/Paste</option>
+                        <option value="syllabus">Syllabus Format</option>
+                        <option value="outline">Course Outline</option>
+                        <option value="custom">Custom Format</option>
+                    </select>
+                    <button class="btn" onclick="parseDocument()">Parse Document</button>
+                </div>
+                <textarea id="document-input" class="parser-textarea" 
+                         placeholder="Paste your course materials here..."></textarea>
+            </div>
+            
+            <div class="parser-output">
+                <h3>Parsed Results</h3>
+                <div id="parser-messages"></div>
+                <div id="parser-results" class="parser-results">
+                    <!-- Parsed results will appear here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="parser-footer">
+            <button class="btn" onclick="clearParser()">Clear</button>
+            <button class="import-button" onclick="importParsedData()">Import to Schedule</button>
+        </div>
+    </div>
+</div>
+
+<!-- Data Import Modal -->
+<div id="import-modal" class="parser-modal">
+    <div class="parser-content" style="max-width: 600px; height: auto;">
+        <div class="parser-header">
+            <h2>Import Schedule Data</h2>
+            <button class="btn" onclick="hideImportDialog()">Close</button>
+        </div>
+        
+        <div class="parser-body" style="flex-direction: column;">
+            <div style="margin-bottom: 20px;">
+                <h3>Upload Data File</h3>
+                <p>Select a JSON file exported from another device to import your schedule data.</p>
+                <input type="file" id="import-file" accept=".json" style="margin-top: 10px;">
+            </div>
+            
+            <div id="import-preview" style="display: none;">
+                <h3>Preview</h3>
+                <div id="import-preview-content" class="parser-results" style="max-height: 200px;">
+                    <!-- Preview content will appear here -->
+                </div>
+            </div>
+            
+            <div id="import-messages"></div>
+        </div>
+        
+        <div class="parser-footer">
+            <button class="btn" onclick="clearImportDialog()">Clear</button>
+            <button class="import-button" onclick="importDataFile()">Import Data</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+    // Simple debug system that will definitely work
+    const DEBUG_MODE = true;
+    
+    // Create a simple logger first
+    function simpleLog(message, type = 'log') {
+        // Use explicit console calls instead of dynamic
+        if (type === 'error') {
+            console.error(message);
+        } else if (type === 'warn') {
+            console.warn(message);
+        } else if (type === 'info') {
+            console.info(message);
+        } else {
+            console.log(message);
+        }
+        
+        try {
+            const debugContent = document.getElementById('debug-content');
+            if (debugContent) {
+                const div = document.createElement('div');
+                div.className = 'debug-entry debug-' + type;
+                const time = new Date().toLocaleTimeString();
+                div.innerHTML = '<span class="debug-timestamp">[' + time + ']</span>' + message;
+                debugContent.appendChild(div);
+                debugContent.scrollTop = debugContent.scrollHeight;
+            }
+        } catch (e) {
+            console.error('Debug UI error:', e);
+        }
+    }
+    
+    // Catch all errors immediately
+    window.addEventListener('error', function(event) {
+        simpleLog('ERROR: ' + event.message + ' at ' + event.filename + ':' + event.lineno + ':' + event.colno, 'error');
+        return false;
+    });
+    
+    // Start logging
+    simpleLog('Script loading...', 'info');
+    
+    try {
+        // Global variables
+        var calendarMonth = null;
+        var calendarWeek = null;
+        var calendarEvents = [];
+        var studyBlocks = [];
+        var currentWeek = 1;
+        var completedAssignments = new Set();
+        var parsedData = null;
+        var semesterModules = {
+            1: {
+                obgyn: {
+                    title: "Module 1: Women's Health",
+                    chapters: "Chapters 1-6",
+                    keyTopics: "Women's health, Fetal development",
+                    assignments: [
+                        { text: "Chapter 1 Reading", date: "May 11", type: "reading", hours: 2 }
+                    ],
+                    classMeeting: "Monday 9:00-12:00"
+                }
+            }
+        };
+        
+        simpleLog('Global variables initialized', 'success');
+        
+        // Simple document parser class
+        function DocumentParser() {
+            this.parse = function(text, template) {
+                simpleLog('DocumentParser.parse called', 'info');
+                return {
+                    modules: [],
+                    errors: [],
+                    assignments: [],
+                    events: []
+                };
+            };
+        }
+        
+        var parser = new DocumentParser();
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            simpleLog('Waiting for DOM...', 'info');
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            simpleLog('DOM already ready', 'info');
+            initializeApp();
+        }
+        
+        function initializeApp() {
+            simpleLog('DOM Ready - Starting initialization', 'info');
+            
+            try {
+                // Check for FullCalendar
+                if (typeof FullCalendar === 'undefined') {
+                    simpleLog('FullCalendar not found - loading may have failed', 'error');
+                } else {
+                    simpleLog('FullCalendar library found', 'success');
+                }
+                
+                // Check for required elements
+                var requiredElements = [
+                    'calendar-month',
+                    'calendar-week',
+                    'module-cards',
+                    'week-schedule',
+                    'debug-console'
+                ];
+                
+                for (var i = 0; i < requiredElements.length; i++) {
+                    var id = requiredElements[i];
+                    var element = document.getElementById(id);
+                    if (!element) {
+                        simpleLog('Missing element: ' + id, 'warn');
+                    } else {
+                        simpleLog('Found element: ' + id, 'success');
+                    }
+                }
+                
+                // Initialize basic functionality first
+                setupBasicEventListeners();
+                
+                // Initialize calendars if FullCalendar is available
+                if (typeof FullCalendar !== 'undefined') {
+                    initializeCalendars();
+                }
+                
+                // Generate initial content
+                generateModuleCards(1);
+                generateWeekSchedule(1);
+                
+                simpleLog('Application initialized successfully', 'success');
+                
+            } catch (error) {
+                simpleLog('Initialization error: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+        
+        function setupBasicEventListeners() {
+            simpleLog('Setting up event listeners', 'info');
+            
+            // Use event delegation for better reliability
+            document.addEventListener('click', function(event) {
+                var target = event.target;
+                var identifier = target.id || target.className || target.tagName;
+                simpleLog('Click on: ' + identifier, 'event');
+                
+                // Handle specific click events
+                if (target.className && target.className.indexOf('module-header') !== -1) {
+                    toggleModule(target);
+                }
+                
+                if (target.className && target.className.indexOf('assignment-checkbox') !== -1) {
+                    updateProgress(target);
+                }
+            }, true);
+            
+            simpleLog('Event listeners setup complete', 'success');
+        }
+        
+        function initializeCalendars() {
+            simpleLog('Initializing calendars', 'info');
+            
+            var calendarElMonth = document.getElementById('calendar-month');
+            var calendarElWeek = document.getElementById('calendar-week');
+            
+            if (!calendarElMonth || !calendarElWeek) {
+                simpleLog('Calendar elements not found', 'error');
+                return;
+            }
+            
+            // Define calendar events
+            calendarEvents = [
+                { title: 'OB Lecture', start: '2025-05-05T09:00:00', end: '2025-05-05T12:00:00', color: '#2196F3', extendedProps: { type: 'lecture' }},
+                { title: 'NCLEX Orientation', start: '2025-05-05T14:00:00', end: '2025-05-05T17:00:00', color: '#9C27B0', extendedProps: { type: 'lecture' }}
+            ];
+            
+            try {
+                // Create calendars
+                calendarMonth = new FullCalendar.Calendar(calendarElMonth, {
+                    initialView: 'dayGridMonth',
+                    initialDate: '2025-05-05',
+                    events: calendarEvents
+                });
+                
+                calendarWeek = new FullCalendar.Calendar(calendarElWeek, {
+                    initialView: 'timeGridWeek',
+                    initialDate: '2025-05-05',
+                    events: calendarEvents
+                });
+                
+                calendarMonth.render();
+                calendarWeek.render();
+                
+                simpleLog('Calendars initialized', 'success');
+            } catch (e) {
+                simpleLog('Calendar initialization error: ' + e.message, 'error');
+            }
+        }
+        
+        // Basic functions
+        function toggleModule(header) {
+            try {
+                var card = header.closest('.module-card');
+                if (!card) {
+                    card = header.parentElement;
+                    while (card && !card.classList.contains('module-card')) {
+                        card = card.parentElement;
+                    }
+                }
+                
+                if (card) {
+                    card.classList.toggle('collapsed');
+                    simpleLog('Module toggled: ' + (card.dataset.course || 'unknown'), 'info');
+                } else {
+                    simpleLog('Could not find module card', 'warn');
+                }
+            } catch (e) {
+                simpleLog('Error toggling module: ' + e.message, 'error');
+            }
+        }
+        
+        function updateProgress(checkbox) {
+            try {
+                var card = checkbox.closest('.module-card');
+                if (!card) {
+                    card = checkbox.parentElement;
+                    while (card && !card.classList.contains('module-card')) {
+                        card = card.parentElement;
+                    }
+                }
+                
+                if (!card) {
+                    simpleLog('Could not find module card for progress update', 'warn');
+                    return;
+                }
+                
+                var checks = card.querySelectorAll('.assignment-checkbox');
+                var checked = card.querySelectorAll('.assignment-checkbox:checked');
+                var percentage = checks.length > 0 ? (checked.length / checks.length) * 100 : 0;
+                
+                var progressFill = card.querySelector('.progress-fill');
+                if (progressFill) {
+                    progressFill.style.width = percentage + '%';
+                }
+                
+                simpleLog('Progress updated: ' + percentage.toFixed(1) + '%', 'info');
+            } catch (e) {
+                simpleLog('Error updating progress: ' + e.message, 'error');
+            }
+        }
+        
+        function generateModuleCards(week) {
+            simpleLog('Generating module cards for week ' + week, 'info');
+            
+            try {
+                var container = document.getElementById('module-cards');
+                if (!container) {
+                    simpleLog('Module cards container not found', 'error');
+                    return;
+                }
+                
+                // Create a simple test module
+                var html = '<div class="module-card" data-course="test">' +
+                    '<div class="module-header obgyn-header" style="cursor: pointer;">' +
+                    '<div class="module-title">Test Module - Click Me</div>' +
+                    '<span class="collapse-icon">▼</span>' +
+                    '</div>' +
+                    '<div class="module-content">' +
+                    '<div class="assignments">' +
+                    '<div class="assignment-item">' +
+                    '<input type="checkbox" class="assignment-checkbox">' +
+                    '<span class="assignment-text">Test Assignment</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="progress-bar"><div class="progress-fill"></div></div>' +
+                    '</div>' +
+                    '</div>';
+                
+                container.innerHTML = html;
+                
+                simpleLog('Module cards generated', 'success');
+            } catch (e) {
+                simpleLog('Error generating module cards: ' + e.message, 'error');
+            }
+        }
+        
+        function generateWeekSchedule(week) {
+            simpleLog('Generating week schedule for week ' + week, 'info');
+            
+            try {
+                var container = document.getElementById('week-schedule');
+                if (!container) {
+                    simpleLog('Week schedule container not found', 'error');
+                    return;
+                }
+                
+                container.innerHTML = '<div class="day-section"><div class="day-header">Monday</div><div>Test event</div></div>';
+                
+                simpleLog('Week schedule generated', 'success');
+            } catch (e) {
+                simpleLog('Error generating week schedule: ' + e.message, 'error');
+            }
+        }
+        
+        // Make functions globally accessible
+        window.showParser = function() {
+            simpleLog('Showing parser modal', 'info');
+            var modal = document.getElementById('parser-modal');
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                simpleLog('Parser modal not found', 'error');
+            }
+        };
+        
+        window.hideParser = function() {
+            simpleLog('Hiding parser modal', 'info');
+            var modal = document.getElementById('parser-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        window.toggleModule = toggleModule;
+        window.updateProgress = updateProgress;
+        
+        // Set up other global functions
+        window.loadTemplate = function() {
+            simpleLog('loadTemplate called', 'info');
+        };
+        
+        window.parseDocument = function() {
+            simpleLog('parseDocument called', 'info');
+        };
+        
+        window.importParsedData = function() {
+            simpleLog('importParsedData called', 'info');
+        };
+        
+        window.clearParser = function() {
+            simpleLog('clearParser called', 'info');
+        };
+        
+        window.exportData = function() {
+            simpleLog('exportData called', 'info');
+        };
+        
+        window.showImportDialog = function() {
+            simpleLog('showImportDialog called', 'info');
+        };
+        
+        window.changeWeek = function(week) {
+            simpleLog('changeWeek called: ' + week, 'info');
+            currentWeek = parseInt(week);
+            generateModuleCards(currentWeek);
+            generateWeekSchedule(currentWeek);
+        };
+        
+        window.filterByCourse = function(course) {
+            simpleLog('filterByCourse called: ' + course, 'info');
+        };
+        
+        // Debug console controls
+        window.toggleDebugConsole = function() {
+            var debugConsole = document.getElementById('debug-console');
+            if (debugConsole) {
+                debugConsole.classList.toggle('minimized');
+            }
+        };
+        
+        window.clearDebugConsole = function() {
+            var content = document.getElementById('debug-content');
+            if (content) {
+                content.innerHTML = '<div class="debug-entry debug-info"><span class="debug-timestamp">[' + 
+                    new Date().toLocaleTimeString() + ']</span>Console cleared</div>';
+            }
+        };
+        
+        simpleLog('All functions defined', 'success');
+        
+    } catch (error) {
+        console.error('Critical error:', error);
+        simpleLog('CRITICAL ERROR: ' + error.message, 'error');
+    }
+</script>
+    
+    // Document Parser Class
+    class DocumentParser {
+        constructor() {
+            this.patterns = {
+                date: /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\w+\s+\d{1,2},?\s+\d{4})|(\d{1,2}\s+\w+\s+\d{4})/gi,
+                time: /(\d{1,2}:\d{2}\s*[AaPp][Mm])|(\d{1,2}[AaPp][Mm])/gi,
+                module: /module\s*(\d+):?\s*(.+?)(?=module|\n\n|$)/gis,
+                assignment: /(?:assignment|quiz|exam|test|project|paper|discussion|reading|chapter|video|lab|clinical)[\s:]*(.+?)(?=\n|$)/gi,
+                course: /(?:NURS|NUR|NSG)\s*\d{3,4}[A-Z]?\s*-?\s*(.+?)(?=\n|$)/gi,
+                credits: /(\d+)\s*(?:credit|hour)s?/gi
+            };
+        }
+
+        parse(text, template = 'auto') {
+            const results = {
+                courses: [],
+                modules: [],
+                assignments: [],
+                events: [],
+                errors: []
+            };
+
+            try {
+                // Clean the text
+                text = this.cleanText(text);
+
+                // Auto-detect format if needed
+                if (template === 'auto') {
+                    template = this.detectFormat(text);
+                }
+
+                // Parse based on template
+                switch (template) {
+                    case 'canvas':
+                        this.parseCanvas(text, results);
+                        break;
+                    case 'syllabus':
+                        this.parseSyllabus(text, results);
+                        break;
+                    case 'outline':
+                        this.parseCourseOutline(text, results);
+                        break;
+                    default:
+                        this.parseGeneric(text, results);
+                }
+
+                // Post-process results
+                this.postProcess(results);
+
+            } catch (error) {
+                results.errors.push(`Parsing error: ${error.message}`);
+            }
+
+            return results;
+        }
+
+        cleanText(text) {
+            return text
+                .replace(/\r\n/g, '\n')
+                .replace(/\t/g, '    ')
+                .replace(/[^\S\n]+/g, ' ')
+                .trim();
+        }
+
+        detectFormat(text) {
+            if (text.includes('Canvas') || text.includes('Modules')) return 'canvas';
+            if (text.includes('Syllabus') || text.includes('Course Description')) return 'syllabus';
+            if (text.includes('Week') && text.includes('Chapter')) return 'outline';
+            return 'generic';
+        }
+
+        parseCanvas(text, results) {
+            // Parse modules
+            const moduleMatches = text.matchAll(this.patterns.module);
+            for (const match of moduleMatches) {
+                const moduleNum = match[1];
+                const moduleTitle = match[2].trim();
+                
+                const module = {
+                    number: parseInt(moduleNum),
+                    title: moduleTitle,
+                    assignments: []
+                };
+
+                // Find assignments within this module section
+                const moduleSection = match[0];
+                const assignmentMatches = moduleSection.matchAll(this.patterns.assignment);
+                
+                for (const assignMatch of assignmentMatches) {
+                    const assignment = this.parseAssignment(assignMatch[0]);
+                    if (assignment) {
+                        module.assignments.push(assignment);
+                    }
+                }
+
+                results.modules.push(module);
+            }
+        }
+
+        parseAssignment(text) {
+            const assignment = {
+                text: '',
+                date: null,
+                type: 'assignment',
+                hours: 1
+            };
+
+            // Extract assignment text
+            assignment.text = text.replace(this.patterns.assignment, '$1').trim();
+
+            // Extract date
+            const dateMatch = text.match(this.patterns.date);
+            if (dateMatch) {
+                assignment.date = this.parseDate(dateMatch[0]);
+            }
+
+            // Determine type
+            if (/quiz|test|exam/i.test(text)) {
+                assignment.type = 'quiz';
+                assignment.hours = 1.5;
+            } else if (/reading|chapter/i.test(text)) {
+                assignment.type = 'reading';
+                assignment.hours = 2;
+            } else if (/video|watch/i.test(text)) {
+                assignment.type = 'video';
+                assignment.hours = 1;
+            } else if (/project|paper/i.test(text)) {
+                assignment.type = 'project';
+                assignment.hours = 3;
+            }
+
+            return assignment;
+        }
+
+        parseDate(dateStr) {
+            const now = new Date();
+            const year = now.getFullYear();
+            
+            // Try different date formats
+            const formats = [
+                /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/,
+                /(\w+)\s+(\d{1,2}),?\s+(\d{4})/,
+                /(\d{1,2})\s+(\w+)\s+(\d{4})/
+            ];
+
+            for (const format of formats) {
+                const match = dateStr.match(format);
+                if (match) {
+                    try {
+                        return new Date(dateStr);
+                    } catch (e) {
+                        continue;
+                    }
+                }
+            }
+
+            // Default to future date
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 7);
+            return futureDate;
+        }
+
+        postProcess(results) {
+            // Assign courses to modules
+            const courseMap = {
+                'ob': 'obgyn',
+                'women': 'obgyn',
+                'maternal': 'obgyn',
+                'adult': 'adulthealth',
+                'cardiac': 'adulthealth',
+                'nclex': 'nclex',
+                'hesi': 'nclex',
+                'geronto': 'geronto',
+                'gero': 'geronto',
+                'elderly': 'geronto'
+            };
+
+            results.modules.forEach(module => {
+                // Try to determine course from module title
+                const lowerTitle = module.title.toLowerCase();
+                for (const [keyword, course] of Object.entries(courseMap)) {
+                    if (lowerTitle.includes(keyword)) {
+                        module.course = course;
+                        break;
+                    }
+                }
+            });
+
+            // Validate dates
+            results.modules.forEach(module => {
+                module.assignments.forEach(assignment => {
+                    if (!assignment.date || assignment.date < new Date()) {
+                        // Set a reasonable future date
+                        const futureDate = new Date();
+                        futureDate.setDate(futureDate.getDate() + 7);
+                        assignment.date = futureDate;
+                    }
+                });
+            });
+        }
+    }
+
+    // Initialize parser
+    const parser = new DocumentParser();
+
+    // UI Functions for Document Parser
+    const showParser = trackFunction('showParser', function() {
+        debugCheckpoint('Showing parser modal');
+        document.getElementById('parser-modal').style.display = 'block';
+    });
+
+    const hideParser = trackFunction('hideParser', function() {
+        debugCheckpoint('Hiding parser modal');
+        document.getElementById('parser-modal').style.display = 'none';
+    });
+
+    const loadTemplate = trackFunction('loadTemplate', function() {
+        debugCheckpoint('Loading template...');
+        const template = document.getElementById('template-select').value;
+        const input = document.getElementById('document-input');
+        
+        const templates = {
+            canvas: `Module 1: Introduction to Course
+Due: May 11th
+• Chapter 1-3 Reading
+• Intro Video Assignment
+• Module 1 Quiz`,
+            syllabus: `NURS 301 - Adult Health I
+Credits: 3
+Module 1: Cardiovascular System
+Week 1-2: Cardiac Assessment
+- Read Chapters 1-3
+- Complete online quiz by 5/11`,
+            outline: `Week 1 (May 5-11)
+Monday: OB Lecture 9:00 AM
+Tuesday: Clinical 1:00 PM
+Assignments:
+- Read Ch. 1-3 by Sunday
+- Complete dosage quiz`,
+            custom: ''
+        };
+        
+        input.value = templates[template] || '';
+        debugCheckpoint(`Template loaded: ${template}`, false, {
+            template: template,
+            contentLength: input.value.length
+        });
+    });
+
+    const parseDocument = trackFunction('parseDocument', function() {
+        debugCheckpoint('Starting document parsing...');
+        const input = document.getElementById('document-input').value;
+        const template = document.getElementById('template-select').value || 'auto';
+        const messagesDiv = document.getElementById('parser-messages');
+        const resultsDiv = document.getElementById('parser-results');
+        
+        if (!input.trim()) {
+            messagesDiv.innerHTML = '<div class="error-message">Please paste content to parse</div>';
+            debugCheckpoint('Parse failed: No input content', true);
+            return;
+        }
+        
+        debugCheckpoint('Input content received', false, {
+            contentLength: input.length,
+            template: template
+        });
+        
+        messagesDiv.innerHTML = '<div class="success-message">Parsing document...</div>';
+        
+        // Parse the document
+        parsedData = parser.parse(input, template);
+        debugCheckpoint('Document parsed', false, {
+            modules: parsedData.modules.length,
+            errors: parsedData.errors.length
+        });
+        
+        // Display results
+        resultsDiv.innerHTML = '';
+        
+        if (parsedData.errors.length > 0) {
+            parsedData.errors.forEach(error => {
+                messagesDiv.innerHTML += `<div class="error-message">${error}</div>`;
+                debugCheckpoint(`Parse error: ${error}`, true);
+            });
+        }
+        
+        if (parsedData.modules.length > 0) {
+            messagesDiv.innerHTML += `<div class="success-message">Found ${parsedData.modules.length} modules</div>`;
+            
+            parsedData.modules.forEach(module => {
+                const moduleDiv = document.createElement('div');
+                moduleDiv.className = 'parsed-item';
+                moduleDiv.innerHTML = `
+                    <h4>Module ${module.number}: ${module.title}</h4>
+                    <p>Course: ${module.course || 'Unknown'}</p>
+                    <p>Assignments: ${module.assignments.length}</p>
+                    <ul>
+                        ${module.assignments.map(a => `
+                            <li>${a.text} - ${a.date ? a.date.toLocaleDateString() : 'No date'}</li>
+                        `).join('')}
+                    </ul>
+                `;
+                resultsDiv.appendChild(moduleDiv);
+                
+                debugCheckpoint(`Displaying module: ${module.title}`, false, {
+                    moduleNumber: module.number,
+                    assignmentCount: module.assignments.length
+                });
+            });
+        }
+    });
+
+    function importParsedData() {
+        if (!parsedData || parsedData.modules.length === 0) {
+            alert('No data to import. Please parse a document first.');
+            return;
+        }
+        
+        // Convert parsed data to the format expected by the application
+        parsedData.modules.forEach(module => {
+            const week = module.number;
+            if (!semesterModules[week]) {
+                semesterModules[week] = {};
+            }
+            
+            const course = module.course || 'general';
+            
+            // If this course doesn't exist for this week, create it
+            if (!semesterModules[week][course]) {
+                semesterModules[week][course] = {
+                    title: module.title,
+                    chapters: '',
+                    keyTopics: '',
+                    assignments: [],
+                    classMeeting: ''
+                };
+            }
+            
+            // Add assignments
+            module.assignments.forEach((a, index) => {
+                // Check if assignment already exists
+                const existingAssignment = semesterModules[week][course].assignments
+                    .find(existing => existing.text === a.text);
+                
+                if (!existingAssignment) {
+                    semesterModules[week][course].assignments.push({
+                        text: a.text,
+                        date: a.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+                        type: a.type,
+                        hours: a.hours
+                    });
+                }
+            });
+        });
+        
+        // Update the UI
+        changeWeek(currentWeek);
+        hideParser();
+        
+        alert('Data imported successfully!');
+    }
+
+    function clearParser() {
+        document.getElementById('document-input').value = '';
+        document.getElementById('parser-results').innerHTML = '';
+        document.getElementById('parser-messages').innerHTML = '';
+        parsedData = null;
+    }
+
+    // Export/Import Functions
+    function exportData() {
+        const exportData = {
+            semesterModules: semesterModules,
+            completedAssignments: Array.from(completedAssignments),
+            calendarEvents: calendarEvents,
+            studyBlocks: studyBlocks,
+            exportDate: new Date().toISOString(),
+            version: '2.0'
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(dataBlob);
+        a.download = `nursing-schedule-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        alert('Data exported successfully! Save this file to import on another device.');
+    }
+
+    function showImportDialog() {
+        document.getElementById('import-modal').style.display = 'block';
+    }
+
+    function hideImportDialog() {
+        document.getElementById('import-modal').style.display = 'none';
+        clearImportDialog();
+    }
+
+    function clearImportDialog() {
+        document.getElementById('import-file').value = '';
+        document.getElementById('import-preview').style.display = 'none';
+        document.getElementById('import-messages').innerHTML = '';
+    }
+
+    // Handle file selection
+    document.getElementById('import-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const data = JSON.parse(event.target.result);
+                displayImportPreview(data);
+            } catch (error) {
+                document.getElementById('import-messages').innerHTML = 
+                    '<div class="error-message">Invalid file format. Please select a valid JSON file.</div>';
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    function displayImportPreview(data) {
+        const previewDiv = document.getElementById('import-preview');
+        const contentDiv = document.getElementById('import-preview-content');
+        
+        previewDiv.style.display = 'block';
+        
+        let previewHtml = '<div class="parsed-item">';
+        previewHtml += `<h4>Export Date: ${new Date(data.exportDate).toLocaleString()}</h4>`;
+        previewHtml += `<p>Modules: ${Object.keys(data.semesterModules || {}).length} weeks</p>`;
+        previewHtml += `<p>Completed Assignments: ${(data.completedAssignments || []).length}</p>`;
+        previewHtml += `<p>Events: ${(data.calendarEvents || []).length}</p>`;
+        previewHtml += `<p>Study Blocks: ${(data.studyBlocks || []).length}</p>`;
+        previewHtml += '</div>';
+        
+        contentDiv.innerHTML = previewHtml;
+    }
+
+    function importDataFile() {
+        const fileInput = document.getElementById('import-file');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Please select a file to import');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                const importedData = JSON.parse(event.target.result);
+                
+                // Confirm import
+                if (confirm('This will replace all current data. Are you sure you want to continue?')) {
+                    // Import the data
+                    semesterModules = importedData.semesterModules || semesterModules;
+                    completedAssignments = new Set(importedData.completedAssignments || []);
+                    calendarEvents = importedData.calendarEvents || calendarEvents;
+                    studyBlocks = importedData.studyBlocks || [];
+                    
+                    // Update UI
+                    changeWeek(currentWeek);
+                    
+                    // Update calendars
+                    if (calendarMonth && calendarWeek) {
+                        calendarMonth.removeAllEvents();
+                        calendarWeek.removeAllEvents();
+                        calendarEvents.forEach(event => {
+                            calendarMonth.addEvent(event);
+                            calendarWeek.addEvent(event);
+                        });
+                        updateCalendarWithStudyBlocks();
+                    }
+                    
+                    hideImportDialog();
+                    
+                    alert('Data imported successfully!');
+                }
+            } catch (error) {
+                alert('Error importing file: ' + error.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    // Define all modules for the entire semester
+        const semesterModules = {
+            1: {
+                obgyn: {
+                    title: "Module 1: Perspectives in Women's Health, Fetal Development, Normal Pregnancy",
+                    chapters: "Chapters 1-6: Women's Health, Fetal Development, Prenatal Care",
+                    keyTopics: "Women's health throughout the lifespan, Fetal development stages and monitoring, Comprehensive prenatal care, Maternal physiological adaptations",
+                    assignments: [
+                        { text: "Chapter 1: Maternity & Women's Healthcare Today", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Chapter 2: The Family in a Cultural & Community Context", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Chapter 3: Reproductive Anatomy & Physiology", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Chapter 4: Heredity & Environmental Influences", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Chapter 5: Conception & Fetal Development", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Chapter 6: Maternal Adaptation", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Video: Women's Health Throughout the Lifespan", date: "May 11", type: "video", hours: 0.5 },
+                        { text: "Video: Fetal Development", date: "May 11", type: "video", hours: 0.5 },
+                        { text: "Module 1 Adaptive Quiz (15 questions)", date: "May 18", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Monday 5 May 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 1: Cardiology",
+                    chapters: "Cardiovascular assessment, cardiac disorders, ECG basics",
+                    keyTopics: "Introduction to Adult Health Nursing, Cardiovascular System, Common Cardiac Disorders, ECG Interpretation Basics",
+                    assignments: [
+                        { text: "Dosage Calculation Quiz", date: "May 7", type: "quiz", hours: 1 },
+                        { text: "Cardiology Chapter Reading", date: "May 13", type: "reading", hours: 2 },
+                        { text: "Video: Cardiac Cycle Animation", date: "May 13", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Anticoagulant vs. Antiplatelet", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Antihypertensives", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Dysrhythmia", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Loop Diuretics", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Myocardial Infarction", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Nitroglycerin", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "Practice and Learn: Angina Interactive Case Study", date: "May 20", type: "assignment", hours: 2 },
+                        { text: "Module 1 Cardiology Quiz (11 points)", date: "May 14", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Wed 7 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 1: Health Assessment",
+                    chapters: "Health assessment, oxygenation, perfusion, elimination",
+                    keyTopics: "Health assessment concepts, COPD and pneumonia pathophysiology, Coronary artery disease, Physical assessment techniques",
+                    assignments: [
+                        { text: "Attestation Quiz", date: "May 5", type: "quiz", hours: 0.5 },
+                        { text: "Mid-HESI Registration", date: "May 5", type: "admin", hours: 0.5 },
+                        { text: "Nearpod Activity (15 minutes)", date: "May 5", type: "activity", hours: 0.25 },
+                        { text: "Escape Room: Prioritization (8 minutes)", date: "May 5", type: "activity", hours: 0.25 },
+                        { text: "Health Assessment Chapter Reading", date: "May 11", type: "reading", hours: 2 },
+                        { text: "Video: Physical Assessment Techniques", date: "May 11", type: "video", hours: 0.5 },
+                        { text: "HESI Health Assessment Prep (50 questions)", date: "May 12", type: "prep", hours: 2 }
+                    ],
+                    classMeeting: "Monday 5 May 14:00-17:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 1: Introduction to Gerontological Nursing",
+                    chapters: "Legal/ethical aspects, assessment fundamentals, elder care principles",
+                    keyTopics: "Legal and ethical aspects of gerontological nursing, Assessment of older adults, Principles of elder care",
+                    assignments: [
+                        { text: "CastleBranch Education Quiz", date: "May 12", type: "quiz", hours: 1 },
+                        { text: "Topic 3: Legal and Ethical Aspects Reading", date: "May 14", type: "reading", hours: 2 },
+                        { text: "Video: Introduction to Gerontological Nursing", date: "May 13", type: "video", hours: 0.5 },
+                        { text: "Video: Elder Care Principles", date: "May 13", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesdays 1:00pm in NB 103. Attendance quiz within first 10 minutes."
+                }
+            },
+            2: {
+                obgyn: {
+                    title: "Module 2: Normal Labor & Birth",
+                    chapters: "Chapters 7-10: Labor Process, Birth, Pain Management",
+                    keyTopics: "Stages of labor and physiological processes, Birth mechanisms and delivery procedures, Pain management and coping techniques, Immediate postpartum care",
+                    assignments: [
+                        { text: "Chapter 7: Antepartum Care", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 8: Antepartum Testing", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 9: Nutrition", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 10: Prenatal Diagnosis", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 12: Processes of Birth", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 13: Pain Management During Childbirth", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 14: Intrapartum Fetal Surveillance", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Chapter 15: Nursing Care During Labor and Birth", date: "May 18", type: "reading", hours: 2 },
+                        { text: "Video: Labor and Birth Process", date: "May 17", type: "video", hours: 0.5 },
+                        { text: "Video: Pain Management Techniques", date: "May 17", type: "video", hours: 0.5 },
+                        { text: "Module 2 Adaptive Quiz (20 questions)", date: "May 18", type: "quiz", hours: 2 }
+                    ],
+                    classMeeting: "Monday 12 May 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 2: Hematology",
+                    chapters: "Neurological assessment, sensory function, blood disorders",
+                    keyTopics: "Neurological Assessment, Common Neurological Disorders, Sensory System Overview, Hematological Disorders",
+                    assignments: [
+                        { text: "Hematology Chapter Reading", date: "May 13", type: "reading", hours: 2 },
+                        { text: "Neurological Assessment Chapter", date: "May 13", type: "reading", hours: 2 },
+                        { text: "Sensory Function Chapter", date: "May 13", type: "reading", hours: 2 },
+                        { text: "Video: Neurological Assessment Techniques", date: "May 12", type: "video", hours: 0.5 },
+                        { text: "Video: Blood Disorders Overview", date: "May 12", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Heparin", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "Clotting PrepU Mastery Level Quiz", date: "May 20", type: "quiz", hours: 1 },
+                        { text: "Sensory Perception PrepU Mastery Level Quiz", date: "May 20", type: "quiz", hours: 1 },
+                        { text: "Module 2 Hematology Quiz (5 points)", date: "May 14", type: "quiz", hours: 1.5 },
+                        { text: "vSim: Lloyd Bennett (Hematology)", date: "May 20", type: "vsim", hours: 2 }
+                    ],
+                    classMeeting: "Wed 14 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 2: HESI Health Assessment Exam",
+                    chapters: "Health assessment concepts",
+                    keyTopics: "HESI Specialty RN Exam, Health Assessment, Physical assessment techniques, Test-taking strategies",
+                    assignments: [
+                        { text: "Quiz 1: Health Assessment (35 points)", date: "May 14", type: "quiz", hours: 1.5 },
+                        { text: "HESI Specialty RN Exam: Health Assessment", date: "May 12", type: "exam", hours: 3 },
+                        { text: "Post-HESI Reflection", date: "May 12", type: "assignment", hours: 0.5 },
+                        { text: "Coronary Artery Disease Activity", date: "May 12", type: "activity", hours: 1 },
+                        { text: "COPD and Pneumonia Activity", date: "May 12", type: "activity", hours: 1 }
+                    ],
+                    classMeeting: "Monday 12 May 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 2: Legal and Ethical Aspects",
+                    chapters: "Elder law, ethics in elder care, end-of-life considerations",
+                    keyTopics: "Ethical issues in geriatric care, Legal protections for older adults, End-of-life care planning, Advance directives",
+                    assignments: [
+                        { text: "Legal & Ethical Worksheet", date: "May 14", type: "assignment", hours: 2 },
+                        { text: "Advance Directives Assignment", date: "May 20", type: "assignment", hours: 2 },
+                        { text: "Chapter: Elder Law", date: "May 13", type: "reading", hours: 2 },
+                        { text: "Chapter: Ethics in Elder Care", date: "May 13", type: "reading", hours: 2 },
+                        { text: "Video: End-of-Life Care Planning", date: "May 13", type: "video", hours: 0.5 },
+                        { text: "Quiz 1: Modules 1 & 2", date: "May 14", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Wednesday 14 May 1:00-4:00pm in NB 103"
+                }
+            },
+            3: {
+                obgyn: {
+                    title: "Exam 1: Modules 1 & 2",
+                    chapters: "Comprehensive review of Modules 1-2",
+                    keyTopics: "Women's health, Fetal development, Normal pregnancy, Labor and birth processes",
+                    assignments: [
+                        { text: "Exam 1: Modules 1 & 2", date: "May 19", type: "exam", hours: 3 },
+                        { text: "NURS240 Mental Health HESI Remediation", date: "May 23", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 19 May 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Module 3: Cardiovascular & Neurological",
+                    chapters: "Advanced cardiovascular and neurological concepts",
+                    keyTopics: "Complex cardiac conditions, Neurological emergencies, Critical care concepts",
+                    assignments: [
+                        { text: "Exam 1: Modules 1-3", date: "May 21", type: "exam", hours: 3 },
+                        { text: "Foundations HESI Remediation", date: "May 23", type: "remediation", hours: 2 },
+                        { text: "ECG Interpretation Practice", date: "May 20", type: "assignment", hours: 2 },
+                        { text: "Watch and Learn: Administering Subcutaneous Injection", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "Watch and Learn: Administering Intramuscular Injection", date: "May 20", type: "video", hours: 0.5 },
+                        { text: "Watch and Learn: Administering Continuous Tube Feeding", date: "May 20", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wed 21 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 3: Nutrition & Wellness",
+                    chapters: "Nutritional therapy, healthy eating, enteral vs parenteral nutrition",
+                    keyTopics: "Health promotion, Wellness concepts, Enteral and parenteral nutrition, Meal planning and calorie counting",
+                    assignments: [
+                        { text: "Nutrition Chapter Reading", date: "May 25", type: "reading", hours: 2 },
+                        { text: "Video: Enteral vs Parenteral Nutrition", date: "May 18", type: "video", hours: 0.5 },
+                        { text: "Health Assessment Remediation Templates", date: "May 27", type: "remediation", hours: 2 },
+                        { text: "Health Assessment Case Studies", date: "May 27", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 19 May 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Exam 1: Modules 1-2",
+                    chapters: "Introduction to Gerontological Nursing, Legal and Ethical Aspects",
+                    keyTopics: "Assessment of older adults, Principles of elder care, Ethical issues in geriatric care, Legal protections, End-of-life planning",
+                    assignments: [
+                        { text: "Exam 1: Modules 1-2", date: "May 21", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wednesday 21 May 1:00-3:00pm in NB 103"
+                }
+            },
+            4: {
+                obgyn: {
+                    title: "Module 3: Normal Postpartum (Self-Directed)",
+                    chapters: "Chapters 17, 23, 26: Postpartum adaptations, infant feeding, family planning",
+                    keyTopics: "Postpartum adaptations and nursing care, Infant feeding methods and education, Family planning and contraception, Psychosocial adaptations to parenthood",
+                    assignments: [
+                        { text: "Chapter 17: Postpartum Adaptations and Nursing Care", date: "May 25", type: "reading", hours: 2 },
+                        { text: "Chapter 23: Infant Feeding", date: "May 25", type: "reading", hours: 1.5 },
+                        { text: "Chapter 26: Family Planning", date: "May 25", type: "reading", hours: 1.5 },
+                        { text: "Video: Postpartum Physiologic Changes", date: "May 25", type: "video", hours: 0.5 },
+                        { text: "Video: Nursing Care of Newborn and Family", date: "May 25", type: "video", hours: 0.5 },
+                        { text: "Video: Infant Feeding Methods", date: "May 25", type: "video", hours: 0.5 },
+                        { text: "Video: Methods of Contraception", date: "May 25", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Self-directed week due to Memorial Day"
+                },
+                adulthealth: {
+                    title: "Module 4: Fluids & URI",
+                    chapters: "Fluid balance, respiratory assessment, URI management",
+                    keyTopics: "Fluid Balance & Imbalances, IV Therapy, Upper Respiratory Disorders, Oxygenation Therapies",
+                    assignments: [
+                        { text: "Fluids Chapter Reading", date: "May 27", type: "reading", hours: 2 },
+                        { text: "URI Chapter Reading", date: "May 27", type: "reading", hours: 2 },
+                        { text: "Video: Fluid and Electrolyte Balance", date: "May 26", type: "video", hours: 0.5 },
+                        { text: "Practice and Learn: Fluid and Electrolyte Imbalance", date: "June 10", type: "assignment", hours: 2 },
+                        { text: "Module 4 Fluids Quiz (15 points)", date: "May 28", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Wed 28 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Memorial Day - No Class",
+                    chapters: "Remediation week",
+                    keyTopics: "Health Assessment remediation, Completion of previous assignments",
+                    assignments: [
+                        { text: "Health Assessment Remediation Continued", date: "May 27", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "No class - Memorial Day week"
+                },
+                geronto: {
+                    title: "Module 4: Falls Prevention & Pain Management",
+                    chapters: "Fall risk assessment, sleep disorders, pain assessment and management",
+                    keyTopics: "Fall risk assessment tools, Environmental safety measures, Pain assessment in elderly patients, Sleep disorders and interventions",
+                    assignments: [
+                        { text: "Falls Prevention Case Study", date: "June 2", type: "assignment", hours: 2 },
+                        { text: "Pain Assessment Tool Analysis", date: "June 2", type: "assignment", hours: 2 },
+                        { text: "Chapter: Fall Risk Assessment", date: "May 27", type: "reading", hours: 2 },
+                        { text: "Chapter: Pain Management in Elderly", date: "May 27", type: "reading", hours: 2 },
+                        { text: "Video: Environmental Safety for Elderly", date: "May 27", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 28 May 1:00-4:00pm in NB 103"
+                }
+            },
+            5: {
+                obgyn: {
+                    title: "Module 4: Newborn Adaptation & Care",
+                    chapters: "Chapters 20-22: Newborn processes of adaptation, assessment, care",
+                    keyTopics: "Newborn physiologic adaptations, Comprehensive newborn assessment, Essential newborn care, Parent education for newborn care",
+                    assignments: [
+                        { text: "Chapter 20: Newborn Processes of Adaptation", date: "June 1", type: "reading", hours: 1 },
+                        { text: "Chapter 21: Assessment of the Newborn", date: "June 1", type: "reading", hours: 1.5 },
+                        { text: "Chapter 22: Care of the Newborn", date: "June 1", type: "reading", hours: 2 },
+                        { text: "Video: Physiologic and Behavioral Adaptations", date: "June 1", type: "video", hours: 0.5 },
+                        { text: "Video: Assessment of the Newborn", date: "June 1", type: "video", hours: 0.5 },
+                        { text: "Video: Early Care of the Newborn", date: "June 1", type: "video", hours: 0.5 },
+                        { text: "Module 3 Adaptive Quiz (15 questions)", date: "June 8", type: "quiz", hours: 1.5 },
+                        { text: "Module 4 Adaptive Quiz (15 questions)", date: "June 8", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Monday 2 Jun 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 5: Electrolytes",
+                    chapters: "Electrolyte imbalances, assessment, management strategies",
+                    keyTopics: "Electrolyte Balance, Acid-Base Balance, Blood Gas Interpretation, Case Studies: Electrolyte Imbalances",
+                    assignments: [
+                        { text: "Electrolytes Chapter Reading", date: "June 3", type: "reading", hours: 2 },
+                        { text: "Video: Acid-Base Balance", date: "June 2", type: "video", hours: 0.5 },
+                        { text: "Video: Blood Gas Interpretation", date: "June 2", type: "video", hours: 0.5 },
+                        { text: "Module 5 Electrolytes Quiz (8 points)", date: "June 4", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Wed 4 Jun 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Nutrition Exam",
+                    chapters: "Nutrition concepts",
+                    keyTopics: "HESI Specialty RN Exam, Nutrition, Health promotion and maintenance, Test-taking strategies",
+                    assignments: [
+                        { text: "Quiz 2: Health Promotion & Pharmacology (40 pts)", date: "June 2", type: "quiz", hours: 2 },
+                        { text: "HESI Exam Prep: Nutrition (50 pts)", date: "June 2", type: "prep", hours: 2 },
+                        { text: "HESI Nutrition Exam", date: "June 2", type: "exam", hours: 3 },
+                        { text: "Reflection Quiz", date: "June 2", type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 2 Jun 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 5: Care Management & Assessment",
+                    chapters: "Comprehensive geriatric assessment, care coordination",
+                    keyTopics: "Comprehensive geriatric assessment methods, Care coordination models, Quality of life measurements, Functional assessment tools",
+                    assignments: [
+                        { text: "Quiz 2: Modules 3-4", date: "June 4", type: "quiz", hours: 1.5 },
+                        { text: "Geriatric Assessment Assignment", date: "June 2", type: "assignment", hours: 2 },
+                        { text: "Chapter: Comprehensive Geriatric Assessment", date: "June 3", type: "reading", hours: 2 },
+                        { text: "Video: Care Coordination Models", date: "June 3", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 4 Jun 1:00-4:00pm in NB 103"
+                }
+            },
+            6: {
+                obgyn: {
+                    title: "Exam 2: Modules 3 & 4",
+                    chapters: "Normal Postpartum, Newborn Adaptation & Care",
+                    keyTopics: "Postpartum adaptations, Infant feeding methods, Newborn assessment, Essential newborn care",
+                    assignments: [
+                        { text: "Exam 2: Modules 3 & 4", date: "June 9", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Monday 9 Jun 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Exam 2: Modules 4-5",
+                    chapters: "Fluids, Upper Respiratory, Electrolytes",
+                    keyTopics: "Fluids, Upper Respiratory, Electrolytes",
+                    assignments: [
+                        { text: "Exam 2: Modules 4-5", date: "June 11", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wed 11 Jun 09:05-11:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 3: Foundations of Nursing",
+                    chapters: "Basic nursing skills, infection control, safety",
+                    keyTopics: "Basic nursing procedures, Patient safety concepts, Infection control, Documentation principles",
+                    assignments: [
+                        { text: "Foundations of Nursing Reading", date: "June 8", type: "reading", hours: 2 },
+                        { text: "Video: Infection Control Procedures", date: "June 8", type: "video", hours: 0.5 },
+                        { text: "Video: Patient Safety", date: "June 8", type: "video", hours: 0.5 },
+                        { text: "Quiz 3: Foundations of Nursing (50 points)", date: "June 23", type: "quiz", hours: 2 },
+                        { text: "Nutrition Remediation Templates", date: "June 16", type: "remediation", hours: 2 },
+                        { text: "Nutrition Case Studies", date: "June 16", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 9 Jun 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Module 6: Group Project Work Session",
+                    chapters: "Team collaboration, evidence-based practice",
+                    keyTopics: "Evidence-based interventions, Team collaboration, Project planning, Research methods",
+                    assignments: [
+                        { text: "Group Project Outline", date: "June 11", type: "assignment", hours: 2 },
+                        { text: "Evidence-Based Practice Research", date: "June 10", type: "reading", hours: 2 },
+                        { text: "Team Collaboration Meeting", date: "June 11", type: "activity", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 11 Jun 1:00-4:00pm in NB 103"
+                }
+            },
+            7: {
+                obgyn: {
+                    title: "Module 5: Pregnancy at Risk",
+                    chapters: "Chapters 10-11: High-risk pregnancy, complications",
+                    keyTopics: "High-risk pregnancy assessment and management, Gestational diabetes, Pregnancy-induced hypertension, Hemorrhagic complications",
+                    assignments: [
+                        { text: "Chapter 10: Complications of Pregnancy", date: "June 15", type: "reading", hours: 3 },
+                        { text: "Chapter 11: Childbearing Family with Special Needs", date: "June 15", type: "reading", hours: 1.5 },
+                        { text: "Video: Medical-Surgical Disorders in Pregnancy", date: "June 15", type: "video", hours: 0.5 },
+                        { text: "Video: Hemorrhagic Conditions", date: "June 15", type: "video", hours: 0.5 },
+                        { text: "Video: Hypertensive Disorders", date: "June 15", type: "video", hours: 0.5 },
+                        { text: "Module 5 Adaptive Quiz (10 questions)", date: "June 22", type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 16 Jun 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 7: Immune",
+                    chapters: "Immune system disorders, assessment, management strategies",
+                    keyTopics: "Immune System Function, Hypersensitivity Reactions, Common Immune Disorders, Immunosuppressive Therapies",
+                    assignments: [
+                        { text: "Immune Chapter Reading", date: "June 17", type: "reading", hours: 2 },
+                        { text: "Video: Immune System Disorders", date: "June 16", type: "video", hours: 0.5 },
+                        { text: "Module 7 Immune Quiz (14 points)", date: "June 18", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Wed 18 Jun 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "High-Fidelity Simulation",
+                    chapters: "Continuity of care, clinical skills application",
+                    keyTopics: "Clinical skills application, Continuity of care, Patient handoff, Communication skills",
+                    assignments: [
+                        { text: "Pre-simulation Quiz (40 points)", date: "June 16", type: "quiz", hours: 1 },
+                        { text: "High-Fidelity Simulation", date: "June 16", type: "simulation", hours: 3 },
+                        { text: "Post-simulation Quiz (40 points)", date: "June 16", type: "quiz", hours: 1 },
+                        { text: "Nutrition Remediation Submission", date: "June 16", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 16 Jun 14:00-17:00 (On-campus, NB 109)"
+                },
+                geronto: {
+                    title: "Exam 2: Modules 3-4",
+                    chapters: "Falls Prevention, Pain Management, Care Management",
+                    keyTopics: "Falls prevention, Pain assessment and management, Sleep disorders, Comprehensive geriatric assessment, Care coordination",
+                    assignments: [
+                        { text: "Exam 2: Modules 3-4", date: "June 18", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wednesday 18 Jun 1:00-3:00pm in NB 103"
+                }
+            },
+            8: {
+                obgyn: {
+                    title: "Module 6: Labor at Risk",
+                    chapters: "Chapters 16, 19: Complications during labor and birth",
+                    keyTopics: "Dysfunctional labor patterns, Fetal distress, Operative obstetrics, Emergency childbirth",
+                    assignments: [
+                        { text: "Chapter 16: Intrapartum Complications", date: "June 22", type: "reading", hours: 1.5 },
+                        { text: "Chapter 19: Critical Care Obstetrics", date: "June 29", type: "reading", hours: 1.5 },
+                        { text: "Video: Intrapartum Complications", date: "June 22", type: "video", hours: 0.5 },
+                        { text: "Module 6 Adaptive Quiz (10 questions)", date: "June 29", type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 23 Jun 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 8: Operative & Integumentary I",
+                    chapters: "Pre/post-operative care, skin disorders",
+                    keyTopics: "Perioperative Nursing Care, Surgical Risk Assessment, Integumentary System Overview, Pressure Injuries",
+                    assignments: [
+                        { text: "Operative Care Chapter Reading", date: "June 24", type: "reading", hours: 2 },
+                        { text: "Integumentary Chapter Reading", date: "June 24", type: "reading", hours: 2 },
+                        { text: "Video: Pre/Post-Operative Care", date: "June 23", type: "video", hours: 0.5 },
+                        { text: "Practice and Learn: Coughing and Splinting", date: "June 24", type: "assignment", hours: 1 },
+                        { text: "Module 8 Operative Quiz (10 points)", date: "June 25", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Wed 25 Jun 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Fundamentals Exam",
+                    chapters: "Foundations of nursing concepts",
+                    keyTopics: "HESI Specialty RN Exam, Fundamentals of nursing, Basic nursing skills, Test-taking strategies",
+                    assignments: [
+                        { text: "HESI Exam Prep: Fundamentals (50 points)", date: "June 23", type: "prep", hours: 2 },
+                        { text: "HESI Fundamentals Exam", date: "June 23", type: "exam", hours: 3 },
+                        { text: "Reflection Quiz", date: "June 23", type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 23 Jun 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 8: Alzheimer's Disease & Cognitive Disorders",
+                    chapters: "Dementia types, delirium, cognitive assessment",
+                    keyTopics: "Alzheimer's disease pathophysiology, Differentiating delirium and dementia, Cognitive assessment tools, Behavioral management strategies",
+                    assignments: [
+                        { text: "Quiz 3: Cognitive Disorders", date: "June 25", type: "quiz", hours: 1.5 },
+                        { text: "Team Project Submission 1", date: "June 23", type: "assignment", hours: 3 },
+                        { text: "Chapter: Alzheimer's Disease", date: "June 24", type: "reading", hours: 2 },
+                        { text: "Chapter: Delirium vs Dementia", date: "June 24", type: "reading", hours: 2 },
+                        { text: "Video: Cognitive Assessment Tools", date: "June 24", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 25 Jun 1:00-4:00pm in NB 103"
+                }
+            },
+            9: {
+                obgyn: {
+                    title: "Exam 3: Modules 5 & 6",
+                    chapters: "Pregnancy at Risk, Labor at Risk",
+                    keyTopics: "High-risk pregnancy, Gestational complications, Dysfunctional labor, Operative obstetrics",
+                    assignments: [
+                        { text: "Exam 3: Modules 5 & 6", date: "June 30", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Monday 30 Jun 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Module 9: Integumentary II & Diabetes",
+                    chapters: "Advanced wound care, burn management, diabetic care",
+                    keyTopics: "Burns, Wound Care Management, Diabetes Mellitus, Glycemic Management",
+                    assignments: [
+                        { text: "Wound Care Chapter Reading", date: "July 1", type: "reading", hours: 2 },
+                        { text: "Diabetes Chapter Reading", date: "July 1", type: "reading", hours: 2 },
+                        { text: "Video: Burn Management", date: "June 30", type: "video", hours: 0.5 },
+                        { text: "One-Minute Nurse: Diabetes Insulin", date: "July 1", type: "video", hours: 0.5 },
+                        { text: "Practice and Learn: Wounds", date: "July 1", type: "assignment", hours: 1 },
+                        { text: "Module 9 Integumentary Quiz (5 points)", date: "July 2", type: "quiz", hours: 1 },
+                        { text: "Module 9 Diabetes Quiz (11 points)", date: "July 2", type: "quiz", hours: 1.5 },
+                        { text: "vSim: Skylar Hansen (Diabetes)", date: "July 8", type: "vsim", hours: 2 }
+                    ],
+                    classMeeting: "Wed 2 Jul 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 5: Pharmacology Concepts",
+                    chapters: "Medication administration, pharmacokinetics, drug classifications",
+                    keyTopics: "Medication administration principles, Common drug classifications, Pharmacokinetics, Medication calculation",
+                    assignments: [
+                        { text: "Pharmacology Chapter Reading", date: "June 29", type: "reading", hours: 2 },
+                        { text: "Video: Medication Administration", date: "June 29", type: "video", hours: 0.5 },
+                        { text: "Drug Classification Study Guide", date: "July 6", type: "assignment", hours: 2 },
+                        { text: "Fundamentals Remediation Templates", date: "July 7", type: "remediation", hours: 2 },
+                        { text: "Fundamentals Case Studies", date: "July 7", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 30 Jun 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Module 9: Chronic Conditions & Cancer in Elderly",
+                    chapters: "Immunity changes, infection control, chronic disease management",
+                    keyTopics: "Age-related immune changes, Infection prevention in elderly care settings, Common chronic conditions in older adults, Geriatric oncology considerations",
+                    assignments: [
+                        { text: "Chronic Disease Management Case Study", date: "July 7", type: "assignment", hours: 2 },
+                        { text: "Chapter: Immunity Changes with Age", date: "July 1", type: "reading", hours: 2 },
+                        { text: "Chapter: Chronic Conditions in Elderly", date: "July 1", type: "reading", hours: 2 },
+                        { text: "Video: Infection Control in Long-Term Care", date: "July 1", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 2 Jul 1:00-4:00pm in NB 103"
+                }
+            },
+            10: {
+                obgyn: {
+                    title: "Module 7: Postpartum at Risk",
+                    chapters: "Chapters 11, 18: Postpartum complications",
+                    keyTopics: "Postpartum hemorrhage, Postpartum infections, Thromboembolic disorders, Postpartum mood disorders",
+                    assignments: [
+                        { text: "Chapter 11: Childbearing Family with Special Needs", date: "July 6", type: "reading", hours: 1.5 },
+                        { text: "Chapter 18: Postpartum Complications", date: "July 6", type: "reading", hours: 1 },
+                        { text: "Video: Perinatal and Postpartum Mood Disorders", date: "July 6", type: "video", hours: 0.5 },
+                        { text: "Video: Postpartum Complications", date: "July 6", type: "video", hours: 0.5 },
+                        { text: "Module 7 Adaptive Quiz (15 questions)", date: "July 13", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Monday 7 Jul 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Exam 3: Modules 7-9",
+                    chapters: "Immune, Operative, Integumentary, Diabetes",
+                    keyTopics: "Immune, Operative, Integumentary, Diabetes",
+                    assignments: [
+                        { text: "Exam 3: Modules 7-9", date: "July 9", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wed 9 Jul 09:05-11:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 6: Mental Health",
+                    chapters: "Mental health disorders, therapeutic communication, crisis intervention",
+                    keyTopics: "Common mental health disorders, Therapeutic communication, Crisis intervention, Psychopharmacology",
+                    assignments: [
+                        { text: "Mental Health Chapter Reading", date: "July 6", type: "reading", hours: 2 },
+                        { text: "Video: Therapeutic Communication", date: "July 6", type: "video", hours: 0.5 },
+                        { text: "Quiz 4: Mental Health Concepts (35 points)", date: "July 14", type: "quiz", hours: 1.5 },
+                        { text: "HESI Mental Health Prep (50 questions)", date: "July 14", type: "prep", hours: 2 }
+                    ],
+                    classMeeting: "Monday 7 Jul 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Module 10: Continuum of Care & Care Settings",
+                    chapters: "Elder care options, transitions of care",
+                    keyTopics: "Care setting options for older adults, Transitions of care, Home care vs. institutional care, Long-term care facility regulations",
+                    assignments: [
+                        { text: "Quiz 4: Care Settings", date: "July 9", type: "quiz", hours: 1.5 },
+                        { text: "Transition of Care Planning Assignment", date: "July 12", type: "assignment", hours: 2 },
+                        { text: "Chapter: Care Setting Options", date: "July 8", type: "reading", hours: 2 },
+                        { text: "Video: Transitions of Care", date: "July 8", type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 9 Jul 1:00-4:00pm in NB 103"
+                }
+            },
+            11: {
+                obgyn: {
+                    title: "Module 8: Newborn at Risk",
+                    chapters: "Chapters 24-25: High-risk newborn conditions",
+                    keyTopics: "Prematurity and low birth weight, Respiratory distress syndrome, Congenital anomalies, Neonatal abstinence syndrome",
+                    assignments: [
+                        { text: "Chapter 24: High-Risk Newborn - Gestational Age", date: "July 13", type: "reading", hours: 1.5 },
+                        { text: "Chapter 25: High-Risk Newborn - Congenital Conditions", date: "July 13", type: "reading", hours: 1.5 },
+                        { text: "Video: High-Risk Newborn Gestational Age", date: "July 13", type: "video", hours: 0.5 },
+                        { text: "Video: High-Risk Newborn Congenital Conditions", date: "July 13", type: "video", hours: 0.5 },
+                        { text: "Module 8 Adaptive Quiz (15 questions)", date: "July 20", type: "quiz", hours: 1.5 }
+                    ],
+                    classMeeting: "Monday 14 Jul 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 11: GU & Musculoskeletal I",
+                    chapters: "Urinary disorders, fractures, joint disorders",
+                    keyTopics: "Genitourinary System Overview, Common GU Disorders, Musculoskeletal System, Common MSK Conditions",
+                    assignments: [
+                        { text: "GU Chapter Reading", date: "July 15", type: "reading", hours: 2 },
+                        { text: "Musculoskeletal Chapter Reading", date: "July 15", type: "reading", hours: 2 },
+                        { text: "One-Minute Nurse: UTI", date: "July 15", type: "video", hours: 0.5 },
+                        { text: "Practice and Learn: Fractures", date: "July 15", type: "assignment", hours: 1 },
+                        { text: "Practice and Learn: Lower UTI", date: "July 15", type: "assignment", hours: 1 },
+                        { text: "Module 11 GU Quiz (11 points)", date: "July 16", type: "quiz", hours: 1.5 },
+                        { text: "vSim: Marilyn Hughes (Musculoskeletal)", date: "July 22", type: "vsim", hours: 2 }
+                    ],
+                    classMeeting: "Wed 16 Jul 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Mental Health Exam",
+                    chapters: "Mental health nursing concepts",
+                    keyTopics: "HESI Specialty RN Exam, Mental health disorders, Psychiatric nursing, Test-taking strategies",
+                    assignments: [
+                        { text: "HESI Mental Health Exam", date: "July 14", type: "exam", hours: 3 },
+                        { text: "Reflection Quiz", date: "July 14", type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 14 Jul 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 11: Group Project Presentations",
+                    chapters: "Evidence-based gerontological nursing practice",
+                    keyTopics: "Presentation skills, Evidence-based practice in gerontological nursing, Team collaboration, Peer evaluation",
+                    assignments: [
+                        { text: "Group Presentation", date: "July 16", type: "presentation", hours: 2 },
+                        { text: "Final Team Project Submission", date: "July 14", type: "assignment", hours: 3 },
+                        { text: "Peer Evaluation Form", date: "July 16", type: "assignment", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 16 Jul 1:00-4:00pm in NB 103"
+                }
+            },
+            12: {
+                obgyn: {
+                    title: "Exam 4: Modules 7 & 8",
+                    chapters: "Postpartum at Risk, Newborn at Risk",
+                    keyTopics: "Postpartum complications, Prematurity, Neonatal disorders, Congenital anomalies",
+                    assignments: [
+                        { text: "Exam 4: Modules 7 & 8", date: "July 21", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Monday 21 Jul 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Module 12: Musculoskeletal II & GI",
+                    chapters: "Advanced orthopedic care, gastrointestinal disorders",
+                    keyTopics: "Orthopedic Traumas, Traction & Immobilization Devices, Gastrointestinal System, Common GI Disorders",
+                    assignments: [
+                        { text: "Advanced MSK Chapter Reading", date: "July 21", type: "reading", hours: 2 },
+                        { text: "GI Chapter Reading", date: "July 21", type: "reading", hours: 2 },
+                        { text: "Practice and Learn: PUD", date: "July 22", type: "assignment", hours: 1 },
+                        { text: "Practice and Learn: Enteral Feeding", date: "July 22", type: "assignment", hours: 1 },
+                        { text: "Module 12 MSK Quiz (10 points)", date: "July 23", type: "quiz", hours: 1.5 },
+                        { text: "Module 12 GI Quiz (12 points)", date: "July 23", type: "quiz", hours: 1.5 },
+                        { text: "vSim: Stan Checketts (GI)", date: "July 29", type: "vsim", hours: 2 },
+                        { text: "Critical Skills Demonstration", date: "July 25", type: "skills", hours: 1 }
+                    ],
+                    classMeeting: "Wed 23 Jul 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Pathophysiology Exam",
+                    chapters: "Disease processes, pathophysiological concepts",
+                    keyTopics: "HESI Specialty RN Exam, Pathophysiology, Disease processes, Test-taking strategies",
+                    assignments: [
+                        { text: "Quiz 5: Maternal & Child Nursing (40 points)", date: "July 21", type: "quiz", hours: 2 },
+                        { text: "HESI Pathophysiology Prep (50 questions)", date: "July 21", type: "prep", hours: 2 },
+                        { text: "HESI Pathophysiology Exam", date: "July 21", type: "exam", hours: 3 },
+                        { text: "Reflection Quiz", date: "July 21", type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 21 Jul 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Exam 3 (Final): Modules 5-8",
+                    chapters: "Cognitive Disorders, Chronic Conditions, Care Settings",
+                    keyTopics: "Alzheimer's and dementia, Chronic disease management, Immunity and infections in older adults, Continuum of care, Care transitions",
+                    assignments: [
+                        { text: "Exam 3 (Final): Modules 5-8", date: "July 23", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wednesday 23 Jul 1:00-3:00pm in NB 103"
+                }
+            },
+            13: {
+                obgyn: {
+                    title: "HESI Standardized Exam",
+                    chapters: "Comprehensive obstetric nursing content",
+                    keyTopics: "All maternal-newborn content, Test-taking strategies, Critical thinking, NCLEX-style questions",
+                    assignments: [
+                        { text: "Postpartum Hemorrhage Assignment", date: "July 27", type: "assignment", hours: 2 },
+                        { text: "Simulation Ticket to Enter Pre-work", date: "July 27", type: "prep", hours: 1 },
+                        { text: "HESI Standardized Exam", date: "July 28", type: "exam", hours: 3 },
+                        { text: "HESI Remediation Assignment", date: "August 4", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 28 Jul 09:00-11:30"
+                },
+                adulthealth: {
+                    title: "Exam 4: Modules 11-12",
+                    chapters: "GU, Musculoskeletal, GI",
+                    keyTopics: "GU, Musculoskeletal, GI",
+                    assignments: [
+                        { text: "Exam 4: Modules 11-12", date: "July 30", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wed 30 Jul 09:05-11:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Mid-HESI Review",
+                    chapters: "Comprehensive content review",
+                    keyTopics: "NCLEX-style question strategies, Content review from all modules, Test-taking strategies, Critical thinking skills",
+                    assignments: [
+                        { text: "Mental Health Remediation Templates", date: "July 28", type: "remediation", hours: 2 },
+                        { text: "Mental Health Case Studies", date: "July 28", type: "remediation", hours: 2 },
+                        { text: "Simulation Skills Remediation", date: "August 1", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 28 Jul 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "HESI Specialty Exam",
+                    chapters: "Comprehensive gerontological nursing content",
+                    keyTopics: "Comprehensive gerontological nursing practice, NCLEX-style question strategies, Critical thinking and clinical judgment",
+                    assignments: [
+                        { text: "HESI Specialty Exam: Gerontological Nursing", date: "July 30", type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wednesday 30 Jul 1:00-3:00pm in Computer Lab NB 207"
+                }
+            },
+            14: {
+                obgyn: {
+                    title: "Final Exam: Modules 1-8",
+                    chapters: "All modules 1-8",
+                    keyTopics: "Comprehensive obstetrics content, Normal and high-risk pregnancy, Normal and complicated labor, Postpartum and newborn care",
+                    assignments: [
+                        { text: "Comprehensive Final Exam", date: "August 4", type: "exam", hours: 4 }
+                    ],
+                    classMeeting: "Monday 4 Aug 10:10-12:10"
+                },
+                adulthealth: {
+                    title: "Final Exam: All Modules",
+                    chapters: "Comprehensive final covering all course content",
+                    keyTopics: "Comprehensive Final Exam, Covers all modules from the entire course",
+                    assignments: [
+                        { text: "Comprehensive Final Exam", date: "August 6", type: "exam", hours: 4 }
+                    ],
+                    classMeeting: "Wed 6 Aug 09:05-12:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Mid-HESI Final Exam",
+                    chapters: "Comprehensive nursing content",
+                    keyTopics: "Comprehensive final exam, All nursing content areas, Critical thinking, Clinical judgment",
+                    assignments: [
+                        { text: "Quiz 6: Adult Health I Concepts (32 points)", date: "August 7", type: "quiz", hours: 1.5 },
+                        { text: "Mid-HESI Final Exam", date: "August 7", type: "exam", hours: 4 },
+                        { text: "Pathophysiology Remediation Templates", date: "August 4", type: "remediation", hours: 2 },
+                        { text: "Pathophysiology Case Studies", date: "August 4", type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Thursday 7 Aug 10:00-13:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Course Complete",
+                    chapters: "No new content",
+                    keyTopics: "Course completion, Final grades posted",
+                    assignments: [],
+                    classMeeting: "No class meeting"
+                }
+            }
+        };
+    
+        // Wrap key functions with tracking
+    const toggleModule = trackFunction('toggleModule', function(header) {
+        const card = header.closest('.module-card');
+        card.classList.toggle('collapsed');
+        debugCheckpoint(`Toggled module ${card.dataset.course}`, false, {
+            course: card.dataset.course,
+            collapsed: card.classList.contains('collapsed')
+        });
+    });
+    
+    const updateProgress = trackFunction('updateProgress', function(checkbox) {
+        try {
+            debugCheckpoint('updateProgress called', false, {
+                checkboxId: checkbox.id,
+                checked: checkbox.checked
+            });
+            
+            const card = checkbox.closest('.module-card');
+            const checks = card.querySelectorAll('.assignment-checkbox');
+            const checked = card.querySelectorAll('.assignment-checkbox:checked').length;
+            const percentage = checks.length > 0 ? (checked / checks.length) * 100 : 0;
+            
+            const progressFill = card.querySelector('.progress-fill');
+            if (progressFill) {
+                progressFill.style.width = percentage + '%';
+                debugCheckpoint(`Progress updated: ${percentage.toFixed(1)}%`);
+            }
+            
+            // Update progress text
+            const progressText = card.querySelector('.progress-text');
+            if (progressText) {
+                progressText.textContent = `${checked}/${checks.length} completed (${percentage.toFixed(0)}%)`;
+            }
+        
+            const courseId = card.dataset.course;
+            const assignText = checkbox.closest('.assignment-item')
+                                       .querySelector('.assignment-text').textContent;
+            localStorage.setItem(`${courseId}-${assignText}`, checkbox.checked);
+        
+            if (checkbox.checked) {
+                completedAssignments.add(`${courseId}-${assignText}`);
+            } else {
+                completedAssignments.delete(`${courseId}-${assignText}`);
+            }
+            
+            debugCheckpoint('Progress update completed successfully', false, {
+                course: courseId,
+                assignment: assignText,
+                checked: checkbox.checked
+            });
+            
+        } catch (e) {
+            debugCheckpoint('Error in updateProgress: ' + e.message, true, {
+                error: e.stack
+            });
+        }
+    });
+    
+    function markComplete(btn) {
+        const card = btn.closest('.module-card');
+        const nowDone = !card.classList.contains('completed');
+        card.classList.toggle('completed', nowDone);
+        btn.textContent = nowDone ? 'Mark Incomplete' : 'Mark Complete';
+    
+        card.querySelectorAll('.assignment-checkbox').forEach(cb => {
+            cb.checked = nowDone;
+            updateProgress(cb);
+        });
+    }
+    
+    // Generate study schedule
+    function generateStudySchedule() {
+        studyBlocks = [];
+        const status = document.getElementById('scheduler-status');
+        status.textContent = 'Generating study schedule...';
+        
+        const dailyMax = parseInt(document.getElementById('daily-max').value);
+        const weekendMax = parseInt(document.getElementById('weekend-max').value);
+        const blockDuration = parseFloat(document.getElementById('block-duration').value);
+        
+        const assignments = [];
+        
+        // Collect all incomplete assignments for current and future weeks
+        for (let week = currentWeek; week <= 14; week++) {
+            const weekModules = semesterModules[week] || {};
+            Object.entries(weekModules).forEach(([course, module]) => {
+                if (module.assignments) {
+                    module.assignments.forEach(assignment => {
+                        const assignId = `${course}-${assignment.text}`;
+                        const isComplete = localStorage.getItem(assignId) === 'true' || 
+                                           completedAssignments.has(assignId);
+                        
+                        if (!isComplete) {
+                            const dueDate = parseDate(assignment.date);
+                            assignments.push({
+                                ...assignment,
+                                id: assignId,
+                                course,
+                                date: dueDate,
+                                hours: assignment.hours || estimateHours(assignment.type)
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Sort by due date
+        assignments.sort((a, b) => a.date - b.date);
+        
+        // Schedule each assignment
+        assignments.forEach(assignment => {
+            const daysBeforeDue = 3;
+            const startDate = new Date(assignment.date);
+            startDate.setDate(startDate.getDate() - daysBeforeDue);
+            
+            let hoursScheduled = 0;
+            let currentDate = new Date(startDate);
+            
+            while (hoursScheduled < assignment.hours && currentDate <= assignment.date) {
+                const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+                const maxToday = isWeekend ? weekendMax : dailyMax;
+                
+                // Check how many hours already scheduled for this day
+                const existingHours = studyBlocks
+                    .filter(b => b.date.toDateString() === currentDate.toDateString())
+                    .reduce((sum, b) => sum + b.hours, 0);
+                    
+                if (existingHours < maxToday) {
+                    const hoursToSchedule = Math.min(
+                        blockDuration,
+                        assignment.hours - hoursScheduled,
+                        maxToday - existingHours
+                    );
+                    
+                    // Find an available time slot
+                    const timeSlot = findTimeSlot(currentDate, hoursToSchedule);
+                    
+                    studyBlocks.push({
+                        date: new Date(currentDate),
+                        start: timeSlot.start,
+                        end: timeSlot.end,
+                        title: `${assignment.course.toUpperCase()}: ${assignment.text}`,
+                        type: 'study',
+                        hours: hoursToSchedule,
+                        id: `adaptive_${Date.now()}_${Math.random()}`
+                    });
+                    
+                    hoursScheduled += hoursToSchedule;
+                }
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        });
+        
+        status.textContent = `Scheduled ${studyBlocks.length} study blocks`;
+        updateCalendarWithStudyBlocks();
+    }
+    
+    function clearStudyBlocks() {
+        studyBlocks = [];
+        updateCalendarWithStudyBlocks();
+        document.getElementById('scheduler-status').textContent = 'Study blocks cleared';
+    }
+    
+    function findTimeSlot(date, hours) {
+        // Find existing events on this date
+        const dayStart = new Date(date);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
+        
+        const existingEvents = calendarEvents.concat(studyBlocks)
+            .filter(event => {
+                const eventStart = new Date(event.start);
+                return eventStart >= dayStart && eventStart <= dayEnd;
+            })
+            .sort((a, b) => new Date(a.start) - new Date(b.start));
+        
+        // Find gap in schedule
+        let currentTime = new Date(date);
+        currentTime.setHours(8, 0, 0, 0); // Start at 8 AM
+        
+        for (const event of existingEvents) {
+            const eventStart = new Date(event.start);
+            const eventEnd = new Date(event.end);
+            
+            // If there's a gap before this event
+            const gap = (eventStart - currentTime) / (1000 * 60 * 60);
+            if (gap >= hours) {
+                const start = new Date(currentTime);
+                const end = new Date(currentTime);
+                end.setHours(end.getHours() + hours);
+                return { start, end };
+            }
+            
+            currentTime = eventEnd;
+        }
+        
+        // Check if there's time after all events
+        const endOfDay = new Date(date);
+        endOfDay.setHours(22, 0, 0, 0); // End at 10 PM
+        
+        if (currentTime < endOfDay) {
+            const start = new Date(currentTime);
+            const end = new Date(currentTime);
+            end.setHours(end.getHours() + hours);
+            return { start, end };
+        }
+        
+        // Default time slot if no gaps found
+        const start = new Date(date);
+        start.setHours(19, 0, 0, 0); // 7 PM default
+        const end = new Date(start);
+        end.setHours(end.getHours() + hours);
+        return { start, end };
+    }
+    
+    function updateCalendarWithStudyBlocks() {
+        if (!calendarMonth || !calendarWeek) {
+            debugCheckpoint('Calendars not initialized', true);
+            return;
+        }
+        
+        // Remove existing study blocks
+        const allEvents = calendarMonth.getEvents();
+        allEvents.forEach(event => {
+            if (event.id && event.id.startsWith('adaptive_')) {
+                event.remove();
+            }
+        });
+        
+        // Add new study blocks
+        studyBlocks.forEach(block => {
+            const eventData = {
+                id: block.id,
+                title: block.title,
+                start: block.start.toISOString(),
+                end: block.end.toISOString(),
+                backgroundColor: '#000000',
+                textColor: '#ffffff',
+                extendedProps: { type: 'study' }
+            };
+            
+            calendarMonth.addEvent(eventData);
+            calendarWeek.addEvent(eventData);
+        });
+    }
+    
+    function estimateHours(type) {
+        const estimates = {
+            'reading': 2,
+            'video': 0.5,
+            'quiz': 1.5,
+            'exam': 3,
+            'assignment': 2.5,
+            'vsim': 2,
+            'activity': 1,
+            'prep': 1,
+            'remediation': 2,
+            'presentation': 2,
+            'simulation': 3
+        };
+        return estimates[type] || 1.5;
+    }
+    
+    function parseDate(dateStr) {
+        const currentYear = 2025;
+        const date = new Date(`${dateStr}, ${currentYear}`);
+        return date;
+    }
+    
+    function generateModuleCards(week) {
+        debugCheckpoint(`Generating module cards for week ${week}`);
+        const container = document.getElementById('module-cards');
+        container.innerHTML = '';
+    
+        const weekModules = semesterModules[week];
+        if (!weekModules) { 
+            debugCheckpoint('No modules found for week ' + week, true); 
+            return; 
+        }
+    
+        for (const [course, mod] of Object.entries(weekModules)) {
+            if (!mod || !mod.title) continue;
+    
+            const card = document.createElement('div');
+            card.className = 'module-card';
+            card.dataset.course = course;
+    
+            const assignmentItems = (mod.assignments || []).map((a, index) => `
+                <div class="assignment-item">
+                    <input type="checkbox" class="assignment-checkbox" id="${course}-${index}">
+                    <span class="assignment-text">${a.text}</span>
+                    <span class="assignment-date">${a.date}</span>
+                </div>`).join('');
+    
+            card.innerHTML = `
+            <div class="module-header ${course}-header" onclick="toggleModule(this)">
+                <div><div class="module-title">${mod.title}</div></div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="module-status">Current</span>
+                    <span class="collapse-icon">▼</span>
+                </div>
+            </div>
+            <div class="module-content">
+                <div class="module-info">${mod.chapters}</div>
+                <div class="key-topics"><h4>Key Topics:</h4><p>${mod.keyTopics}</p></div>
+                <div class="assignments">${assignmentItems}</div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+                <div class="progress-text">0/${mod.assignments.length} completed (0%)</div>
+                ${mod.classMeeting ? `<div class="class-info"><strong>Class Meeting:</strong> ${mod.classMeeting}</div>` : ''}
+                <div class="action-buttons">
+                    <a href="#" class="btn btn-primary" onclick="event.preventDefault()">View All Resources</a>
+                    <button class="btn btn-secondary" onclick="markComplete(this)">
+                        Mark Complete
+                    </button>
+                </div>
+            </div>`;
+            container.appendChild(card);
+        }
+        
+        // Add event listeners after adding to DOM
+        container.querySelectorAll('.assignment-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                debugCheckpoint('Checkbox changed: ' + this.id);
+                updateProgress(this);
+            });
+        });
+        
+        loadCheckboxStates();
+        debugCheckpoint('Module cards generated and event listeners attached');
+    }
+    
+    function generateWeekSchedule(week = 1) {
+        debugCheckpoint(`Generating list view for week ${week}`);
+        const container = document.getElementById('week-schedule');
+        const weekStart = getWeekStartDate(week);
+        const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    
+        container.innerHTML =
+            days.map((d,i) => {
+                const dateObj = new Date(weekStart);
+                dateObj.setDate(dateObj.getDate()+i);
+                const dateISO = dateObj.toISOString().split('T')[0];
+                const thisDay = calendarEvents
+                                  .filter(ev => ev.start.split('T')[0] === dateISO)
+                                  .sort((a,b)=>new Date(a.start)-new Date(b.start));
+                return `
+                <div class="day-section">
+                    <div class="day-header">${d} – ${dateObj.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                    ${thisDay.length
+                        ? thisDay.map(ev=>{
+                            const s = new Date(ev.start).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+                            const e = new Date(ev.end  ).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+                            return `<div class="time-slot"><span class="time">${s}-${e}</span>
+                                     <div class="event ${ev.extendedProps.type}">${ev.title}</div></div>`;
+                          }).join('')
+                        : '<div class="time-slot"><span class="time">No scheduled events</span></div>'}
+                </div>`; 
+            }).join('');
+    }
+    
+    function filterByCourse(course) {
+        document.querySelectorAll('.module-card').forEach(c=>{
+            c.style.display = (course==='all'||c.dataset.course===course)?'block':'none';
+        });
+    }
+    
+    function loadCheckboxStates() {
+        debugCheckpoint('Loading checkbox states');
+        document.querySelectorAll('.module-card').forEach(card=>{
+            const course = card.dataset.course;
+            card.querySelectorAll('.assignment-item').forEach(item=>{
+                const cb = item.querySelector('.assignment-checkbox');
+                const txt = item.querySelector('.assignment-text').textContent;
+                cb.checked = localStorage.getItem(`${course}-${txt}`) === 'true';
+            });
+            // Update progress after loading states
+            const firstCheckbox = card.querySelector('.assignment-checkbox');
+            if (firstCheckbox) {
+                updateProgress(firstCheckbox);
+            }
+        });
+    }
+    
+    function changeWeek(week) {
+        debugCheckpoint(`Changing to week ${week}`);
+        currentWeek = parseInt(week);
+        document.getElementById('week-number').textContent = week;
+        document.getElementById('current-week').textContent = `Week ${week}`;
+        generateModuleCards(week);
+        generateWeekSchedule(week);
+        updateWeeKVieW(week);
+    }
+    
+    function updateWeeKVieW(week) {
+        const weekStart = getWeekStartDate(week);
+        if (calendarMonth) calendarMonth.gotoDate(weekStart);
+        if (calendarWeek) calendarWeek.gotoDate(weekStart);
+    }
+    
+    function getWeekStartDate(weekNum) {
+        const firstMonday = new Date('2025-05-05');
+        firstMonday.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
+        return firstMonday;
+    }
+    
+    // Calendar events - all included from previous code
+    calendarEvents = [
+            // === Week 1 Events (May 5-11, 2025) ===
+            // Classes
+            { title: 'OB Lecture', start: '2025-05-05T09:00:00', end: '2025-05-05T12:00:00', color: '#2196F3', extendedProps: { type: 'lecture' }},
+            { title: 'NCLEX Orientation', start: '2025-05-05T14:00:00', end: '2025-05-05T17:00:00', color: '#9C27B0', extendedProps: { type: 'lecture' }},
+            { title: 'Adult Health Lecture', start: '2025-05-07T09:05:00', end: '2025-05-07T12:10:00', color: '#4CAF50', extendedProps: { type: 'lecture' }},
+            { title: 'Gerontology Class', start: '2025-05-07T13:00:00', end: '2025-05-07T16:00:00', color: '#FF9800', extendedProps: { type: 'lecture' }},
+            
+            // Clinical days
+            { title: 'OB Clinical Orientation', start: '2025-05-06T13:00:00', end: '2025-05-06T17:00:00', color: '#2196F3', extendedProps: { type: 'clinical' }},
+            { title: 'Adult Health Clinical', start: '2025-05-08T06:00:00', end: '2025-05-08T16:00:00', color: '#4CAF50', extendedProps: { type: 'clinical' }},
+            
+            // === Week 2 Events (May 12-18, 2025) ===
+            // Classes
+            { title: 'OB Lecture', start: '2025-05-12T09:00:00', end: '2025-05-12T12:00:00', color: '#2196F3', extendedProps: { type: 'lecture' }},
+            { title: 'NCLEX HESI Health Assessment', start: '2025-05-12T14:00:00', end: '2025-05-12T16:00:00', color: '#f44336', extendedProps: { type: 'exam' }},
+            { title: 'Adult Health Lecture', start: '2025-05-14T09:05:00', end: '2025-05-14T12:10:00', color: '#4CAF50', extendedProps: { type: 'lecture' }},
+            { title: 'Gerontology Class', start: '2025-05-14T13:00:00', end: '2025-05-14T16:00:00', color: '#FF9800', extendedProps: { type: 'lecture' }},
+            
+            // Clinical days
+            { title: 'OB Clinical', start: '2025-05-13T06:00:00', end: '2025-05-13T17:00:00', color: '#2196F3', extendedProps: { type: 'clinical' }},
+            { title: 'Adult Health Lab 1', start: '2025-05-15T13:00:00', end: '2025-05-15T17:00:00', color: '#4CAF50', extendedProps: { type: 'clinical' }},
+            
+            // Exams and assignments
+            { title: 'Dosage Calculation Quiz Due', start: '2025-05-07T17:00:00', end: '2025-05-07T17:30:00', color: '#f44336', extendedProps: { type: 'assignment' }},
+            
+            // === WEEK 3 EVENTS ===
+            // Monday May 19
+            { title: 'OB Exam 1', start: '2025-05-19T09:00:00', end: '2025-05-19T11:00:00', color: '#f44336', extendedProps: { type: 'exam' }},
+            { title: 'NCLEX Nutrition & Wellness', start: '2025-05-19T14:00:00', end: '2025-05-19T17:00:00', color: '#9C27B0', extendedProps: { type: 'lecture' }},
+            
+            // Tuesday May 20
+            { title: 'OB Clinical', start: '2025-05-20T06:00:00', end: '2025-05-20T17:00:00', color: '#2196F3', extendedProps: { type: 'clinical' }},
+            { title: 'CoursePoint Due', start: '2025-05-20T23:59:00', end: '2025-05-21T00:00:00', color: '#FF9800', extendedProps: { type: 'assignment' }},
+            
+            // Wednesday May 21
+            { title: 'Adult Health Exam 1', start: '2025-05-21T09:05:00', end: '2025-05-21T12:10:00', color: '#f44336', extendedProps: { type: 'exam' }},
+            { title: 'Gerontology Exam 1', start: '2025-05-21T13:00:00', end: '2025-05-21T15:00:00', color: '#f44336', extendedProps: { type: 'exam' }},
+            
+            // Thursday May 22
+            { title: 'Adult Health Lab 2', start: '2

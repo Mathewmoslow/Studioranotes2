@@ -1,0 +1,353 @@
+/* === Semester-at-a-Glance Bar === */
+.semester-bar {
+  background: #1266f1;
+  color: #fff;
+  font-size: 14px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.semester-bar span {
+  font-weight: 500;
+}
+.semester-link {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+.semester-link:hover {
+  text-decoration: underline;
+}
+
+/* === Base Styles === */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  background-color: #f5f7fa;
+}
+.header {
+  background: #1266f1;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.header h1 {
+  margin: 0 0 15px 0;
+  font-size: 28px;
+}
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 160px);
+}
+
+/* === Calendar Views === */
+.views {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  margin-bottom: 20px;
+  height: 70vh;
+}
+#month, #week {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+#month { flex: 2; min-height: 600px; }
+#week  { flex: 1; overflow-y: auto; min-height: 600px; }
+
+/* === Legend === */
+.legend {
+  padding: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: white;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+}
+.color-box {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+/* Event-color classes */
+.lecture    { background: #3788d8; }
+.clinical   { background: #20c997; }
+.exam       { background: #dc3545; }
+.drill      { background: #fd7e14; }
+.prep       { background: #6f42c1; }
+.remediation{ background: #e83e8c; }
+.review     { background: #6c757d; }
+.admin      { background: #adb5bd; }
+.plan       { background: #a97c50; }
+.geronto    { background: #17a2b8; }
+
+.fc-list-day-cushion { background-color: #f8f9fa !important; }
+.fc-event           { margin: 1px 0; padding: 2px 4px; }
+.fc-list-event-title,
+.fc-list-event-time { color: #333 !important; font-weight: normal; }
+
+/* === Buttons === */
+.course-buttons { display: flex; gap: 15px; margin: 15px 0; justify-content: center; flex-wrap: wrap; }
+.course-button {
+  padding: 10px 20px;
+  background: #20c997;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+.course-button:hover {
+  background: #138b6c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.course-button.obgyn         { background: #3788d8; }
+.course-button.adulthealth  { background: #20c997; }
+.course-button.nclex        { background: #6f42c1; }
+.course-button.geronto      { background: #17a2b8; }
+.course-button.obgyn:hover        { background: #2666b0; }
+.course-button.adulthealth:hover { background: #138b6c; }
+.course-button.nclex:hover       { background: #5a349d; }
+.course-button.geronto:hover     { background: #0f8a9d; }
+
+/* === Week Selector === */
+.week-selection {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.week-nav-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.week-nav-header h3 { margin: 0; color: #333; font-size: 18px; }
+.course-selector { display: flex; align-items: center; gap: 10px; }
+.course-selector label { font-weight: bold; }
+.course-selector select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 14px;
+  min-width: 150px;
+}
+.week-button-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+.week-button {
+  padding: 10px 5px;
+  background: #1266f1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.week-button:hover {
+  background: #0d47a1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.obgyn-btn        { background: #3788d8; }
+.adulthealth-btn { background: #20c997; }
+.nclex-btn       { background: #6f42c1; }
+.geronto-btn     { background: #17a2b8; }
+.obgyn-btn:hover        { background: #2666b0; }
+.adulthealth-btn:hover { background: #138b6c; }
+.nclex-btn:hover       { background: #5a349d; }
+.geronto-btn:hover     { background: #0f8a9d; }
+
+/* === Popups & Info Panels === */
+.popup-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; backdrop-filter: blur(2px); }
+.event-popup {
+  position: fixed;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  padding: 25px; z-index: 1000; max-width: 500px; width: 90%;
+}
+.event-popup h3 { margin-top: 0; color: #1266f1; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+.event-popup p { margin: 10px 0; line-height: 1.5; }
+.event-popup .buttons { display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px; }
+.event-popup .view-details { background: #1266f1; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
+.event-popup .view-details:hover { background: #0d47a1; }
+.event-popup .close { background: #f1f1f1; color: #333; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
+.event-popup .close:hover { background: #ddd; }
+
+/* === Class Info Accordion === */
+.class-info-header {
+  padding: 12px 15px; margin: 10px 0; border-radius: 5px; background-color: #f0f5ff;
+  border-left: 4px solid #1266f1; cursor: pointer; transition: all 0.2s ease; position: relative;
+}
+.class-info-header:hover { background-color: #e0ebff; transform: translateY(-2px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.class-info-header h4 { margin: 0; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+.class-info-header .indicator { transition: transform 0.3s ease; }
+.class-info-header.active .indicator { transform: rotate(180deg); }
+.class-info-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background-color: white; border-radius: 0 0 5px 5px; margin-top: -5px; padding: 0 15px; border-left: 4px solid #ddd; }
+.class-info-header.active + .class-info-content { max-height: 800px; padding: 15px; border: 1px solid #ddd; border-top: none; margin-bottom: 15px; }
+.assignment-list { list-style-type: none; padding: 0; margin: 0; }
+.assignment-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.assignment-item:last-child { border-bottom: none; }
+.assignment-item a { text-decoration: none; color: #1266f1; font-weight: 500; transition: color 0.2s ease; }
+.assignment-item a:hover { color: #0d47a1; text-decoration: underline; }
+.assignment-item .due-date { font-size: 12px; color: #666; background: #f0f0f0; padding: 3px 8px; border-radius: 10px; }
+.btn-link { display: inline-block; margin-top: 5px; padding: 3px 8px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; color: #1266f1; font-size: 13px; transition: all 0.2s ease; }
+.btn-link:hover { background-color: #e9ecef; color: #0d47a1; }
+
+/* === Module Cards === */
+.module-section { margin-bottom: 25px; }
+.module-section h3 { margin: 0 0 15px 0; font-size: 20px; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+.module-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.module-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease; border-top: 4px solid #3788d8; }
+.adulthealth-card { border-top-color: #20c997; }
+.nclex-card       { border-top-color: #6f42c1; }
+.geronto-card     { border-top-color: #17a2b8; }
+.module-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+.module-header { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.module-header h4 { margin: 0; font-size: 16px; flex: 1; }
+.module-toggle { color: #1266f1; background: none; border: none; width: 24px; height: 24px; font-size: 18px; cursor: pointer; transition: transform 0.3s ease; }
+.module-card.active .module-toggle { transform: rotate(180deg); }
+.module-preview { padding: 10px 15px; background-color: #f9f9f9; border-bottom: 1px solid #eee; font-size: 14px; }
+.module-preview .due-dates { font-weight: 500; color: #e63946; }
+.module-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; opacity: 0; }
+.module-card.active .module-content { max-height: 800px; opacity: 1; }
+.module-details { padding: 15px; }
+.module-status { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: 500; margin-left: 10px; }
+.status-current  { background-color: #e6f7ff; color: #0a85ff; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10,133,255,0.4);} 70% { box-shadow: 0 0 0 6px rgba(10,133,255,0);} 100% { box-shadow: 0 0 0 0 rgba(10,133,255,0);} }
+.status-upcoming { background-color: #f0f0f0; color: #666; }
+.status-completed{ background-color: #e6fff0; color: #28a745; }
+.chapter-list     { font-size: 13px; color: #666; margin: 8px 0; }
+
+/* Module progress bar */
+.module-progress {
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background-color: #3788d8;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+.adulthealth-card .progress-bar { background-color: #20c997; }
+.nclex-card .progress-bar { background-color: #6f42c1; }
+.geronto-card .progress-bar { background-color: #17a2b8; }
+
+/* Module action buttons */
+.module-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.module-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+.btn-primary {
+  background-color: #1266f1;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #0d47a1;
+}
+.btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+}
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+/* Assignment completion styling */
+.assignment-checkbox {
+  margin-right: 8px;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+.assignment-item.completed a {
+  text-decoration: line-through;
+  color: #28a745;
+  opacity: 0.7;
+}
+.assignment-item.completed .due-date {
+  opacity: 0.7;
+}
+
+/* Enhanced Due Date Styling */
+.due-date {
+  font-size: 12px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+.due-label {
+  font-weight: 600;
+}
+.due-urgent {
+  background-color: #ffe6e6;
+  color: #dc3545;
+  font-weight: 600;
+  animation: blink 1s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.due-soon {
+  background-color: #fff3e0;
+  color: #fd7e14;
+  font-weight: 500;
+}
+.past-due {
+  background-color: #ffe6e6;
+  color: #dc3545;
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+/* === Responsive === */
+@media (max-width: 992px) {
+  .views { flex-direction: column; height: auto; }
+  #month, #week { width: 100%; height: 500px; min-height: auto; }
+  .week-button-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+}
+@media (max-width: 768px) {
+  .module-container { grid-template-columns: 1fr; }
+  .module-header h4 { font-size: 14px; }
+  .module-status { font-size: 10px; padding: 2px 6px; }
+}
+@media (max-width: 576px) {
+  .course-buttons { flex-direction: column; }
+  .week-nav-header { flex-direction: column; align-items: flex-start; }
+  .week-button-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+  .course-button { width: 100%; }
+}

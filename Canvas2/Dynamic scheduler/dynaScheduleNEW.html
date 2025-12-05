@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nursing Program Schedule Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+        
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .right-panel {
+            flex: 2;
+        }
+        
+        .module-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .module-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .module-header {
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .obgyn-header { background-color: #2196F3; }
+        .adulthealth-header { background-color: #4CAF50; }
+        .nclex-header { background-color: #9C27B0; }
+        .geronto-header { background-color: #FF9800; }
+        
+        .module-content {
+            max-height: 800px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease;
+        }
+        
+        .module-card.collapsed .module-content {
+            max-height: 0;
+            overflow: hidden;
+        }
+        
+        .assignments {
+            padding: 15px;
+        }
+        
+        .assignment-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .assignment-checkbox {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .assignment-text {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .assignment-date {
+            font-size: 12px;
+            color: #999;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        
+        /* Calendar Styles */
+        .calendar-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-views {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #2196F3;
+            color: white;
+            transition: background 0.2s ease;
+        }
+        
+        .btn:hover {
+            background: #1976D2;
+        }
+        
+        .btn.active {
+            background: #1565C0;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .calendar-day {
+            background: white;
+            min-height: 100px;
+            padding: 5px;
+            overflow-y: auto;
+        }
+        
+        .calendar-day-header {
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .calendar-day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+            padding: 2px;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .calendar-day.today .calendar-day-number {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .event {
+            padding: 3px 6px;
+            margin: 3px 0;
+            border-radius: 3px;
+            font-size: 11px;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .event.lecture { background-color: #2196F3; }
+        .event.clinical { background-color: #4CAF50; }
+        .event.exam { background-color: #f44336; }
+        .event.study { background-color: #555; }
+        .event.assignment { background-color: #FF9800; }
+        .event.video { background-color: #9C27B0; }
+        .event.quiz { background-color: #E91E63; }
+        .event.remediation { background-color: #795548; }
+        
+        .week-view {
+            display: none;
+        }
+        
+        .week-view.active {
+            display: block;
+        }
+        
+        .time-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            gap: 1px;
+            background: #ddd;
+        }
+        
+        .time-slot {
+            background: white;
+            min-height: 60px;
+            padding: 5px;
+            position: relative;
+        }
+        
+        .time-label {
+            background: #f0f0f0;
+            padding: 5px;
+            text-align: right;
+            font-size: 12px;
+        }
+        
+        .scheduler-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .scheduler-controls {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .preferences-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .preference-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .preference-item label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            max-width: 100px;
+        }
+        
+        .preference-item input {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .scheduler-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        #scheduler-status {
+            margin-top: 10px;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .event-tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .tooltip-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .tooltip-time {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .tooltip-description {
+            margin-top: 5px;
+        }
+        
+        .module-meta {
+            padding: 10px 15px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+        
+        .meta-title {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .due-soon {
+            background-color: #fffde7;
+        }
+        
+        .overdue {
+            background-color: #ffebee;
+        }
+        
+        .course-label {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            color: white;
+            margin-right: 5px;
+        }
+        
+        .obgyn-label { background-color: #2196F3; }
+        .adulthealth-label { background-color: #4CAF50; }
+        .nclex-label { background-color: #9C27B0; }
+        .geronto-label { background-color: #FF9800; }
+        
+        .all-assignments-toggle {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #2196F3;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .all-assignments-toggle:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Summer 2025 Nursing Schedule</h1>
+        <div>Week <span id="current-week">1</span> (May 5-11, 2025)</div>
+    </div>
+
+    <div class="container">
+        <div class="left-panel">
+            <h2>Module Assignments</h2>
+            <div class="all-assignments-toggle" onclick="toggleAllAssignmentsView()">
+                View all upcoming assignments
+            </div>
+            <div id="module-cards"></div>
+        </div>
+        
+        <div class="right-panel">
+            <div class="scheduler-panel">
+                <div class="scheduler-controls">
+                    <h3>Study Schedule Generator</h3>
+                    <p style="font-size: 14px; color: #666; margin: 10px 0;">
+                        Automatically create a balanced study plan based on your preferences and due dates.
+                    </p>
+                    <div class="scheduler-buttons">
+                        <button class="btn" onclick="generateStudySchedule()">Generate Study Schedule</button>
+                        <button class="btn" onclick="clearStudyBlocks()">Clear Study Blocks</button>
+                    </div>
+                    <div id="scheduler-status"></div>
+                </div>
+                
+                <div class="preferences-section">
+                    <div class="preference-item">
+                        <label>Daily Study Max (hrs)</label>
+                        <input type="number" id="daily-max" value="4" min="1" max="12">
+                    </div>
+                    <div class="preference-item">
+                        <label>Weekend Max (hrs)</label>
+                        <input type="number" id="weekend-max" value="6" min="1" max="12">
+                    </div>
+                    <div class="preference-item">
+                        <label>Block Duration (hrs)</label>
+                        <input type="number" id="block-duration" value="1.5" min="0.5" max="3" step="0.5">
+                    </div>
+                    <div class="preference-item">
+                        <label>Days Before Due</label>
+                        <input type="number" id="days-before" value="3" min="1" max="7">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="btn" onclick="previousWeek()">← Previous</button>
+                        <button class="btn" onclick="nextWeek()">Next →</button>
+                    </div>
+                    <h3 id="week-range">May 5-11, 2025</h3>
+                    <div class="calendar-views">
+                        <button class="btn active" onclick="setView('month')">Month</button>
+                        <button class="btn" onclick="setView('week')">Week</button>
+                    </div>
+                </div>
+                
+                <div id="month-view" class="month-view">
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+                
+                <div id="week-view" class="week-view">
+                    <div class="time-grid" id="time-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="event-tooltip" id="event-tooltip">
+        <div class="tooltip-title" id="tooltip-title"></div>
+        <div class="tooltip-time" id="tooltip-time"></div>
+        <div class="tooltip-description" id="tooltip-description"></div>
+    </div>
+
+    <script>
+        // Hardcoded data for all weeks
+        const semesterModules = {
+            1: {
+                obgyn: {
+                    title: "Module 1: Perspectives in Women's Health, Fetal Development, Normal Pregnancy",
+                    chapters: "Chapters 1-9: Women's Health, Fetal Development, Prenatal Care",
+                    keyTopics: "Women's health throughout the lifespan, Fetal development stages and monitoring, Comprehensive prenatal care, Maternal physiological adaptations",
+                    assignments: [
+                        { id: 'ob1-1', text: "Chapter 1: Maternity & Women's Healthcare Today", date: new Date('2025-05-11'), type: "reading", hours: 1 },
+                        { id: 'ob1-2', text: "Chapter 2: The Family in a Cultural & Community Context", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob1-3', text: "Chapter 3: Reproductive Anatomy & Physiology", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob1-4', text: "Chapter 4: Heredity & Environmental Influences", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob1-5', text: "Chapter 5: Conception & Fetal Development", date: new Date('2025-05-11'), type: "reading", hours: 2 },
+                        { id: 'ob1-6', text: "Chapter 6: Maternal Adaptation", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob1-7', text: "Video: Hereditary and Environmental Influences", date: new Date('2025-05-04'), type: "video", hours: 0.5 },
+                        { id: 'ob1-8', text: "Video: Nursing Care of the Family During Pregnancy", date: new Date('2025-05-04'), type: "video", hours: 0.5 },
+                        { id: 'ob1-9', text: "Video: Anatomy and Physiology of Pregnancy", date: new Date('2025-05-04'), type: "video", hours: 0.5 },
+                        { id: 'ob1-10', text: "Video: Nursing Intervention for Nutritional Health", date: new Date('2025-05-04'), type: "video", hours: 0.5 },
+                        { id: 'ob1-11', text: "Video: General Concepts in Prenatal Screening", date: new Date('2025-05-04'), type: "video", hours: 0.5 },
+                        { id: 'ob1-12', text: "Module 1 Adaptive Quiz (15 questions)", date: new Date('2025-05-11'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 5 May 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 1: Cardiology",
+                    chapters: "Cardiovascular assessment, cardiac disorders, ECG basics",
+                    keyTopics: "Introduction to Adult Health Nursing, Cardiovascular System, Common Cardiac Disorders, ECG Interpretation Basics",
+                    assignments: [
+                        { id: 'ah1-1', text: "Dosage Calculation Quiz", date: new Date('2025-05-07'), type: "quiz", hours: 1 },
+                        { id: 'ah1-2', text: "Cardiology Chapter Reading", date: new Date('2025-05-13'), type: "reading", hours: 2 },
+                        { id: 'ah1-3', text: "Video: Cardiac Cycle Animation", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-4', text: "One-Minute Nurse: Anticoagulant vs. Antiplatelet", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-5', text: "One-Minute Nurse: Antihypertensives", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-6', text: "One-Minute Nurse: Dysrhythmia", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-7', text: "One-Minute Nurse: Loop Diuretics", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-8', text: "One-Minute Nurse: Myocardial Infarction", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-9', text: "One-Minute Nurse: Nitroglycerin", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-10', text: "One-Minute Nurse: Rights of Medication Administration", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-11', text: "One-Minute Nurse: Aseptic Technique", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah1-12', text: "Practice and Learn: Angina Interactive Case Study", date: new Date('2025-05-20'), type: "assignment", hours: 1.5 },
+                        { id: 'ah1-13', text: "Sensory Perception PrepU Mastery Level Quiz", date: new Date('2025-05-20'), type: "quiz", hours: 1 },
+                        { id: 'ah1-14', text: "Clotting PrepU Mastery Level Quiz", date: new Date('2025-05-20'), type: "quiz", hours: 1 },
+                        { id: 'ah1-15', text: "Module 1 Cardiology Quiz", date: new Date('2025-05-14'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 7 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 1: Health Assessment",
+                    chapters: "Health assessment, oxygenation, perfusion, elimination",
+                    keyTopics: "Health assessment concepts, COPD and pneumonia pathophysiology, Coronary artery disease, Physical assessment techniques",
+                    assignments: [
+                        { id: 'nc1-1', text: "Attestation Quiz", date: new Date('2025-05-05'), type: "quiz", hours: 0.5 },
+                        { id: 'nc1-2', text: "Mid-HESI Registration", date: new Date('2025-05-05'), type: "admin", hours: 0.5 },
+                        { id: 'nc1-3', text: "HESI Health Assessment Prep", date: new Date('2025-05-12'), type: "prep", hours: 1.5 },
+                        { id: 'nc1-4', text: "HESI Exam: Health Assessment", date: new Date('2025-05-12'), type: "exam", hours: 2 },
+                        { id: 'nc1-5', text: "Health Assessment: Coronary Artery Disease", date: new Date('2025-05-12'), type: "activity", hours: 0.5 },
+                        { id: 'nc1-6', text: "Reflection Quiz: Post HESI Health Assessment", date: new Date('2025-05-12'), type: "quiz", hours: 0.5 },
+                        { id: 'nc1-7', text: "Health Assessment: COPD and Pneumonia", date: new Date('2025-05-12'), type: "activity", hours: 0.75 }
+                    ],
+                    classMeeting: "Monday 5 May 14:00-17:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 1: Introduction to Gerontological Nursing",
+                    chapters: "Legal/ethical aspects, assessment fundamentals, elder care principles",
+                    keyTopics: "Legal and ethical aspects of gerontological nursing, Assessment of older adults, Principles of elder care",
+                    assignments: [
+                        { id: 'ge1-1', text: "CastleBranch Education Quiz", date: new Date('2025-05-12'), type: "quiz", hours: 0.5 },
+                        { id: 'ge1-2', text: "Topic 3: Legal and Ethical Aspects Reading", date: new Date('2025-05-14'), type: "reading", hours: 2 },
+                        { id: 'ge1-3', text: "Ebook: Chapter 06: The Specialty of Gerontological Nursing", date: new Date('2025-05-20'), type: "reading", hours: 1 },
+                        { id: 'ge1-4', text: "Ebook: Chapter 07: Holistic Assessment and Care Planning", date: new Date('2025-05-20'), type: "reading", hours: 1 },
+                        { id: 'ge1-5', text: "Ebook: Chapter 08: Legal Aspects of Gerontological Nursing", date: new Date('2025-05-20'), type: "reading", hours: 1 },
+                        { id: 'ge1-6', text: "Ebook: Chapter 09: Ethical Aspects of Gerontological Nursing", date: new Date('2025-05-20'), type: "reading", hours: 1 },
+                        { id: 'ge1-7', text: "Ebook: Chapter 10: Continuum of Care in Gerontological Nursing", date: new Date('2025-05-20'), type: "reading", hours: 1 }
+                    ],
+                    classMeeting: "Wednesdays 1:00pm in NB 103. Attendance quiz within first 10 minutes."
+                }
+            },
+            2: {
+                obgyn: {
+                    title: "Module 2: Normal Labor & Birth",
+                    chapters: "Chapters 12-15: Labor Process, Birth, Pain Management",
+                    keyTopics: "Stages of labor and physiological processes, Birth mechanisms and delivery procedures, Pain management and coping techniques, Immediate postpartum care",
+                    assignments: [
+                        { id: 'ob2-1', text: "Labor and Birth Processes", date: new Date('2025-05-11'), type: "reading", hours: 2 },
+                        { id: 'ob2-2', text: "Nursing Care During and After Childbirth", date: new Date('2025-05-11'), type: "reading", hours: 2 },
+                        { id: 'ob2-3', text: "Fetal Assessment During Labor", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob2-4', text: "Maximizing Comfort for the Laboring Woman - Nursing Care", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob2-5', text: "Maximizing Comfort for the Laboring Woman - Pharmacologic Management", date: new Date('2025-05-11'), type: "reading", hours: 1.5 },
+                        { id: 'ob2-6', text: "Quiz 1: Modules 1-2", date: new Date('2025-05-12'), type: "quiz", hours: 1 },
+                        { id: 'ob2-7', text: "Module 2 Adaptive Quiz", date: new Date('2025-05-18'), type: "quiz", hours: 1 },
+                        { id: 'ob2-8', text: "Exam 1: Modules 1 & 2", date: new Date('2025-05-19'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Monday 12 May 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 2: Hematology",
+                    chapters: "Neurological assessment, sensory function, blood disorders",
+                    keyTopics: "Neurological Assessment, Common Neurological Disorders, Sensory System Overview, Hematological Disorders",
+                    assignments: [
+                        { id: 'ah2-1', text: "Hematology Chapter Reading", date: new Date('2025-05-13'), type: "reading", hours: 2 },
+                        { id: 'ah2-2', text: "Neurological Assessment Chapter", date: new Date('2025-05-13'), type: "reading", hours: 2 },
+                        { id: 'ah2-3', text: "Sensory Function Chapter", date: new Date('2025-05-13'), type: "reading", hours: 2 },
+                        { id: 'ah2-4', text: "Module 2 Hematology Quiz", date: new Date('2025-05-14'), type: "quiz", hours: 1 },
+                        { id: 'ah2-5', text: "Watch and Learn: Administering a Subcutaneous Injection", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah2-6', text: "Watch and Learn: Administering an Intramuscular Injection", date: new Date('2025-05-20'), type: "video", hours: 0.5 },
+                        { id: 'ah2-7', text: "Watch and Learn: Administering a Continuous Tube Feeding", date: new Date('2025-05-20'), type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Wed 14 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 2: HESI Health Assessment Exam",
+                    chapters: "Health assessment concepts",
+                    keyTopics: "HESI Specialty RN Exam, Health Assessment, Physical assessment techniques, Test-taking strategies",
+                    assignments: [
+                        { id: 'nc2-1', text: "Quiz 1: Health Assessment and Foundations", date: new Date('2025-05-16'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 12 May 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 2: Legal and Ethical Aspects",
+                    chapters: "Elder law, ethics in elder care, end-of-life considerations",
+                    keyTopics: "Ethical issues in geriatric care, Legal protections for older adults, End-of-life care planning, Advance directives",
+                    assignments: [
+                        { id: 'ge2-1', text: "Quiz 1: Health Assessment and Foundations", date: new Date('2025-05-16'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 14 May 1:00-4:00pm in NB 103"
+                }
+            },
+            3: {
+                obgyn: {
+                    title: "Module 3: Postpartum",
+                    chapters: "Chapters 17, 23, 26: Postpartum adaptations, infant feeding, family planning",
+                    keyTopics: "Postpartum adaptations and nursing care, Infant feeding methods and education, Family planning and contraception, Psychosocial adaptations to parenthood",
+                    assignments: [
+                        { id: 'ob3-1', text: "NURS240 Mental Health HESI Remediation", date: new Date('2025-05-23'), type: "remediation", hours: 2 },
+                        { id: 'ob3-2', text: "Postpartum Physiologic Changes and Nursing Care", date: new Date('2025-05-25'), type: "video", hours: 0.5 },
+                        { id: 'ob3-3', text: "Nursing Care of the Newborn and Family", date: new Date('2025-05-25'), type: "video", hours: 0.5 },
+                        { id: 'ob3-4', text: "Infant Feeding", date: new Date('2025-05-25'), type: "video", hours: 0.5 },
+                        { id: 'ob3-5', text: "Methods of Contraception", date: new Date('2025-05-25'), type: "video", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 19 May 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Module 3: Cardiovascular & Neurological",
+                    chapters: "Advanced cardiovascular and neurological concepts",
+                    keyTopics: "Complex cardiac conditions, Neurological emergencies, Critical care concepts",
+                    assignments: [
+                        { id: 'ah3-1', text: "Exam 1: Modules 1-2", date: new Date('2025-05-21'), type: "exam", hours: 2 },
+                        { id: 'ah3-2', text: "Module 3 | Foundations HESI Remediation Dropbox", date: new Date('2025-05-23'), type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Wed 21 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 3: Nutrition & Wellness",
+                    chapters: "Nutritional therapy, healthy eating, enteral vs parenteral nutrition",
+                    keyTopics: "Health promotion, Wellness concepts, Enteral and parenteral nutrition, Meal planning and calorie counting",
+                    assignments: [
+                        { id: 'nc3-1', text: "Remediation Evolve-Provided Case Studies: Post-HESI Health Assessment", date: new Date('2025-05-27'), type: "remediation", hours: 2 },
+                        { id: 'nc3-2', text: "Remediation Learning Templates for HESI Health Assessment", date: new Date('2025-05-27'), type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 19 May 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Exam 1: Modules 1-2",
+                    chapters: "Introduction to Gerontological Nursing, Legal and Ethical Aspects",
+                    keyTopics: "Assessment of older adults, Principles of elder care, Ethical issues in geriatric care, Legal protections, End-of-life planning",
+                    assignments: [
+                        { id: 'ge3-1', text: "Exam 1: Modules 1-2", date: new Date('2025-05-21'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Wednesday 21 May 1:00-3:00pm in NB 103"
+                }
+            },
+            4: {
+                obgyn: {
+                    title: "Module 4: Newborn Adaptation & Care",
+                    chapters: "Chapters 20-22: Newborn processes of adaptation, assessment, care",
+                    keyTopics: "Newborn physiologic adaptations, Comprehensive newborn assessment, Essential newborn care, Parent education for newborn care",
+                    assignments: [
+                        { id: 'ob4-1', text: "Physiologic and Behavioral Adaptations of the Newborn", date: new Date('2025-06-01'), type: "video", hours: 0.5 },
+                        { id: 'ob4-2', text: "Assessment of the Newborn", date: new Date('2025-06-01'), type: "video", hours: 0.5 },
+                        { id: 'ob4-3', text: "Early Care of the Newborn", date: new Date('2025-06-01'), type: "video", hours: 0.5 },
+                        { id: 'ob4-4', text: "Module 3 Adaptive Quiz", date: new Date('2025-06-08'), type: "quiz", hours: 1 },
+                        { id: 'ob4-5', text: "Module 4 Adaptive Quiz", date: new Date('2025-06-08'), type: "quiz", hours: 1 },
+                        { id: 'ob4-6', text: "Exam 2: Modules 3 & 4", date: new Date('2025-06-09'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Monday 26 May 09:00-12:00 (Memorial Day - Remote)"
+                },
+                adulthealth: {
+                    title: "Module 4: Fluids & URI",
+                    chapters: "Fluid balance, respiratory assessment, URI management",
+                    keyTopics: "Fluid Balance & Imbalances, IV Therapy, Upper Respiratory Disorders, Oxygenation Therapies",
+                    assignments: [
+                        { id: 'ah4-1', text: "Fluids Chapter Reading", date: new Date('2025-05-27'), type: "reading", hours: 2 },
+                        { id: 'ah4-2', text: "URI Chapter Reading", date: new Date('2025-05-27'), type: "reading", hours: 2 },
+                        { id: 'ah4-3', text: "Module 4 Fluids Quiz", date: new Date('2025-05-28'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 28 May 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Memorial Day - No Class",
+                    chapters: "Remediation week",
+                    keyTopics: "Health Assessment remediation, Completion of previous assignments",
+                    assignments: [],
+                    classMeeting: "No class - Memorial Day week"
+                },
+                geronto: {
+                    title: "Module 4: Falls Prevention & Pain Management",
+                    chapters: "Fall risk assessment, sleep disorders, pain assessment and management",
+                    keyTopics: "Fall risk assessment tools, Environmental safety measures, Pain assessment in elderly patients, Sleep disorders and interventions",
+                    assignments: [
+                        { id: 'ge4-1', text: "One-Minute Nurse: Falls Prevention: Quiz", date: new Date('2025-05-28'), type: "quiz", hours: 0.5 },
+                        { id: 'ge4-2', text: "One-Minute Nurse: Falls Prevention: Video", date: new Date('2025-05-28'), type: "video", hours: 0.5 },
+                        { id: 'ge4-3', text: "Topic 6: Rest, Sleep, Comfort, and Pain Management", date: new Date('2025-05-28'), type: "reading", hours: 1.5 },
+                        { id: 'ge4-4', text: "Attendance Week 4", date: new Date('2025-05-28'), type: "attendance", hours: 0.25 }
+                    ],
+                    classMeeting: "Wednesday 28 May 1:00-4:00pm in NB 103"
+                }
+            },
+            5: {
+                obgyn: {
+                    title: "Module 5: Pregnancy at Risk",
+                    chapters: "Chapters 10-11: High-risk pregnancy, complications",
+                    keyTopics: "High-risk pregnancy assessment and management, Gestational diabetes, Pregnancy-induced hypertension, Hemorrhagic complications",
+                    assignments: [
+                        { id: 'ob5-1', text: "Medical-Surgical Disorders Impacting Pregnancy", date: new Date('2025-06-15'), type: "video", hours: 0.5 },
+                        { id: 'ob5-2', text: "Hemorrhagic Conditions of Early and Late Pregnancy", date: new Date('2025-06-15'), type: "video", hours: 0.5 },
+                        { id: 'ob5-3', text: "Hypertensive Disorders of Pregnancy and Nursing Considerations", date: new Date('2025-06-15'), type: "video", hours: 0.5 },
+                        { id: 'ob5-4', text: "Module 5 Adaptive Quiz", date: new Date('2025-06-22'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 2 Jun 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 5: Electrolytes",
+                    chapters: "Electrolyte imbalances, assessment, management strategies",
+                    keyTopics: "Electrolyte Balance, Acid-Base Balance, Blood Gas Interpretation, Case Studies: Electrolyte Imbalances",
+                    assignments: [
+                        { id: 'ah5-1', text: "Electrolytes Chapter Reading", date: new Date('2025-06-03'), type: "reading", hours: 2 },
+                        { id: 'ah5-2', text: "Module 5 Electrolytes Quiz", date: new Date('2025-06-04'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 4 Jun 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Nutrition Exam",
+                    chapters: "Nutrition concepts",
+                    keyTopics: "HESI Specialty RN Exam, Nutrition, Health promotion and maintenance, Test-taking strategies",
+                    assignments: [
+                        { id: 'nc5-1', text: "Quiz 2: Health Promotion and Maintenance", date: new Date('2025-06-02'), type: "quiz", hours: 1 },
+                        { id: 'nc5-2', text: "HESI Exam Prep: Nutrition", date: new Date('2025-06-02'), type: "prep", hours: 1.5 },
+                        { id: 'nc5-3', text: "Exam 2: HESI Nutrition", date: new Date('2025-06-02'), type: "exam", hours: 2 },
+                        { id: 'nc5-4', text: "Reflection Quiz: Post HESI Specialty RN Exam (Nutrition)", date: new Date('2025-06-02'), type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 2 Jun 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 5: Care Management & Assessment",
+                    chapters: "Comprehensive geriatric assessment, care coordination",
+                    keyTopics: "Comprehensive geriatric assessment methods, Care coordination models, Quality of life measurements, Functional assessment tools",
+                    assignments: [
+                        { id: 'ge5-1', text: "Assignment: Assessment of the Older Adult", date: new Date('2025-06-02'), type: "assignment", hours: 2 },
+                        { id: 'ge5-2', text: "Attendance Week 5", date: new Date('2025-06-04'), type: "attendance", hours: 0.25 },
+                        { id: 'ge5-3', text: "Ebook: Chapter 11: Nutrition and Hydration", date: new Date('2025-06-01'), type: "reading", hours: 1 },
+                        { id: 'ge5-4', text: "Ebook: Chapter 12: Sleep and Rest", date: new Date('2025-06-01'), type: "reading", hours: 1 },
+                        { id: 'ge5-5', text: "Ebook: Chapter 13: Comfort and Pain Management", date: new Date('2025-06-01'), type: "reading", hours: 1 },
+                        { id: 'ge5-6', text: "Ebook: Chapter 14: Safety", date: new Date('2025-06-01'), type: "reading", hours: 1 },
+                        { id: 'ge5-7', text: "Ebook: Chapter 15: Safe Medication Use", date: new Date('2025-06-01'), type: "reading", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 4 Jun 1:00-4:00pm in NB 103"
+                }
+            },
+            6: {
+                obgyn: {
+                    title: "Module 6: Labor at Risk",
+                    chapters: "Chapters 16, 19: Complications during labor and birth",
+                    keyTopics: "Dysfunctional labor patterns, Fetal distress, Operative obstetrics, Emergency childbirth",
+                    assignments: [
+                        { id: 'ob6-1', text: "Intrapartum Complications", date: new Date('2025-06-22'), type: "video", hours: 0.5 },
+                        { id: 'ob6-2', text: "Module 6 Adaptive Quiz", date: new Date('2025-06-29'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 9 Jun 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Exam 2: Modules 4-5",
+                    chapters: "Fluids, Upper Respiratory, Electrolytes",
+                    keyTopics: "Fluids, Upper Respiratory, Electrolytes",
+                    assignments: [
+                        { id: 'ah6-1', text: "Exam 2: Modules 4-5", date: new Date('2025-06-11'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Wed 11 Jun 09:05-11:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 3: Foundations of Nursing",
+                    chapters: "Basic nursing skills, infection control, safety",
+                    keyTopics: "Basic nursing procedures, Patient safety concepts, Infection control, Documentation principles",
+                    assignments: [
+                        { id: 'nc6-1', text: "Remediation Evolve-Provided Case Studies: Post-HESI Nutrition", date: new Date('2025-06-16'), type: "remediation", hours: 2 },
+                        { id: 'nc6-2', text: "Remediation Learning Templates for HESI Nutrition", date: new Date('2025-06-16'), type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 9 Jun 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Module 6: Group Project Work Session",
+                    chapters: "Team collaboration, evidence-based practice",
+                    keyTopics: "Evidence-based interventions, Team collaboration, Project planning, Research methods",
+                    assignments: [
+                        { id: 'ge6-1', text: "Attendance Week 6", date: new Date('2025-06-11'), type: "attendance", hours: 0.25 },
+                        { id: 'ge6-2', text: "Ebook: Chapter 16: Respiration", date: new Date('2025-06-08'), type: "reading", hours: 1 },
+                        { id: 'ge6-3', text: "Ebook: Chapter 17: Circulation", date: new Date('2025-06-08'), type: "reading", hours: 1 },
+                        { id: 'ge6-4', text: "Ebook: Chapter 18: Digestion and Bowel Elimination", date: new Date('2025-06-08'), type: "reading", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 11 Jun 1:00-4:00pm in NB 103"
+                }
+            },
+            7: {
+                obgyn: {
+                    title: "Exam 3: Modules 5 & 6",
+                    chapters: "Pregnancy at Risk, Labor at Risk",
+                    keyTopics: "High-risk pregnancy, Gestational complications, Dysfunctional labor, Operative obstetrics",
+                    assignments: [
+                        { id: 'ob7-1', text: "Exam 3: Modules 5 & 6", date: new Date('2025-06-30'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Monday 16 Jun 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 7: Immune",
+                    chapters: "Immune system disorders, assessment, management strategies",
+                    keyTopics: "Immune System Function, Hypersensitivity Reactions, Common Immune Disorders, Immunosuppressive Therapies",
+                    assignments: [
+                        { id: 'ah7-1', text: "Immune Chapter Reading", date: new Date('2025-06-17'), type: "reading", hours: 2 },
+                        { id: 'ah7-2', text: "Module 7 Immune Quiz", date: new Date('2025-06-18'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 18 Jun 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "High-Fidelity Simulation",
+                    chapters: "Continuity of care, clinical skills application",
+                    keyTopics: "Clinical skills application, Continuity of care, Patient handoff, Communication skills",
+                    assignments: [
+                        { id: 'nc7-1', text: "Pre-simulation Quiz", date: new Date('2025-06-16'), type: "quiz", hours: 1 },
+                        { id: 'nc7-2', text: "Post-simulation Quiz", date: new Date('2025-06-16'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 16 Jun 14:00-17:00 (On-campus, NB 109)"
+                },
+                geronto: {
+                    title: "Module 7: Cognitive Disorders",
+                    chapters: "Alzheimer's disease, dementia, cognitive assessment",
+                    keyTopics: "Alzheimer's disease pathophysiology, Differentiating delirium and dementia, Cognitive assessment tools",
+                    assignments: [
+                        { id: 'ge7-1', text: "Ebook: Chapter 19: Urinary Elimination", date: new Date('2025-06-15'), type: "reading", hours: 1 },
+                        { id: 'ge7-2', text: "Ebook: Chapter 20: Reproductive System Health", date: new Date('2025-06-15'), type: "reading", hours: 1 },
+                        { id: 'ge7-3', text: "Ebook: Chapter 21: Mobility", date: new Date('2025-06-15'), type: "reading", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 18 Jun 1:00-3:00pm in NB 103"
+                }
+            },
+            8: {
+                obgyn: {
+                    title: "Module 7: Postpartum at Risk",
+                    chapters: "Chapters 11, 18: Postpartum complications",
+                    keyTopics: "Postpartum hemorrhage, Postpartum infections, Thromboembolic disorders, Postpartum mood disorders",
+                    assignments: [
+                        { id: 'ob8-1', text: "Perinatal and Postpartum Mood and Anxiety Disorders", date: new Date('2025-07-06'), type: "video", hours: 0.5 },
+                        { id: 'ob8-2', text: "Postpartum Complications", date: new Date('2025-07-06'), type: "video", hours: 0.5 },
+                        { id: 'ob8-3', text: "Module 7 Adaptive Quiz", date: new Date('2025-07-13'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 23 Jun 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 8: Operative & Integumentary I",
+                    chapters: "Pre/post-operative care, skin disorders",
+                    keyTopics: "Perioperative Nursing Care, Surgical Risk Assessment, Integumentary System Overview, Pressure Injuries",
+                    assignments: [
+                        { id: 'ah8-1', text: "Operative Care Chapter Reading", date: new Date('2025-06-24'), type: "reading", hours: 2 },
+                        { id: 'ah8-2', text: "Integumentary Chapter Reading", date: new Date('2025-06-24'), type: "reading", hours: 2 },
+                        { id: 'ah8-3', text: "Module 8 Operative Quiz", date: new Date('2025-06-25'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 25 Jun 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Fundamentals Exam",
+                    chapters: "Foundations of nursing concepts",
+                    keyTopics: "HESI Specialty RN Exam, Fundamentals of nursing, Basic nursing skills, Test-taking strategies",
+                    assignments: [
+                        { id: 'nc8-1', text: "Quiz 3: Health Assessment, Foundations of Nursing", date: new Date('2025-06-23'), type: "quiz", hours: 1 },
+                        { id: 'nc8-2', text: "HESI Exam Prep: Fundamentals of Nursing", date: new Date('2025-06-23'), type: "prep", hours: 1.5 },
+                        { id: 'nc8-3', text: "Exam 3: HESI Fundamentals", date: new Date('2025-06-23'), type: "exam", hours: 2 },
+                        { id: 'nc8-4', text: "Reflection Quiz: Post HESI Specialty RN Exam (Fundamentals)", date: new Date('2025-06-23'), type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 23 Jun 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 8: Alzheimer's Disease & Cognitive Disorders",
+                    chapters: "Dementia types, delirium, cognitive assessment",
+                    keyTopics: "Alzheimer's disease pathophysiology, Differentiating delirium and dementia, Cognitive assessment tools, Behavioral management strategies",
+                    assignments: [
+                        { id: 'ge8-1', text: "Topic 13: Immunity, Infections, Chronic Conditions, and Cancer", date: new Date('2025-06-25'), type: "reading", hours: 2 },
+                        { id: 'ge8-2', text: "One-Minute Nurse: Alzheimer Disease: Quiz", date: new Date('2025-06-25'), type: "quiz", hours: 0.5 },
+                        { id: 'ge8-3', text: "One-Minute Nurse: Delirium vs. Dementia: Quiz", date: new Date('2025-06-25'), type: "quiz", hours: 0.5 },
+                        { id: 'ge8-4', text: "Attendance Week 8", date: new Date('2025-06-25'), type: "attendance", hours: 0.25 },
+                        { id: 'ge8-5', text: "Team Project Submission 1", date: new Date('2025-06-23'), type: "assignment", hours: 3 }
+                    ],
+                    classMeeting: "Wednesday 25 Jun 1:00-4:00pm in NB 103"
+                }
+            },
+            9: {
+                obgyn: {
+                    title: "Module 8: Newborn at Risk",
+                    chapters: "Chapters 24-25: High-risk newborn conditions",
+                    keyTopics: "Prematurity and low birth weight, Respiratory distress syndrome, Congenital anomalies, Neonatal abstinence syndrome",
+                    assignments: [
+                        { id: 'ob9-1', text: "High-Risk Newborn: Complications Associated with Gestational Age and Development", date: new Date('2025-07-13'), type: "video", hours: 0.5 },
+                        { id: 'ob9-2', text: "High-Risk Newborn: Acquired and Congenital Conditions", date: new Date('2025-07-13'), type: "video", hours: 0.5 },
+                        { id: 'ob9-3', text: "Module 8 Adaptive Quiz", date: new Date('2025-07-20'), type: "quiz", hours: 1 },
+                        { id: 'ob9-4', text: "Exam 4: Modules 7 & 8", date: new Date('2025-07-21'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Monday 30 Jun 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Module 9: Integumentary II & Diabetes",
+                    chapters: "Advanced wound care, burn management, diabetic care",
+                    keyTopics: "Burns, Wound Care Management, Diabetes Mellitus, Glycemic Management",
+                    assignments: [
+                        { id: 'ah9-1', text: "Wound Care Chapter Reading", date: new Date('2025-07-01'), type: "reading", hours: 2 },
+                        { id: 'ah9-2', text: "Diabetes Chapter Reading", date: new Date('2025-07-01'), type: "reading", hours: 2 },
+                        { id: 'ah9-3', text: "Module 9 Integumentary Quiz", date: new Date('2025-07-02'), type: "quiz", hours: 1 },
+                        { id: 'ah9-4', text: "Module 9 Diabetes Quiz", date: new Date('2025-07-02'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 2 Jul 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 5: Pharmacology Concepts",
+                    chapters: "Medication administration, pharmacokinetics, drug classifications",
+                    keyTopics: "Medication administration principles, Common drug classifications, Pharmacokinetics, Medication calculation",
+                    assignments: [
+                        { id: 'nc9-1', text: "Remediation Evolve-Provided Case Studies: Post-HESI Fundamentals", date: new Date('2025-07-07'), type: "remediation", hours: 2 },
+                        { id: 'nc9-2', text: "Remediation Learning Templates for HESI Fundamentals", date: new Date('2025-07-07'), type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 30 Jun 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Module 9: Chronic Conditions & Cancer in Elderly",
+                    chapters: "Immunity changes, infection control, chronic disease management",
+                    keyTopics: "Age-related immune changes, Infection prevention in elderly care settings, Common chronic conditions in older adults, Geriatric oncology considerations",
+                    assignments: [
+                        { id: 'ge9-1', text: "Topic 15: Continuum of Care and Care Settings", date: new Date('2025-07-02'), type: "reading", hours: 2 },
+                        { id: 'ge9-2', text: "Attendance Week 9", date: new Date('2025-07-02'), type: "attendance", hours: 0.25 },
+                        { id: 'ge9-3', text: "Ebook: Chapter 22: Neurologic Function", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-4', text: "Ebook: Chapter 23: Vision and Hearing", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-5', text: "Ebook: Chapter 24: Endocrine Function", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-6', text: "Ebook: Chapter 25: Skin Health", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-7', text: "Ebook: Chapter 26: Cancer", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-8', text: "Ebook: Chapter 27: Mental Health Disorders", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-9', text: "Ebook: Chapter 28: Delirium and Dementia", date: new Date('2025-06-29'), type: "reading", hours: 1 },
+                        { id: 'ge9-10', text: "Ebook: Chapter 29: Living in Harmony With Chronic Conditions", date: new Date('2025-06-29'), type: "reading", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 2 Jul 1:00-4:00pm in NB 103"
+                }
+            },
+            10: {
+                obgyn: {
+                    title: "HESI Standardized Exam Prep",
+                    chapters: "Comprehensive review",
+                    keyTopics: "All maternal-newborn content, Test-taking strategies, Critical thinking",
+                    assignments: [
+                        { id: 'ob10-1', text: "Postpartum Hemorrhage", date: new Date('2025-07-27'), type: "assignment", hours: 1.5 },
+                        { id: 'ob10-2', text: "HESI Standardized Exam", date: new Date('2025-07-28'), type: "exam", hours: 2.5 }
+                    ],
+                    classMeeting: "Monday 7 Jul 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Exam 3: Modules 7-9",
+                    chapters: "Immune, Operative, Integumentary, Diabetes",
+                    keyTopics: "Immune, Operative, Integumentary, Diabetes",
+                    assignments: [
+                        { id: 'ah10-1', text: "Exam 3: Modules 7-9", date: new Date('2025-07-09'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Wed 9 Jul 09:05-11:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Module 6: Mental Health",
+                    chapters: "Mental health disorders, therapeutic communication, crisis intervention",
+                    keyTopics: "Common mental health disorders, Therapeutic communication, Crisis intervention, Psychopharmacology",
+                    assignments: [
+                        { id: 'nc10-1', text: "Quiz 4: Mental Health Concepts", date: new Date('2025-07-14'), type: "quiz", hours: 1 },
+                        { id: 'nc10-2', text: "HESI Exam Prep: Mental Health", date: new Date('2025-07-14'), type: "prep", hours: 1.5 },
+                        { id: 'nc10-3', text: "Exam 4: HESI Mental Health", date: new Date('2025-07-14'), type: "exam", hours: 2 },
+                        { id: 'nc10-4', text: "Reflection Quiz: Post HESI Specialty RN Exam (Mental Health)", date: new Date('2025-07-14'), type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Monday 7 Jul 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "Module 10: End of Life Care",
+                    chapters: "Palliative care, hospice, grief and bereavement",
+                    keyTopics: "Palliative vs. hospice care, End-of-life care planning, Grief and bereavement support",
+                    assignments: [
+                        { id: 'ge10-1', text: "Ebook: Chapter 32: Rehabilitative and Restorative Care", date: new Date('2025-07-06'), type: "reading", hours: 1 },
+                        { id: 'ge10-2', text: "Ebook: Chapter 33: Acute Care", date: new Date('2025-07-06'), type: "reading", hours: 1 },
+                        { id: 'ge10-3', text: "Ebook: Chapter 34: Long-Term Care", date: new Date('2025-07-06'), type: "reading", hours: 1 },
+                        { id: 'ge10-4', text: "One-Minute Nurse: End-of-Life Considerations: Quiz", date: new Date('2025-07-09'), type: "quiz", hours: 0.5 }
+                    ],
+                    classMeeting: "Wednesday 9 Jul 1:00-4:00pm in NB 103"
+                }
+            },
+            11: {
+                obgyn: {
+                    title: "Final Exam Preparation",
+                    chapters: "Comprehensive review of all modules",
+                    keyTopics: "Integration of all OB content, Critical thinking, Case studies review",
+                    assignments: [],
+                    classMeeting: "Monday 14 Jul 09:00-12:00"
+                },
+                adulthealth: {
+                    title: "Module 11: GU & Musculoskeletal I",
+                    chapters: "Urinary disorders, fractures, joint disorders",
+                    keyTopics: "Genitourinary System Overview, Common GU Disorders, Musculoskeletal System, Common MSK Conditions",
+                    assignments: [
+                        { id: 'ah11-1', text: "GU Chapter Reading", date: new Date('2025-07-15'), type: "reading", hours: 2 },
+                        { id: 'ah11-2', text: "Musculoskeletal Chapter Reading", date: new Date('2025-07-15'), type: "reading", hours: 2 },
+                        { id: 'ah11-3', text: "Module 11 GU Quiz", date: new Date('2025-07-16'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 16 Jul 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "HESI Pathophysiology Exam",
+                    chapters: "Disease processes, pathophysiological concepts",
+                    keyTopics: "HESI Specialty RN Exam, Pathophysiology, Disease processes, Test-taking strategies",
+                    assignments: [
+                        { id: 'nc11-1', text: "Quiz 5: Maternal and Child Nursing Concepts", date: new Date('2025-07-21'), type: "quiz", hours: 1 },
+                        { id: 'nc11-2', text: "HESI Exam Prep: Pathophysiology", date: new Date('2025-07-21'), type: "prep", hours: 1.5 },
+                        { id: 'nc11-3', text: "Exam 5: HESI Pathophysiology", date: new Date('2025-07-21'), type: "exam", hours: 2 },
+                        { id: 'nc11-4', text: "Reflection Quiz: Post HESI Specialty RN Exam (Pathophysiology)", date: new Date('2025-07-21'), type: "quiz", hours: 0.5 },
+                        { id: 'nc11-5', text: "Remediation Evolve-Provided Case Studies: Post-HESI Mental Health", date: new Date('2025-07-28'), type: "remediation", hours: 2 },
+                        { id: 'nc11-6', text: "Remediation Learning Templates for HESI Mental Health", date: new Date('2025-07-28'), type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 14 Jul 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Module 11: Group Project Presentations",
+                    chapters: "Evidence-based gerontological nursing practice",
+                    keyTopics: "Presentation skills, Evidence-based practice in gerontological nursing, Team collaboration, Peer evaluation",
+                    assignments: [
+                        { id: 'ge11-1', text: "Attendance Week 11", date: new Date('2025-07-16'), type: "attendance", hours: 0.25 },
+                        { id: 'ge11-2', text: "Ebook: Chapter 30: Spirituality", date: new Date('2025-07-13'), type: "reading", hours: 1 },
+                        { id: 'ge11-3', text: "Ebook: Chapter 31: Sexuality and Intimacy", date: new Date('2025-07-13'), type: "reading", hours: 1 },
+                        { id: 'ge11-4', text: "Ebook: Chapter 35: Family Caregiving", date: new Date('2025-07-13'), type: "reading", hours: 1 },
+                        { id: 'ge11-5', text: "Ebook: Chapter 36: End-of-Life Care", date: new Date('2025-07-13'), type: "reading", hours: 1 }
+                    ],
+                    classMeeting: "Wednesday 16 Jul 1:00-4:00pm in NB 103"
+                }
+            },
+            12: {
+                obgyn: {
+                    title: "Final Exam Week",
+                    chapters: "All modules 1-8",
+                    keyTopics: "Comprehensive obstetrics content review, NCLEX-style preparation",
+                    assignments: [
+                        { id: 'ob12-1', text: "Final Exam: Modules 1-8", date: new Date('2025-08-04'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Monday 21 Jul 09:00-11:00"
+                },
+                adulthealth: {
+                    title: "Module 12: Musculoskeletal II & GI",
+                    chapters: "Advanced orthopedic care, gastrointestinal disorders",
+                    keyTopics: "Orthopedic Traumas, Traction & Immobilization Devices, Gastrointestinal System, Common GI Disorders",
+                    assignments: [
+                        { id: 'ah12-1', text: "Advanced MSK Chapter Reading", date: new Date('2025-07-21'), type: "reading", hours: 2 },
+                        { id: 'ah12-2', text: "GI Chapter Reading", date: new Date('2025-07-21'), type: "reading", hours: 2 },
+                        { id: 'ah12-3', text: "Module 12 MSK Quiz", date: new Date('2025-07-23'), type: "quiz", hours: 1 },
+                        { id: 'ah12-4', text: "Module 12 GI Quiz", date: new Date('2025-07-23'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Wed 23 Jul 09:05-12:10 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Mid-HESI Review",
+                    chapters: "Comprehensive content review",
+                    keyTopics: "NCLEX-style question strategies, Content review from all modules, Test-taking strategies, Critical thinking skills",
+                    assignments: [
+                        { id: 'nc12-1', text: "Remediation: Post High-Fidelity Simulation (Lab)", date: new Date('2025-08-01'), type: "remediation", hours: 2 }
+                    ],
+                    classMeeting: "Monday 21 Jul 14:00-16:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Exam 3 (Final): Modules 5-11",
+                    chapters: "Cognitive Disorders, Chronic Conditions, Care Settings",
+                    keyTopics: "Alzheimer's and dementia, Chronic disease management, Immunity and infections in older adults, Continuum of care, Care transitions",
+                    assignments: []
+                }
+            },
+            13: {
+                obgyn: {
+                    title: "Course Completion",
+                    chapters: "No new content",
+                    keyTopics: "Course completion, Final grades posted",
+                    assignments: [],
+                    classMeeting: "No class meeting"
+                },
+                adulthealth: {
+                    title: "Exam 4: Modules 11-12",
+                    chapters: "GU, Musculoskeletal, GI",
+                    keyTopics: "GU, Musculoskeletal, GI",
+                    assignments: [
+                        { id: 'ah13-1', text: "Exam 4: Modules 11-12", date: new Date('2025-07-30'), type: "exam", hours: 2 }
+                    ],
+                    classMeeting: "Wed 30 Jul 09:05-11:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Mid-HESI Final Exam",
+                    chapters: "Comprehensive nursing content",
+                    keyTopics: "Comprehensive final exam, All nursing content areas, Critical thinking, Clinical judgment",
+                    assignments: [
+                        { id: 'nc13-1', text: "Remediation Evolve-Provided Case Studies: Post-HESI Pathophysiology", date: new Date('2025-08-04'), type: "remediation", hours: 2 },
+                        { id: 'nc13-2', text: "Remediation Learning Templates for HESI Pathophysiology", date: new Date('2025-08-04'), type: "remediation", hours: 2 },
+                        { id: 'nc13-3', text: "Final Exam: Mid-HESI", date: new Date('2025-08-07'), type: "exam", hours: 3 },
+                        { id: 'nc13-4', text: "Quiz 6: Adult Health I Concepts", date: new Date('2025-08-07'), type: "quiz", hours: 1 }
+                    ],
+                    classMeeting: "Monday 28 Jul 14:00-17:00 (Zoom)"
+                },
+                geronto: {
+                    title: "HESI Specialty Exam",
+                    chapters: "Comprehensive gerontological nursing content",
+                    keyTopics: "Comprehensive gerontological nursing practice, NCLEX-style question strategies, Critical thinking and clinical judgment",
+                    assignments: []
+                }
+            },
+            14: {
+                obgyn: {
+                    title: "Course Complete",
+                    chapters: "No class - course completed",
+                    keyTopics: "",
+                    assignments: [],
+                    classMeeting: "No class meeting"
+                },
+                adulthealth: {
+                    title: "Final Exam: All Modules",
+                    chapters: "Comprehensive final covering all course content",
+                    keyTopics: "Comprehensive Final Exam, Covers all modules from the entire course",
+                    assignments: [
+                        { id: 'ah14-1', text: "Comprehensive Final Exam", date: new Date('2025-08-06'), type: "exam", hours: 3 }
+                    ],
+                    classMeeting: "Wed 6 Aug 09:05-12:05 (CC 226/227)"
+                },
+                nclex: {
+                    title: "Course Complete",
+                    chapters: "No class - course completed",
+                    keyTopics: "",
+                    assignments: [],
+                    classMeeting: "Thursday 7 Aug 10:00-13:00 (On-campus)"
+                },
+                geronto: {
+                    title: "Course Complete",
+                    chapters: "No class - course completed",
+                    keyTopics: "",
+                    assignments: [],
+                    classMeeting: "No class meeting"
+                }
+            }
+        };
+
+        // Essential events for the calendar
+        const essentialEvents = [
+            { date: new Date('2025-05-05'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-05-05'), title: 'NCLEX Orientation', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-05-06'), title: 'OB Clinical Orientation', type: 'clinical', time: '8:00 AM' },
+            { date: new Date('2025-05-07'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-05-07'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-05-08'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-05-12'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-05-12'), title: 'NCLEX HESI Health Assessment', type: 'exam', time: '2:00 PM' },
+            { date: new Date('2025-05-13'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-05-14'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-05-14'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-05-15'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-05-19'), title: 'OB Exam 1', type: 'exam', time: '9:00 AM' },
+            { date: new Date('2025-05-19'), title: 'NCLEX Zoom Class', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-05-20'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-05-21'), title: 'Adult Health Exam 1', type: 'exam', time: '9:05 AM' },
+            { date: new Date('2025-05-21'), title: 'Gerontology Exam 1', type: 'exam', time: '1:00 PM' },
+            { date: new Date('2025-05-22'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-05-26'), title: 'Memorial Day - No Classes', type: 'holiday', time: 'All day' },
+            { date: new Date('2025-05-28'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-05-28'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-05-29'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-02'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-06-02'), title: 'NCLEX HESI Nutrition Exam', type: 'exam', time: '2:00 PM' },
+            { date: new Date('2025-06-03'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-04'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-06-04'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-06-05'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-09'), title: 'OB Exam 2', type: 'exam', time: '9:00 AM' },
+            { date: new Date('2025-06-09'), title: 'NCLEX Zoom Class', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-06-10'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-11'), title: 'Adult Health Exam 2', type: 'exam', time: '9:05 AM' },
+            { date: new Date('2025-06-11'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-06-12'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-16'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-06-16'), title: 'NCLEX High-Fidelity Simulation', type: 'simulation', time: '2:00 PM' },
+            { date: new Date('2025-06-17'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-18'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-06-18'), title: 'Gerontology Exam 2', type: 'exam', time: '1:00 PM' },
+            { date: new Date('2025-06-19'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-23'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-06-23'), title: 'NCLEX HESI Fundamentals Exam', type: 'exam', time: '2:00 PM' },
+            { date: new Date('2025-06-24'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-25'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-06-25'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-06-26'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-06-30'), title: 'OB Exam 3', type: 'exam', time: '9:00 AM' },
+            { date: new Date('2025-06-30'), title: 'NCLEX Zoom Class', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-07-01'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-02'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-07-02'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-07-03'), title: 'Adult Health Simulation', type: 'simulation', time: '9:00 AM' },
+            { date: new Date('2025-07-04'), title: 'Independence Day - No Classes', type: 'holiday', time: 'All day' },
+            { date: new Date('2025-07-07'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-07-07'), title: 'NCLEX Zoom Class', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-07-08'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-09'), title: 'Adult Health Exam 3', type: 'exam', time: '9:05 AM' },
+            { date: new Date('2025-07-09'), title: 'Gerontology Class', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-07-10'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-14'), title: 'OB Lecture', type: 'lecture', time: '9:00 AM' },
+            { date: new Date('2025-07-14'), title: 'NCLEX HESI Mental Health Exam', type: 'exam', time: '2:00 PM' },
+            { date: new Date('2025-07-15'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-16'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-07-16'), title: 'Gerontology Project Presentations', type: 'lecture', time: '1:00 PM' },
+            { date: new Date('2025-07-17'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-21'), title: 'OB Exam 4', type: 'exam', time: '9:00 AM' },
+            { date: new Date('2025-07-21'), title: 'NCLEX HESI Pathophysiology Exam', type: 'exam', time: '2:00 PM' },
+            { date: new Date('2025-07-22'), title: 'OB Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-23'), title: 'Adult Health Lecture', type: 'lecture', time: '9:05 AM' },
+            { date: new Date('2025-07-23'), title: 'Gerontology Final Exam', type: 'exam', time: '1:00 PM' },
+            { date: new Date('2025-07-24'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-07-28'), title: 'OB HESI Standardized Exam', type: 'exam', time: '9:00 AM' },
+            { date: new Date('2025-07-28'), title: 'NCLEX Zoom Class', type: 'lecture', time: '2:00 PM' },
+            { date: new Date('2025-07-29'), title: 'OB Simulation', type: 'simulation', time: '9:00 AM' },
+            { date: new Date('2025-07-30'), title: 'Adult Health Exam 4', type: 'exam', time: '9:05 AM' },
+            { date: new Date('2025-07-30'), title: 'Gerontology HESI Exam', type: 'exam', time: '1:00 PM' },
+            { date: new Date('2025-07-31'), title: 'Adult Health Clinical', type: 'clinical', time: '6:45 AM' },
+            { date: new Date('2025-08-04'), title: 'OB Final Exam', type: 'exam', time: '10:10 AM' },
+            { date: new Date('2025-08-06'), title: 'Adult Health Final Exam', type: 'exam', time: '9:05 AM' },
+            { date: new Date('2025-08-07'), title: 'NCLEX Mid-HESI Final Exam', type: 'exam', time: '10:00 AM' }
+        ];
+
+        let currentWeek = 1;
+        let currentView = 'month';
+        let studyBlocks = [];
+        let completedAssignments = new Set();
+        let allAssignmentsView = false;
+
+        // Remove dependence on localStorage for this version
+        function loadState() {
+            // Skip loading from localStorage
+            // This version doesn't use localStorage due to sandbox restrictions
+            currentWeek = 3; // May 18, 2025 falls in week 3
+        }
+
+        // Skip saving to localStorage for this version
+        function saveState() {
+            // This version doesn't use localStorage due to sandbox restrictions
+            // Just update the UI
+            generateModuleCards();
+            generateCalendar();
+        }
+
+        // Generate module cards
+        function generateModuleCards() {
+            const container = document.getElementById('module-cards');
+            container.innerHTML = '';
+            
+            if (allAssignmentsView) {
+                generateAllAssignmentsView(container);
+                return;
+            }
+            
+            const weekModules = semesterModules[currentWeek] || {};
+            
+            Object.entries(weekModules).forEach(([course, module]) => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                
+                // Check for assignments due soon (within 3 days) or overdue
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const assignmentsHtml = module.assignments.map((a) => {
+                    // Check if due date is approaching or overdue
+                    const dueDate = new Date(a.date);
+                    dueDate.setHours(0, 0, 0, 0);
+                    
+                    const daysDiff = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                    let rowClass = '';
+                    let statusLabel = '';
+                    
+                    if (daysDiff < 0 && !completedAssignments.has(a.id)) {
+                        rowClass = 'overdue';
+                        statusLabel = '<span style="color: #f44336; font-weight: bold; margin-right: 5px;">OVERDUE</span>';
+                    } else if (daysDiff >= 0 && daysDiff <= 3 && !completedAssignments.has(a.id)) {
+                        rowClass = 'due-soon';
+                        statusLabel = '<span style="color: #FF9800; font-weight: bold; margin-right: 5px;">DUE SOON</span>';
+                    }
+                    
+                    // Create type badge
+                    const typeBadge = `<span style="display: inline-block; background-color: ${getTypeColor(a.type)}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin-right: 5px;">${a.type.toUpperCase()}</span>`;
+                    
+                    return `
+                        <div class="assignment-item ${rowClass}">
+                            <input type="checkbox" 
+                                   class="assignment-checkbox" 
+                                   id="${a.id}"
+                                   ${completedAssignments.has(a.id) ? 'checked' : ''}
+                                   onchange="toggleAssignment('${a.id}')">
+                            <span class="assignment-text">${statusLabel}${typeBadge}${a.text}</span>
+                            <span class="assignment-date">${a.date.toLocaleDateString()} (${a.hours}h)</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Get course full name
+                const courseName = getCourseFullName(course);
+                
+                card.innerHTML = `
+                    <div class="module-header ${course}-header" onclick="toggleModule(this)">
+                        <div>${courseName}: ${module.title}</div>
+                        <span>▼</span>
+                    </div>
+                    <div class="module-meta">
+                        <div class="meta-title">Key Topics:</div>
+                        <div>${module.keyTopics || 'Not specified'}</div>
+                    </div>
+                    <div class="module-content">
+                        <div class="assignments">
+                            ${assignmentsHtml || '<p>No assignments this week</p>'}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Generate all upcoming assignments view
+        function generateAllAssignmentsView(container) {
+            const allAssignments = [];
+            
+            // Collect all assignments from all weeks
+            Object.entries(semesterModules).forEach(([week, modules]) => {
+                Object.entries(modules).forEach(([course, module]) => {
+                    module.assignments.forEach(assignment => {
+                        allAssignments.push({
+                            ...assignment,
+                            course,
+                            courseTitle: module.title,
+                            week
+                        });
+                    });
+                });
+            });
+            
+            // Sort by due date
+            allAssignments.sort((a, b) => a.date - b.date);
+            
+            // Include all assignments, including past ones for the OVERDUE indicator
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Group by week for display
+            const grouped = {};
+            allAssignments.forEach(a => {
+                // Get the Monday of the week
+                const date = new Date(a.date);
+                const day = date.getDay();
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+                const mondayDate = new Date(date.setDate(diff));
+                const key = mondayDate.toISOString().split('T')[0];
+                
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        date: mondayDate,
+                        assignments: []
+                    };
+                }
+                
+                grouped[key].assignments.push(a);
+            });
+            
+            // Create a card for each week
+            Object.values(grouped).sort((a, b) => a.date - b.date).forEach(weekGroup => {
+                const card = document.createElement('div');
+                card.className = 'module-card';
+                
+                const weekStart = weekGroup.date;
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                
+                const weekLabel = `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                
+                const assignmentsHtml = weekGroup.assignments.map(a => {
+                    const dueDate = new Date(a.date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const daysDiff = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                    let rowClass = '';
+                    let statusLabel = '';
+                    
+                    if (daysDiff < 0 && !completedAssignments.has(a.id)) {
+                        rowClass = 'overdue';
+                        statusLabel = '<span style="color: #f44336; font-weight: bold; margin-right: 5px;">OVERDUE</span>';
+                    } else if (daysDiff >= 0 && daysDiff <= 3 && !completedAssignments.has(a.id)) {
+                        rowClass = 'due-soon';
+                        statusLabel = '<span style="color: #FF9800; font-weight: bold; margin-right: 5px;">DUE SOON</span>';
+                    }
+                    
+                    // Create course label
+                    const courseLabel = `<span class="course-label ${a.course}-label">${a.course.toUpperCase()}</span>`;
+                    
+                    // Create type badge
+                    const typeBadge = `<span style="display: inline-block; background-color: ${getTypeColor(a.type)}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin-right: 5px;">${a.type.toUpperCase()}</span>`;
+                    
+                    return `
+                        <div class="assignment-item ${rowClass}">
+                            <input type="checkbox" 
+                                   class="assignment-checkbox" 
+                                   id="${a.id}"
+                                   ${completedAssignments.has(a.id) ? 'checked' : ''}
+                                   onchange="toggleAssignment('${a.id}')">
+                            <span class="assignment-text">${statusLabel}${courseLabel} ${typeBadge}${a.text}</span>
+                            <span class="assignment-date">${a.date.toLocaleDateString()} (${a.hours}h)</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                card.innerHTML = `
+                    <div class="module-header nclex-header" onclick="toggleModule(this)">
+                        <div>Week of ${weekLabel}</div>
+                        <span>▼</span>
+                    </div>
+                    <div class="module-content">
+                        <div class="assignments">
+                            ${assignmentsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Toggle between weekly view and all assignments view
+        function toggleAllAssignmentsView() {
+            allAssignmentsView = !allAssignmentsView;
+            
+            const toggleElement = document.querySelector('.all-assignments-toggle');
+            if (toggleElement) {
+                toggleElement.textContent = allAssignmentsView ? 
+                    "View current week assignments" : 
+                    "View all upcoming assignments";
+            }
+            
+            generateModuleCards();
+        }
+
+        // Toggle module expansion
+        function toggleModule(header) {
+            const card = header.closest('.module-card');
+            card.classList.toggle('collapsed');
+            
+            // Update the arrow indicator
+            const arrow = header.querySelector('span');
+            if (arrow) {
+                arrow.textContent = card.classList.contains('collapsed') ? '▶' : '▼';
+            }
+        }
+
+        // Toggle assignment completion
+        function toggleAssignment(id) {
+            if (completedAssignments.has(id)) {
+                completedAssignments.delete(id);
+            } else {
+                completedAssignments.add(id);
+            }
+            saveState();
+            generateModuleCards();
+        }
+
+        // Generate calendar
+        function generateCalendar() {
+            if (currentView === 'month') {
+                generateMonthView();
+            } else {
+                generateWeekView();
+            }
+        }
+
+        // Generate month view
+        function generateMonthView() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Day headers - Starting with Monday (European format)
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            days.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Use the first day of the week corresponding to current week
+            const firstDayOfWeek = new Date(2025, 4, 5 + (currentWeek - 1) * 7); // May 5, 2025 is week 1 (Monday)
+            const month = firstDayOfWeek.getMonth();
+            const year = firstDayOfWeek.getFullYear();
+            
+            // Get first day of month and last day
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            
+            // Start padding (empty cells before first day of month)
+            // For Monday-start, getDay() returns:
+            // Sunday=0, Monday=1, ..., Saturday=6
+            // But we want Monday=0, Tuesday=1, ..., Sunday=6
+            // So we convert: (getDay() - 1 + 7) % 7
+            const startPadding = (firstDayOfMonth.getDay() - 1 + 7) % 7;
+            
+            // Add empty cells before first day of month
+            for (let i = 0; i < startPadding; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day';
+                grid.appendChild(emptyCell);
+            }
+            
+            // Current date for highlighting today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Days of the month
+            for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const isToday = date.toDateString() === today.toDateString();
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = `calendar-day${isToday ? ' today' : ''}`;
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'calendar-day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+                
+                // Add events
+                const allEvents = [...essentialEvents, ...studyBlocks];
+                
+                // Add assignment events to calendar
+                Object.values(semesterModules).forEach(weekModules => {
+                    Object.entries(weekModules).forEach(([course, module]) => {
+                        module.assignments.forEach(assignment => {
+                            if (assignment.date.toDateString() === date.toDateString()) {
+                                allEvents.push({
+                                    date: assignment.date,
+                                    title: assignment.text,
+                                    type: assignment.type,
+                                    time: 'Due 11:59 PM',
+                                    course: course,
+                                    hours: assignment.hours,
+                                    completed: completedAssignments.has(assignment.id)
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                // Sort and filter events for this day
+                const dayEvents = allEvents
+                    .filter(e => e.date.toDateString() === date.toDateString())
+                    .sort((a, b) => {
+                        // Sort order: 1. Regular events (lectures, etc.), 2. Assignments by type 
+                        if (!a.course && b.course) return -1;
+                        if (a.course && !b.course) return 1;
+                        return 0;
+                    });
+                
+                dayEvents.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = `event ${event.type}`;
+                    if (event.completed) {
+                        eventDiv.style.opacity = '0.5';
+                        eventDiv.style.textDecoration = 'line-through';
+                    }
+                    
+                    // Prefix with course name if it's an assignment
+                    const coursePrefix = event.course ? `[${event.course.toUpperCase()}] ` : '';
+                    eventDiv.textContent = coursePrefix + event.title;
+                    
+                    // Show tooltip on hover
+                    eventDiv.addEventListener('mouseenter', (e) => {
+                        const tooltip = document.getElementById('event-tooltip');
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                        
+                        const title = document.getElementById('tooltip-title');
+                        const time = document.getElementById('tooltip-time');
+                        const description = document.getElementById('tooltip-description');
+                        
+                        title.textContent = event.title;
+                        time.textContent = event.time || 'All day';
+                        
+                        // Add additional details for assignments
+                        if (event.course && event.hours) {
+                            description.textContent = `Course: ${getCourseFullName(event.course)}\nType: ${event.type}\nEstimated time: ${event.hours} hour${event.hours !== 1 ? 's' : ''}`;
+                        } else {
+                            description.textContent = event.description || '';
+                        }
+                    });
+                    
+                    eventDiv.addEventListener('mouseleave', () => {
+                        const tooltip = document.getElementById('event-tooltip');
+                        tooltip.style.display = 'none';
+                    });
+                    
+                    dayCell.appendChild(eventDiv);
+                });
+                
+                grid.appendChild(dayCell);
+            }
+            
+            // Add empty cells after the last day if needed to complete the grid
+            const totalCells = startPadding + lastDayOfMonth.getDate();
+            const endPadding = 7 - (totalCells % 7 || 7); // If divisible by 7, don't add padding
+            
+            for (let i = 0; i < endPadding && endPadding !== 7; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day';
+                grid.appendChild(emptyCell);
+            }
+        }
+
+        // Get full course name based on course code
+        function getCourseFullName(courseCode) {
+            const courseNames = {
+                'obgyn': 'NURS330: Nursing of the Childbearing Family',
+                'adulthealth': 'NURS310: Adult Health I',
+                'nclex': 'NURS335: NCLEX-RN Immersion I',
+                'geronto': 'NURS315: Gerontological Nursing'
+            };
+            
+            return courseNames[courseCode] || courseCode;
+        }
+        
+        // Get color for assignment type
+        function getTypeColor(type) {
+            const typeColors = {
+                'reading': '#2196F3',
+                'video': '#9C27B0',
+                'quiz': '#E91E63',
+                'exam': '#f44336',
+                'assignment': '#FF9800',
+                'remediation': '#795548',
+                'prep': '#4CAF50',
+                'activity': '#009688',
+                'attendance': '#607D8B',
+                'admin': '#9E9E9E',
+                'simulation': '#673AB7',
+                'presentation': '#3F51B5'
+            };
+            
+            return typeColors[type] || '#2196F3';
+        }
+
+        // Generate week view
+        function generateWeekView() {
+            const grid = document.getElementById('time-grid');
+            grid.innerHTML = '';
+            
+            // First Monday of the selected week
+            const firstDayOfWeek = new Date(2025, 4, 5 + (currentWeek - 1) * 7); // May 5, 2025 (a Monday) is week 1
+            
+            // Day headers
+            const dayHeaders = document.createElement('div');
+            dayHeaders.className = 'time-label';
+            dayHeaders.textContent = '';
+            grid.appendChild(dayHeaders);
+            
+            // Days of the week headers
+            for (let day = 0; day < 7; day++) {
+                const date = new Date(firstDayOfWeek);
+                date.setDate(firstDayOfWeek.getDate() + day);
+                
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = `${date.toLocaleDateString('en-US', { weekday: 'short' })} ${date.getDate()}`;
+                grid.appendChild(dayHeader);
+            }
+            
+            // Time slots
+            for (let hour = 6; hour <= 22; hour++) {
+                const timeLabel = document.createElement('div');
+                timeLabel.className = 'time-label';
+                timeLabel.textContent = `${hour % 12 || 12}:00 ${hour < 12 ? 'AM' : 'PM'}`;
+                grid.appendChild(timeLabel);
+                
+                // Day slots
+                for (let day = 0; day < 7; day++) {
+                    const date = new Date(firstDayOfWeek);
+                    date.setDate(firstDayOfWeek.getDate() + day);
+                    date.setHours(hour, 0, 0, 0);
+                    
+                    const timeSlot = document.createElement('div');
+                    timeSlot.className = 'time-slot';
+                    
+                    // Check for events at this time
+                    const events = [...essentialEvents, ...studyBlocks]
+                        .filter(event => {
+                            const eventDate = new Date(event.date);
+                            return eventDate.toDateString() === date.toDateString() && 
+                                   getEventHour(event) === hour;
+                        });
+                    
+                    events.forEach(event => {
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = `event ${event.type}`;
+                        eventDiv.textContent = event.title;
+                        eventDiv.title = `${event.title} - ${event.time || 'All day'}`;
+                        timeSlot.appendChild(eventDiv);
+                    });
+                    
+                    grid.appendChild(timeSlot);
+                }
+            }
+        }
+
+        // Helper to extract hour from event time
+        function getEventHour(event) {
+            if (!event.time) return 9; // Default to 9 AM for all-day events
+            
+            const timeMatch = event.time.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (!timeMatch) return 9;
+            
+            let hour = parseInt(timeMatch[1]);
+            const isPM = timeMatch[3] && timeMatch[3].toUpperCase() === 'PM';
+            
+            if (isPM && hour < 12) hour += 12;
+            if (!isPM && hour === 12) hour = 0;
+            
+            return hour;
+        }
+
+        // Set calendar view
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.calendar-views .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.btn[onclick="setView('${view}')"]`).classList.add('active');
+            
+            document.getElementById('month-view').style.display = view === 'month' ? 'block' : 'none';
+            document.getElementById('week-view').style.display = view === 'week' ? 'block' : 'none';
+            
+            generateCalendar();
+        }
+
+        // Generate study schedule
+        function generateStudySchedule() {
+            // Clear previous study blocks
+            studyBlocks = [];
+            const status = document.getElementById('scheduler-status');
+            status.textContent = 'Generating study schedule...';
+            
+            const dailyMax = parseInt(document.getElementById('daily-max').value);
+            const weekendMax = parseInt(document.getElementById('weekend-max').value);
+            const blockDuration = parseFloat(document.getElementById('block-duration').value);
+            const daysBeforeDue = parseInt(document.getElementById('days-before').value);
+            
+            // Collect all incomplete assignments from all weeks
+            const assignments = [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            Object.entries(semesterModules).forEach(([week, weekModules]) => {
+                Object.entries(weekModules).forEach(([course, module]) => {
+                    module.assignments.forEach(assignment => {
+                        if (!completedAssignments.has(assignment.id) && assignment.date >= today) {
+                            assignments.push({
+                                ...assignment,
+                                course,
+                                courseTitle: module.title
+                            });
+                        }
+                    });
+                });
+            });
+            
+            // Sort by due date
+            assignments.sort((a, b) => a.date - b.date);
+            
+            // Schedule each assignment
+            assignments.forEach(assignment => {
+                const startDate = new Date(today);
+                const dueDate = new Date(assignment.date);
+                
+                // Don't schedule more than daysBeforeDue days in advance
+                const maxAdvance = new Date(dueDate);
+                maxAdvance.setDate(maxAdvance.getDate() - daysBeforeDue);
+                if (maxAdvance > today) {
+                    startDate.setTime(maxAdvance.getTime());
+                }
+                
+                let hoursScheduled = 0;
+                let currentDate = new Date(startDate);
+                
+                while (hoursScheduled < assignment.hours && currentDate <= dueDate) {
+                    const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+                    const maxToday = isWeekend ? weekendMax : dailyMax;
+                    
+                    // Check how many hours already scheduled for this day
+                    const existingHours = studyBlocks
+                        .filter(b => b.date.toDateString() === currentDate.toDateString())
+                        .reduce((sum, b) => sum + b.hours, 0);
+                    
+                    // Check how many hours available this day (accounting for classes)
+                    const classEvents = essentialEvents.filter(e => 
+                        e.date.toDateString() === currentDate.toDateString()
+                    );
+                    
+                    // Estimate class hours (3 hours per class event)
+                    const classHours = classEvents.length * 3;
+                    const availableHours = Math.max(0, maxToday - existingHours - classHours);
+                    
+                    if (availableHours > 0) {
+                        const hoursToSchedule = Math.min(
+                            blockDuration,
+                            assignment.hours - hoursScheduled,
+                            availableHours
+                        );
+                        
+                        // Choose a time based on day schedule
+                        let scheduleTime = '7:00 PM'; // Default evening time
+                        
+                        if (isWeekend) {
+                            // Weekend times: prefer morning or afternoon
+                            const possibleTimes = ['10:00 AM', '1:00 PM', '4:00 PM', '7:00 PM'];
+                            scheduleTime = possibleTimes[Math.floor(Math.random() * possibleTimes.length)];
+                        } else {
+                            // Weekday: check if morning or evening is better
+                            const morningClasses = classEvents.filter(e => {
+                                const hourMatch = e.time?.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+                                if (!hourMatch) return false;
+                                
+                                let hour = parseInt(hourMatch[1]);
+                                const isPM = hourMatch[3] && hourMatch[3].toUpperCase() === 'PM';
+                                if (isPM && hour < 12) hour += 12;
+                                
+                                return hour < 12; // Before noon
+                            });
+                            
+                            if (morningClasses.length > 0) {
+                                // Have morning classes, study in evening
+                                const possibleTimes = ['5:00 PM', '7:00 PM', '8:00 PM'];
+                                scheduleTime = possibleTimes[Math.floor(Math.random() * possibleTimes.length)];
+                            } else {
+                                // No morning classes, potentially study in morning
+                                const possibleTimes = ['8:00 AM', '6:00 PM', '7:00 PM'];
+                                scheduleTime = possibleTimes[Math.floor(Math.random() * possibleTimes.length)];
+                            }
+                        }
+                        
+                        studyBlocks.push({
+                            date: new Date(currentDate),
+                            title: `Study: ${assignment.course.toUpperCase()} - ${assignment.text}`,
+                            type: 'study',
+                            time: scheduleTime,
+                            hours: hoursToSchedule,
+                            course: assignment.course,
+                            description: `Course: ${getCourseFullName(assignment.course)}\nAssignment: ${assignment.text}\nDue: ${assignment.date.toLocaleDateString()}\nStudy time: ${hoursToSchedule} hour${hoursToSchedule !== 1 ? 's' : ''}`
+                        });
+                        
+                        hoursScheduled += hoursToSchedule;
+                    }
+                    
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            });
+            
+            status.textContent = `Scheduled ${studyBlocks.length} study blocks`;
+            saveState();
+            generateCalendar();
+        }
+
+        // Clear study blocks
+        function clearStudyBlocks() {
+            studyBlocks = [];
+            document.getElementById('scheduler-status').textContent = 'Study blocks cleared';
+            saveState();
+            generateCalendar();
+        }
+
+        // Navigation
+        function previousWeek() {
+            if (currentWeek > 1) {
+                currentWeek--;
+                updateWeekDisplay();
+                saveState();
+            }
+        }
+
+        function nextWeek() {
+            if (currentWeek < 14) {
+                currentWeek++;
+                updateWeekDisplay();
+                saveState();
+            }
+        }
+
+        function updateWeekDisplay() {
+            document.getElementById('current-week').textContent = currentWeek;
+            
+            const weekStart = new Date(2025, 4, 5 + (currentWeek - 1) * 7); // May 5, 2025 is week 1
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            // Update header with week range
+            document.querySelector('.header div').textContent = `Week ${currentWeek} (${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}-${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, 2025)`;
+            
+            // Update calendar header with week range
+            document.getElementById('week-range').textContent = 
+                `${weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}, 2025`;
+            
+            generateModuleCards();
+            generateCalendar();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadState();
+            updateWeekDisplay();
+            
+            // Set up event listeners
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('#event-tooltip')) {
+                    document.getElementById('event-tooltip').style.display = 'none';
+                }
+            });
+        });
+
+        // Make functions available globally
+        window.toggleModule = toggleModule;
+        window.toggleAssignment = toggleAssignment;
+        window.setView = setView;
+        window.generateStudySchedule = generateStudySchedule;
+        window.clearStudyBlocks = clearStudyBlocks;
+        window.previousWeek = previousWeek;
+        window.nextWeek = nextWeek;
+        window.toggleAllAssignmentsView = toggleAllAssignmentsView;
+    </script>
+</body>
+</html>
