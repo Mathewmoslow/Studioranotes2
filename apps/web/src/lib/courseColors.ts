@@ -5,14 +5,14 @@
 export const COURSE_COLOR_PALETTE = [
   '#2563eb', // Blue - Professional blue
   '#059669', // Emerald - Deep green
-  '#dc2626', // Red - Strong red
   '#7c3aed', // Violet - Rich purple
   '#ea580c', // Orange - Vibrant orange
   '#0891b2', // Cyan - Ocean blue
-  '#c026d3', // Fuchsia - Magenta
   '#0d9488', // Teal - Turquoise
   '#ca8a04', // Amber - Golden yellow
-  '#e11d48', // Rose - Pink red
+  '#0ea5e9', // Sky - soft blue
+  '#475569', // Slate - neutral
+  '#8b5cf6', // Indigo - accent
 ];
 
 /**
