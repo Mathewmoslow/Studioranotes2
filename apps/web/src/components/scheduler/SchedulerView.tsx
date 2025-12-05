@@ -34,8 +34,8 @@ type ViewType = 'week' | 'day' | 'month';
 const FALLBACK_COLOR = '#6b7280';
 const HOUR_HEIGHT = 52;
 const RED_BAND = '#c53030';
-const MIN_BLOCK_HEIGHT = 72;
-const BAND_WIDTH = 30;
+const MIN_BLOCK_HEIGHT = 56;
+const BAND_WIDTH = 20;
 
 type VisualKind = 'DO' | 'LECTURE' | 'EXAM' | 'DUE';
 
@@ -101,14 +101,15 @@ const getTextOn = (hex: string) => {
 
 const deriveVisual = (kind: VisualKind, baseColor: string) => {
   const course = getCourseColor(baseColor);
-  const courseDark = darken(course, 0.25);
-  const courseLight = lighten(course, 0.32);
+  const courseDark = darken(course, 0.2);
+  const courseLight = lighten(course, 0.48);
+  const outline = hexToRgba(course, 0.7);
 
   switch (kind) {
     case 'EXAM':
       return {
         fill: courseDark,
-        border: darken(courseDark, 0.08),
+        border: courseDark,
         band: RED_BAND,
         text: '#ffffff',
         subtle: '#e2e8f0',
@@ -124,16 +125,16 @@ const deriveVisual = (kind: VisualKind, baseColor: string) => {
     case 'LECTURE':
       return {
         fill: courseLight,
-        border: darken(course, 0.08),
+        border: hexToRgba(course, 0.65),
         band: course,
         text: darken(course, 0.45),
-        subtle: darken(course, 0.3),
+        subtle: darken(course, 0.25),
       };
     case 'DO':
     default:
       return {
         fill: '#ffffff',
-        border: hexToRgba(course, 0.55),
+        border: outline,
         band: course,
         text: darken(course, 0.45),
         subtle: darken(course, 0.35),
@@ -151,8 +152,8 @@ const resolveVisualKindForEvent = (event: Event): VisualKind => {
 
 const resolveVisualKindForTask = (taskType?: string, isHardDeadline = false): VisualKind => {
   const type = (taskType || '').toLowerCase();
-  if (isHardDeadline || type.includes('due') || type.includes('deadline')) return 'DUE';
   if (type.includes('exam') || type.includes('quiz')) return 'EXAM';
+  if (isHardDeadline || type.includes('due') || type.includes('deadline')) return 'DUE';
   if (type.includes('lecture') || type.includes('class')) return 'LECTURE';
   return 'DO';
 };
