@@ -93,7 +93,10 @@ const assertLectures = (fixture: FixtureData): Assertion[] => {
   const problems: Assertion[] = [];
 
   fixture.courses.forEach(course => {
-    const lectures = events.filter(e => e.courseId === course.id && (e.type || '').toLowerCase().includes('lecture'));
+    const lectures = events.filter(e => {
+      const t = (e.type || '').toLowerCase();
+      return e.courseId === course.id && (t.includes('lecture') || t.includes('class'));
+    });
     const expected = course.schedule?.length || 0;
     if (lectures.length < expected) {
       problems.push({ ok: false, message: `${course.id}: expected ${expected} lecture events, found ${lectures.length}` });
