@@ -40,13 +40,11 @@ export const loadFixtureIntoStore = (fixture: FixtureData = canvasFixture) => {
       color: course.color,
       canvasId: course.id,
       schedule: (course.schedule || []).map(slot => {
-        const baseDate = dayOffsetToDate(slot.dayOfWeek, anchor);
-        const [sh, sm] = slot.startTime.split(':').map(Number);
-        const [eh, em] = slot.endTime.split(':').map(Number);
+        const jsDay = ((slot.dayOfWeek + 1) % 7); // fixture uses 0=Mon; JS getDay uses 0=Sun
         return {
-          dayOfWeek: slot.dayOfWeek,
-          startTime: formatISO(set(baseDate, { hours: sh, minutes: sm, seconds: 0, milliseconds: 0 })),
-          endTime: formatISO(set(baseDate, { hours: eh, minutes: em, seconds: 0, milliseconds: 0 })),
+          dayOfWeek: jsDay,
+          startTime: slot.startTime, // "HH:mm"
+          endTime: slot.endTime,     // "HH:mm"
           type: slot.type || 'lecture',
           location: slot.location || '',
         };
