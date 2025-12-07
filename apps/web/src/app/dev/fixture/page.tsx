@@ -1,3 +1,6 @@
+// use client
+"use client";
+
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { Box, Button, Container, Paper, Stack, Typography, Divider, Alert } from '@mui/material';
