@@ -23,7 +23,8 @@ import {
   CalendarToday
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { CalendarBlock, CALENDAR_BLOCK_COLORS, BLOCK_TYPE_LABELS } from '../../types/calendar';
+import { CalendarBlock } from '../../types/calendar';
+import { getCalendarBlockColors } from './calendarHelpers';
 
 interface CalendarBlockModalProps {
   open: boolean;
@@ -45,9 +46,8 @@ export const CalendarBlockModal: React.FC<CalendarBlockModalProps> = ({
   onDelete
 }) => {
   if (!block) return null;
-  
-  const colors = CALENDAR_BLOCK_COLORS[block.type];
-  const label = BLOCK_TYPE_LABELS[block.type];
+
+  const { type: blockType, colors, label } = getCalendarBlockColors(block.type);
   
   const handleComplete = () => {
     if (onComplete) {
@@ -183,7 +183,7 @@ export const CalendarBlockModal: React.FC<CalendarBlockModalProps> = ({
           )}
           
           {/* Material for exams/quizzes */}
-          {block.material && (block.type === 'exam' || block.type === 'quiz') && (
+            {block.material && (blockType === 'exam' || blockType === 'quiz') && (
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
               <Schedule sx={{ color: 'text.secondary', fontSize: 20, mt: 0.5 }} />
               <Box sx={{ flex: 1 }}>

@@ -16,7 +16,8 @@ import {
   LocationOn
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { CalendarBlock, CALENDAR_BLOCK_COLORS, BLOCK_TYPE_LABELS } from '../../types/calendar';
+import { CalendarBlock } from '../../types/calendar';
+import { getCalendarBlockColors } from './calendarHelpers';
 
 interface DraggableCalendarBlockProps {
   block: CalendarBlock;
@@ -36,9 +37,9 @@ export const DraggableCalendarBlock: React.FC<DraggableCalendarBlockProps> = ({
   const [isCompleted, setIsCompleted] = useState(block.completed || false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const blockRef = useRef<HTMLDivElement>(null);
-  
-  const colors = CALENDAR_BLOCK_COLORS[block.type];
-  const label = BLOCK_TYPE_LABELS[block.type];
+  if (!block) return null;
+
+  const { type: blockType, colors, label } = getCalendarBlockColors(block.type);
   
   const handleComplete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,7 +60,7 @@ export const DraggableCalendarBlock: React.FC<DraggableCalendarBlockProps> = ({
     
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('blockId', block.id);
-    e.dataTransfer.setData('blockType', block.type);
+    e.dataTransfer.setData('blockType', blockType);
   };
   
   const handleDragEnd = (e: React.DragEvent) => {
