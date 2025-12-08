@@ -68,7 +68,19 @@ const isHardDeadlineType = (type?: string) => {
   return ['deadline', 'exam', 'quiz', 'due'].includes(normalized);
 };
 
-const getCourseColor = (color?: string) => color || FALLBACK_COLOR;
+const sanitizeCourseColor = (color?: string) => {
+  if (!color) return FALLBACK_COLOR;
+  const clean = color.replace('#', '');
+  if (clean.length !== 6) return FALLBACK_COLOR;
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const redDominant = r > 180 && r > g + 30 && r > b + 30;
+  return redDominant ? FALLBACK_COLOR : `#${clean}`;
+};
+
+const getCourseColor = (color?: string) => sanitizeCourseColor(color) || FALLBACK_COLOR;
 
 const adjustColor = (hex: string, percent: number) => {
   const clean = hex.replace('#', '');
@@ -99,21 +111,22 @@ const getTextOn = (hex: string) => {
 const deriveVisual = (kind: VisualKind, baseColor: string) => {
   const course = getCourseColor(baseColor);
   const courseDark = darken(course, 0.2);
-  const courseLight = lighten(course, 0.48);
-  const outline = hexToRgba(course, 0.7);
+  const courseDeeper = darken(course, 0.28);
+  const courseLight = lighten(course, 0.55);
+  const outline = hexToRgba(course, 0.55);
 
   switch (kind) {
     case 'EXAM':
       return {
-        fill: courseDark,
-        border: courseDark,
+        fill: courseDeeper,
+        border: courseDeeper,
         band: RED_BAND,
         text: '#ffffff',
         subtle: '#e2e8f0',
       };
     case 'DUE':
       return {
-        fill: courseDark,
+        fill: courseDeeper,
         border: RED_BAND,
         band: RED_BAND,
         text: '#ffffff',
@@ -130,11 +143,11 @@ const deriveVisual = (kind: VisualKind, baseColor: string) => {
     case 'DO':
     default:
       return {
-        fill: '#ffffff',
-        border: outline,
-        band: course,
-        text: darken(course, 0.45),
-        subtle: darken(course, 0.35),
+        fill: course,
+        border: courseDark,
+        band: courseDark,
+        text: getTextOn(course),
+        subtle: darken(course, 0.25),
       };
   }
 };
