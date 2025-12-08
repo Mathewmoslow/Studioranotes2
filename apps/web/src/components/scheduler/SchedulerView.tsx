@@ -748,9 +748,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         />
                       ))}
                       
-                      {/* Events */}
-                      {dayEvents.map(event => {
-                        const positionData = itemsWithPositions.get(event.id || event);
+                    {/* Events */}
+                    {dayEvents.filter(Boolean).map(event => {
+                      const positionData = itemsWithPositions.get(event.id || event);
                         const startTime = ensureDate(event.startTime);
                         const endTime = ensureDate(event.endTime);
                         const startHour = startTime.getHours() + startTime.getMinutes() / 60;
@@ -900,7 +900,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                     })}
                     
                     {/* Study Blocks */}
-                    {dayBlocks.map(block => {
+                    {dayBlocks.filter(Boolean).map(block => {
                       const positionData = itemsWithPositions.get(block.id || block);
                       const task = getTaskForBlock(block.id);
                       const course = task ? getCourse(task.courseId) : null;
