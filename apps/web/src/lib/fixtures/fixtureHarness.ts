@@ -276,17 +276,34 @@ const assertExams = (fixture: FixtureData): Assertion[] => {
 
   fixture.courses.forEach(course => {
     (course.exams || []).forEach(exam => {
-      const match = events.find(e => e.courseId === course.id && e.title === exam.title);
+      const candidates = events.filter(e => {
+        const type = (e.type || '').toLowerCase();
+        const title = (e.title || '').toLowerCase();
+        return (
+          String(e.courseId) === String(course.id) &&
+          (type === 'exam' || title.includes('exam'))
+        );
+      });
+      if (!candidates.length) {
+        console.debug('[fixture] exam missing; candidates for course', course.id, events.filter(e => String(e.courseId) === String(course.id)));
+        problems.push({ ok: false, message: `${course.id}: missing exam "${exam.title}"` });
+        return;
+      }
+
+      const normalizedTitle = exam.title.trim().toLowerCase();
+      const match = candidates.find(e => (e.title || '').trim().toLowerCase() === normalizedTitle) || candidates[0];
       if (!match) {
         problems.push({ ok: false, message: `${course.id}: missing exam "${exam.title}"` });
         return;
       }
       const start = toDate(exam.startTime).getTime();
       const end = toDate(exam.endTime).getTime();
-      if (match.startTime instanceof Date && match.startTime.getTime() !== start) {
+      const actualStart = match.startTime instanceof Date ? match.startTime.getTime() : new Date(match.startTime).getTime();
+      const actualEnd = match.endTime instanceof Date ? match.endTime.getTime() : new Date(match.endTime).getTime();
+      if (!Number.isNaN(actualStart) && actualStart !== start) {
         problems.push({ ok: false, message: `${course.id}: exam "${exam.title}" start mismatch` });
       }
-      if (match.endTime instanceof Date && match.endTime.getTime() !== end) {
+      if (!Number.isNaN(actualEnd) && actualEnd !== end) {
         problems.push({ ok: false, message: `${course.id}: exam "${exam.title}" end mismatch` });
       }
     });

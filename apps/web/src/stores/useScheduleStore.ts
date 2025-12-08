@@ -586,12 +586,17 @@ export const useScheduleStore = create<ScheduleStore>()(
         });
       },
       
-      updateEvent: (id, event) => set((state) => ({
-        events: mergeEventLists(
-          state.events.filter((e) => e.id !== id),
-          [{ ...event, id }]
-        ),
-      })),
+      updateEvent: (id, event) => set((state) => {
+        const existing = state.events.find((e) => e.id === id);
+        const base = existing ? { ...existing } : { id };
+
+        return {
+          events: mergeEventLists(
+            state.events.filter((e) => e.id !== id),
+            [{ ...base, ...event, id }]
+          ),
+        };
+      }),
       
       deleteEvent: (id) => set((state) => ({
         events: state.events.filter((e) => e.id !== id),
