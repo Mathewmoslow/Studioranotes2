@@ -24,6 +24,7 @@ export type RawCanvasCourse = {
     due_at: string;
     points_possible?: number;
     submission_types?: string[];
+    page_html?: string;
   }[];
 };
 
@@ -78,6 +79,7 @@ export const rawCanvasFixture: RawCanvasFixture = {
           name: 'Metabolism Pathways Worksheet',
           due_at: '2025-12-15T17:00:00-05:00',
           submission_types: ['online_upload'],
+          page_html: 'Metabolism Pathways Worksheet Part 1 due Dec 15 5pm ET. Part 2 due Dec 18 5pm ET. Submit both parts.'
         },
       ],
     },
@@ -126,6 +128,7 @@ export const rawCanvasFixture: RawCanvasFixture = {
           name: 'Cardiac Care Plan',
           due_at: '2025-12-18T20:00:00-05:00',
           submission_types: ['online_upload'],
+          page_html: 'Cardiac Care Plan final submission due Dec 18 8pm ET. Peer review due Dec 20 5pm ET. Location update: submit via Portal Room 101.'
         },
       ],
     },
