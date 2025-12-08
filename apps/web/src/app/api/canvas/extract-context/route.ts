@@ -164,7 +164,7 @@ Rules:
       messages: [
         {
           role: 'system',
-          content: 'You are an expert at finding hidden academic requirements and informal deadlines that professors mention but don\'t formalize in Canvas.'
+          content: 'You are an expert at finding hidden academic requirements and informal deadlines that professors mention but don’t formalize in Canvas. Respond ONLY with valid JSON matching the requested schema.'
         },
         {
           role: 'user',
@@ -172,7 +172,7 @@ Rules:
         }
       ],
       max_tokens: 2000,
-      temperature: 0.3,
+      temperature: 0.2,
       response_format: { type: "json_object" }
     })
 
@@ -184,8 +184,41 @@ Rules:
       parsed = {}
     }
 
-    const extractedTasks = Array.isArray(parsed.extractedTasks) ? parsed.extractedTasks : []
-    const examUpdates = Array.isArray(parsed.examUpdates) ? parsed.examUpdates : []
+    // Validate and sanitize fields
+    const coerceString = (v: any) => (typeof v === 'string' ? v : v ? String(v) : '')
+    const coerceIso = (v: any) => {
+      if (!v) return null
+      const d = new Date(v)
+      return isNaN(d.getTime()) ? null : d.toISOString()
+    }
+    const coerceBoolean = (v: any) => Boolean(v)
+    const coerceNumber = (v: any, fallback = 0) => {
+      const n = Number(v)
+      return isNaN(n) ? fallback : n
+    }
+
+    const extractedTasks = Array.isArray(parsed.extractedTasks) ? parsed.extractedTasks.map((t: any) => ({
+      action: t.action === 'update' ? 'update' : 'add',
+      title: coerceString(t.title),
+      type: coerceString(t.type),
+      dueDate: coerceIso(t.dueDate),
+      location: coerceString(t.location) || null,
+      recurring: coerceBoolean(t.recurring),
+      recurringPattern: coerceString(t.recurringPattern) || null,
+      recurringDay: coerceString(t.recurringDay) || null,
+      description: coerceString(t.description),
+      source: coerceString(t.source),
+      confidence: (['high','medium','low'].includes(coerceString(t.confidence)) ? coerceString(t.confidence) : 'medium'),
+      estimatedHours: coerceNumber(t.estimatedHours, 2)
+    })) : []
+
+    const examUpdates = Array.isArray(parsed.examUpdates) ? parsed.examUpdates.map((e: any) => ({
+      title: coerceString(e.title),
+      startTime: coerceIso(e.startTime),
+      endTime: coerceIso(e.endTime),
+      location: coerceString(e.location) || null,
+      note: coerceString(e.note)
+    })) : []
 
     // Process recurring tasks into individual instances
     const processedTasks = []
