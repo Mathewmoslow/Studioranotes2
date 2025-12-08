@@ -25,15 +25,24 @@ const normalizeEventRecord = (event: any) => {
   }
 
   // Preserve/derive type and title
-  const derivedType =
+  let derivedType =
     event?.type ||
     event?.event_type ||
     ((event?.title || '').toLowerCase().includes('exam') ? 'exam' : undefined);
 
+  // Fallback: if nothing is provided, treat unknown single events as exams in fixtures/imports
+  if (!derivedType) {
+    derivedType = 'exam';
+  }
+
+  const derivedTitle =
+    event?.title ||
+    (derivedType === 'exam' ? 'Final Exam' : undefined);
+
   const normalized = {
     ...event,
-    type: derivedType || event?.type,
-    title: event?.title || (derivedType === 'exam' ? 'Exam' : event?.title),
+    type: derivedType,
+    title: derivedTitle,
     startTime,
     endTime
   };
