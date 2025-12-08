@@ -31,8 +31,11 @@ type ViewType = 'week' | 'day' | 'month';
 const FALLBACK_COLOR = '#6b7280';
 const HOUR_HEIGHT = 52;
 const RED_BAND = '#c53030';
-const MIN_BLOCK_HEIGHT = 54;
+const MIN_BLOCK_HEIGHT = 50;
 const BAND_WIDTH = 18;
+const MIN_CARD_WIDTH = 120;
+const CARD_RADIUS = 0.6;
+const CARD_SHADOW = '0 2px 6px rgba(0,0,0,0.04)';
 
 type VisualKind = 'DO' | 'LECTURE' | 'EXAM' | 'DUE';
 
@@ -796,23 +799,24 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 height: `${cardHeight}px`,
                                 left: leftPosition,
                                 width,
+                                minWidth: MIN_CARD_WIDTH,
                                 backgroundColor: visual.fill,
                                 color: visual.text,
                                 cursor: 'move',
                                 zIndex: event.type === 'deadline' ? 3 : 2,
                                 mx: 0.1,
-                                borderRadius: 0.5,
+                                borderRadius: CARD_RADIUS,
                                 border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
+                                boxShadow: CARD_SHADOW,
                                 overflow: 'hidden',
                                 '&:hover': {
-                                  boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
+                                  boxShadow: '0 6px 12px rgba(0,0,0,0.08)',
                                   transition: 'all 0.12s'
                                 }
                               }}
                               onClick={() => handleEventClick(event)}
                           >
-                            <CardContent sx={{ p: 0.5, '&:last-child': { pb: 0.5 }, height: '100%', display: 'flex', gap: 0.5, alignItems: 'stretch' }}>
+                            <CardContent sx={{ p: 0.4, '&:last-child': { pb: 0.4 }, height: '100%', display: 'flex', gap: 0.4, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
@@ -841,6 +845,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                     sx={{
                                       width: BAND_WIDTH,
                                       minWidth: BAND_WIDTH,
+                                      flexShrink: 0,
                                       backgroundColor: visual.band,
                                       color: getTextOn(visual.band),
                                       display: 'flex',
@@ -951,6 +956,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               height: `${cardHeight}px`,
                               left: leftPosition,
                               width,
+                              minWidth: MIN_CARD_WIDTH,
                               backgroundColor: visual.fill,
                               color: visual.text,
                               borderRadius: 0.5,
@@ -959,15 +965,15 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               zIndex: visualKind === 'EXAM' || visualKind === 'DUE' ? 3 : 1,
                               mx: 0.1,
                               border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
-                              boxShadow: '0 4px 10px rgba(0,0,0,0.06)',
+                              boxShadow: CARD_SHADOW,
                               '&:hover': {
-                                boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
+                                boxShadow: '0 6px 12px rgba(0,0,0,0.08)',
                                 transition: 'all 0.12s'
                               }
                             }}
                             onClick={() => handleBlockClick(block)}
                           >
-                            <CardContent sx={{ p: 0.5, '&:last-child': { pb: 0.5 }, height: '100%', display: 'flex', gap: 0.5, alignItems: 'stretch' }}>
+                            <CardContent sx={{ p: 0.4, '&:last-child': { pb: 0.4 }, height: '100%', display: 'flex', gap: 0.4, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
@@ -996,6 +1002,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                     sx={{
                                       width: BAND_WIDTH,
                                       minWidth: BAND_WIDTH,
+                                      flexShrink: 0,
                                       backgroundColor: visual.band,
                                       color: getTextOn(visual.band),
                                       display: 'flex',
@@ -1148,7 +1155,8 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 cursor: 'pointer',
                                 backgroundColor: visual.fill,
                                 color: visual.text,
-                                overflow: 'hidden'
+                                overflow: 'hidden',
+                                minWidth: MIN_CARD_WIDTH
                               }}
                             >
                               <Box
