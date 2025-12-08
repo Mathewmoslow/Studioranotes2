@@ -16,6 +16,19 @@ export default function SchedulerMockPage() {
   const { generateSmartSchedule } = useScheduleStore();
 
   const handleLoadRaw = () => {
+    try {
+      console.group('[DEBUG] Raw Canvas fixture payload');
+      rawCanvasFixture.courses.forEach((course) => {
+        const events = course.calendar_events || [];
+        console.log(`Course ${course.id} events:`, events);
+        const missingType = events.filter(evt => !evt.event_type && !evt.title?.toLowerCase?.().includes('exam'));
+        if (missingType.length) {
+          console.warn(`Course ${course.id} missing event types`, missingType);
+        }
+      });
+    } finally {
+      console.groupEnd();
+    }
     loadRawCanvasFixture(rawCanvasFixture);
   };
 
@@ -46,4 +59,3 @@ export default function SchedulerMockPage() {
     </Container>
   );
 }
-
