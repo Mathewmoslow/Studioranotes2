@@ -5,8 +5,9 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { Box, Button, Container, Paper, Stack, Typography, Divider, Alert } from '@mui/material';
 import { canvasFixture } from '@/lib/fixtures/canvasFixture';
-import { loadFixtureIntoStore, runFixtureAssertions } from '@/lib/fixtures/fixtureHarness';
+import { loadFixtureIntoStore, loadRawCanvasFixture, runFixtureAssertions, runRawFixtureAssertions } from '@/lib/fixtures/fixtureHarness';
 import { useScheduleStore } from '@/stores/useScheduleStore';
+import { rawCanvasFixture } from '@/lib/fixtures/rawCanvasFixture';
 
 const enabled = process.env.NEXT_PUBLIC_ENABLE_FIXTURE === 'true';
 
@@ -15,17 +16,32 @@ export default function FixturePage() {
 
   const [log, setLog] = React.useState<string[]>([]);
   const [stateSnapshot, setStateSnapshot] = React.useState<any>(null);
+  const [lastFixture, setLastFixture] = React.useState<'simple' | 'raw'>('simple');
 
   const handleLoad = () => {
     loadFixtureIntoStore(canvasFixture);
     setLog((prev) => ['Fixture loaded'].concat(prev));
     setStateSnapshot(useScheduleStore.getState());
+    setLastFixture('simple');
+  };
+
+  const handleLoadRaw = () => {
+    loadRawCanvasFixture(rawCanvasFixture);
+    setLog((prev) => ['Raw Canvas fixture loaded (pipeline sim)'].concat(prev));
+    setStateSnapshot(useScheduleStore.getState());
+    setLastFixture('raw');
   };
 
   const handleAssert = () => {
-    const result = runFixtureAssertions(canvasFixture);
-    const messages = result.results.map(r => `${r.ok ? '✅' : '❌'} ${r.message}`);
-    setLog((prev) => messages.concat(prev));
+    if (lastFixture === 'raw') {
+      const results = runRawFixtureAssertions(rawCanvasFixture);
+      const messages = results.map(r => `${r.ok ? '✅' : '❌'} ${r.message}`);
+      setLog((prev) => messages.concat(prev));
+    } else {
+      const result = runFixtureAssertions(canvasFixture);
+      const messages = result.results.map(r => `${r.ok ? '✅' : '❌'} ${r.message}`);
+      setLog((prev) => messages.concat(prev));
+    }
     setStateSnapshot(useScheduleStore.getState());
   };
 
@@ -54,6 +70,7 @@ export default function FixturePage() {
           </Alert>
           <Stack direction="row" spacing={2}>
             <Button variant="contained" onClick={handleLoad}>Load Fixture</Button>
+            <Button variant="contained" color="secondary" onClick={handleLoadRaw}>Load Raw Canvas Fixture</Button>
             <Button variant="outlined" onClick={handleAssert}>Run Assertions</Button>
             <Button variant="text" onClick={handleClear}>Clear</Button>
           </Stack>

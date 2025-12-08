@@ -20,6 +20,69 @@ const dayOffsetToDate = (dayOfWeek: number, anchor: Date) => {
   return target;
 };
 
+/**
+ * Assertions for raw Canvas fixture (exam/due times from raw data).
+ */
+export const runRawFixtureAssertions = (fixture: RawCanvasFixture = rawCanvasFixture) => {
+  const { events, tasks, courses } = useScheduleStore.getState();
+  const assertions: Assertion[] = [];
+
+  // Exams
+  fixture.courses.forEach(course => {
+    (course.calendar_events || [])
+      .filter(e => (e.event_type || '').toLowerCase() === 'exam')
+      .forEach(exam => {
+        const normalizedTitle = exam.title.replace(/^[A-Z]{3,}\d+\s*/i, '').trim() || exam.title;
+        const start = parseISO(exam.start_at).getTime();
+        const end = parseISO(exam.end_at).getTime();
+        const match = events.find(e => e.courseId === String(course.id) && e.title === normalizedTitle);
+        if (!match) {
+          assertions.push({ ok: false, message: `${course.id}: missing exam "${normalizedTitle}"` });
+          return;
+        }
+        const actualStart = (match.startTime instanceof Date ? match.startTime : new Date(match.startTime)).getTime();
+        const actualEnd = (match.endTime instanceof Date ? match.endTime : new Date(match.endTime)).getTime();
+        if (actualStart !== start) assertions.push({ ok: false, message: `${course.id}: exam "${normalizedTitle}" start mismatch` });
+        if (actualEnd !== end) assertions.push({ ok: false, message: `${course.id}: exam "${normalizedTitle}" end mismatch` });
+      });
+  });
+
+  // Due dates
+  fixture.courses.forEach(course => {
+    (course.assignments || []).forEach(assign => {
+      const expected = parseISO(assign.due_at).getTime();
+      const matches = tasks.filter(t => t.courseId === String(course.id) && t.title === assign.name);
+      if (!matches.length) {
+        assertions.push({ ok: false, message: `${course.id}: missing assignment "${assign.name}"` });
+        return;
+      }
+      const okMatch = matches.find(t => {
+        const actual = (t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate)).getTime();
+        return actual === expected;
+      });
+      if (!okMatch) {
+        const actuals = matches.map(t => (t.dueDate instanceof Date ? t.dueDate.toISOString() : String(t.dueDate))).join(', ');
+        assertions.push({ ok: false, message: `${course.id}: due date mismatch for "${assign.name}" (got: ${actuals})` });
+      }
+    });
+  });
+
+  // Context
+  fixture.courses.forEach(course => {
+    const match = courses.find(c => c.id === String(course.id));
+    if (!match) {
+      assertions.push({ ok: false, message: `${course.id}: course missing` });
+      return;
+    }
+    if (!match.additionalContext) {
+      assertions.push({ ok: false, message: `${course.id}: additional context missing` });
+    }
+  });
+
+  if (!assertions.length) assertions.push({ ok: true, message: 'Raw fixture assertions passed' });
+  return assertions;
+};
+
 export const loadFixtureIntoStore = (fixture: FixtureData = canvasFixture) => {
   // Clear existing store
   useScheduleStore.setState({
