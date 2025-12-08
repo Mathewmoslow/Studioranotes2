@@ -39,6 +39,10 @@ const CARD_SHADOW = '0 2px 6px rgba(0,0,0,0.04)';
 
 type VisualKind = 'DO' | 'LECTURE' | 'EXAM' | 'DUE';
 
+interface SchedulerViewProps {
+  compact?: boolean;
+}
+
 const hexToRgba = (hex: string, opacity = 0.2) => {
   if (!hex) {
     return `rgba(107, 114, 128, ${opacity})`;
@@ -172,7 +176,7 @@ const resolveVisualKindForTask = (taskType?: string, isHardDeadline = false): Vi
   return 'DO';
 };
 
-const SchedulerView: React.FC = () => {
+const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState<ViewType>('week');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -195,6 +199,14 @@ const SchedulerView: React.FC = () => {
     updateTask,
     generateSmartSchedule,
   } = useScheduleStore();
+
+  // Responsive scaling for tighter/mobile views
+  const minBlockHeight = compact ? Math.max(44, MIN_BLOCK_HEIGHT - 6) : MIN_BLOCK_HEIGHT;
+  const bandWidth = compact ? BAND_WIDTH - 2 : BAND_WIDTH;
+  const cardRadius = compact ? CARD_RADIUS * 0.75 : CARD_RADIUS;
+  const cardPadding = compact ? 0.32 : 0.4;
+  const cardGap = compact ? 0.32 : 0.4;
+  const cardShadow = CARD_SHADOW;
   
   const ensureDate = (date: Date | string): Date => {
     return typeof date === 'string' ? new Date(date) : date;
@@ -749,7 +761,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         const visualKind = resolveVisualKindForEvent(event);
                         const visual = deriveVisual(visualKind, baseColor);
                         const bandLabel = getBandLabelForEvent(event);
-                        const cardHeight = Math.max(MIN_BLOCK_HEIGHT, duration * HOUR_HEIGHT - 4);
+                        const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
                         const column = positionData?.column || 0;
                         const totalColumns = positionData?.totalColumns || 1;
                         const width = `calc(${100 / totalColumns}% - 4px)`;
@@ -805,7 +817,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 cursor: 'move',
                                 zIndex: event.type === 'deadline' ? 3 : 2,
                                 mx: 0.1,
-                                borderRadius: CARD_RADIUS,
+                                borderRadius: cardRadius,
                                 border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
                                 boxShadow: CARD_SHADOW,
                                 overflow: 'hidden',
@@ -816,7 +828,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               }}
                               onClick={() => handleEventClick(event)}
                           >
-                            <CardContent sx={{ p: 0.4, '&:last-child': { pb: 0.4 }, height: '100%', display: 'flex', gap: 0.4, alignItems: 'stretch' }}>
+                            <CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
@@ -841,10 +853,10 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 </>
                               ) : (
                                 <>
-                                  <Box
+                                    <Box
                                     sx={{
-                                      width: BAND_WIDTH,
-                                      minWidth: BAND_WIDTH,
+                                      width: bandWidth,
+                                      minWidth: bandWidth,
                                       flexShrink: 0,
                                       backgroundColor: visual.band,
                                       color: getTextOn(visual.band),
@@ -901,7 +913,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const isExamStudy = ((task?.type || '').toLowerCase().includes('exam') || (task?.title || '').toLowerCase().includes('exam'));
                       const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
                       const visual = deriveVisual(visualKind, courseColor);
-                      const cardHeight = Math.max(MIN_BLOCK_HEIGHT, duration * HOUR_HEIGHT - 4);
+                      const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
                         const bandLabel = visualKind === 'DUE'
                           ? 'DUE'
                           : visualKind === 'LECTURE'
@@ -959,7 +971,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               minWidth: MIN_CARD_WIDTH,
                               backgroundColor: visual.fill,
                               color: visual.text,
-                              borderRadius: 0.5,
+                              borderRadius: cardRadius,
                               overflow: 'hidden',
                               cursor: 'move',
                               zIndex: visualKind === 'EXAM' || visualKind === 'DUE' ? 3 : 1,
@@ -973,7 +985,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                             }}
                             onClick={() => handleBlockClick(block)}
                           >
-                            <CardContent sx={{ p: 0.4, '&:last-child': { pb: 0.4 }, height: '100%', display: 'flex', gap: 0.4, alignItems: 'stretch' }}>
+                            <CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
@@ -1000,8 +1012,8 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 <>
                                   <Box
                                     sx={{
-                                      width: BAND_WIDTH,
-                                      minWidth: BAND_WIDTH,
+                                      width: bandWidth,
+                                      minWidth: bandWidth,
                                       flexShrink: 0,
                                       backgroundColor: visual.band,
                                       color: getTextOn(visual.band),
@@ -1146,7 +1158,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               key={item.id}
                               onClick={item.onClick}
                               sx={{
-                                minHeight: MIN_BLOCK_HEIGHT,
+                                minHeight: minBlockHeight,
                                 display: 'flex',
                                 alignItems: 'stretch',
                                 border: `1px solid ${visual.border}`,
@@ -1161,8 +1173,8 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                             >
                               <Box
                                 sx={{
-                                  width: BAND_WIDTH,
-                                  minWidth: BAND_WIDTH,
+                                  width: bandWidth,
+                                  minWidth: bandWidth,
                                   borderRight: `1px solid ${visual.border}`,
                                   backgroundColor: visual.band,
                                   color: getTextOn(visual.band),
