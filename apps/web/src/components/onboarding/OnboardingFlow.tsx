@@ -72,7 +72,7 @@ interface OnboardingFlowProps {
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const { data: session } = useSession()
-  const { addCourse, generateSmartSchedule, updatePreferences, updateCourse, tasks } = useScheduleStore()
+  const { addCourse, generateSmartSchedule, updatePreferences, updateCourse, tasks, updateTask, updateEvent } = useScheduleStore()
   const [activeStep, setActiveStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [canvasConnected, setCanvasConnected] = useState(false)
@@ -548,6 +548,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           dueDate: new Date(task.dueDate).toISOString()
         }))
 
+      const existingEvents = useScheduleStore.getState().events
+        .filter(event => event.courseId === courseId)
+        .map(event => ({
+          title: event.title,
+          type: event.type,
+          startTime: event.startTime,
+          endTime: event.endTime,
+          location: (event as any).location
+        }))
+
       const moduleDescriptions = (course.modules || []).map((module: any) => ({
         name: module.name,
         description: module.description || module.items?.map((item: any) => item.title).join(' ') || ''
@@ -567,15 +577,18 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           syllabus: combinedSyllabus || null,
           announcements: course.announcements || [],
           discussions: course.discussions || [],
-          moduleDescriptions,
-          assignmentDescriptions: (course.assignments || []).map((assignment: any) => ({
-            name: assignment.name,
-            description: assignment.description || ''
-          })),
-          existingAssignments,
-          calendarEvents: course.calendarEvents || []
-        })
+        moduleDescriptions,
+        assignmentDescriptions: (course.assignments || []).map((assignment: any) => ({
+          name: assignment.name,
+          description: assignment.description || ''
+        })),
+        pages: (course.pages || []).map((p: any) => ({ title: p.title, body: p.body || p.content || '' })),
+        additionalContext: additionalContext[course.canvasId] || additionalContext[course.id],
+        existingAssignments,
+        existingEvents,
+        calendarEvents: course.calendarEvents || []
       })
+    })
 
       if (!response.ok) {
         console.warn('Context extraction skipped for', course.name)
@@ -584,18 +597,32 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       const data = await response.json()
       ;(data.extracted?.tasks || []).forEach((task: any, index: number) => {
-        const dueDate = parseDueDateValue(task.dueDate)
-        if (!dueDate) return
+        const dueDate = task.dueDate ? parseDueDateValue(task.dueDate) : null
         const title = task.title || `Context Task ${index + 1}`
-        if (hasExistingTask(courseId, title, dueDate)) return
         const normalizedType = determineAssignmentType(task.type || title)
         const { description, descriptionHtml } = buildDescriptionFields(task.description)
+        const action = task.action || 'add'
+        const matching = useScheduleStore.getState().tasks.filter(t => t.courseId === courseId && t.title === title)
+
+        if (action === 'update' && matching.length > 0) {
+          matching.forEach(m => {
+            updateTask(m.id, {
+              dueDate: dueDate || m.dueDate,
+              description: [description, task.source ? `Source: ${task.source}` : undefined].filter(Boolean).join(' | '),
+              descriptionHtml
+            })
+          })
+          return
+        }
+
+        if (dueDate && hasExistingTask(courseId, title, dueDate)) return
+
         addTask({
           title,
           courseId,
           courseName: course.name,
           type: normalizedType,
-          dueDate,
+          dueDate: dueDate || new Date(),
           estimatedHours: task.estimatedHours || getEstimatedHoursForTask(normalizedType),
           priority: mapConfidenceToPriority(task.confidence),
           status: 'pending',
@@ -604,6 +631,21 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           canvasId: `${courseId}-ctx-${index}`,
           fromContext: true
         } as any)
+      })
+
+      ;(data.extracted?.examUpdates || []).forEach((examUpdate: any) => {
+        const targetTitle = (examUpdate.title || '').trim()
+        const examEvents = useScheduleStore.getState().events.filter(e =>
+          e.courseId === courseId && (e.type === 'exam' || (e.title || '').toLowerCase().includes('exam'))
+        )
+        const match = examEvents.find(e => (e.title || '').toLowerCase().includes(targetTitle.toLowerCase()))
+        if (match) {
+          updateEvent(match.id as string, {
+            startTime: examUpdate.startTime ? new Date(examUpdate.startTime) : match.startTime,
+            endTime: examUpdate.endTime ? new Date(examUpdate.endTime) : match.endTime,
+            location: examUpdate.location || (match as any).location
+          } as any)
+        }
       })
     } catch (error) {
       console.error('Context extraction error for', course.name, error)

@@ -22,8 +22,11 @@ export async function POST(request: NextRequest) {
       discussions,
       moduleDescriptions,
       assignmentDescriptions,
+      pages,
+      additionalContext,
       courseName,
-      existingAssignments // Already imported from Canvas
+      existingAssignments = [],
+      existingEvents = []
     } = body
 
     if (!openai) {
@@ -38,9 +41,18 @@ export async function POST(request: NextRequest) {
 
     // List existing assignments so AI knows what NOT to duplicate
     if (existingAssignments?.length > 0) {
-      context += `ALREADY IMPORTED ASSIGNMENTS (DO NOT DUPLICATE THESE):\n`
+      context += `ALREADY IMPORTED ASSIGNMENTS (DO NOT DUPLICATE UNLESS DATE/LOCATION CHANGED):\n`
       existingAssignments.forEach((a: any) => {
         context += `- ${a.name} (Due: ${a.dueDate})\n`
+      })
+      context += '\n'
+    }
+
+    // List existing events (exams/lectures) so AI can flag date/location changes
+    if (existingEvents?.length > 0) {
+      context += `EXISTING CALENDAR EVENTS (EXAMS/QUIZZES/MEETINGS):\n`
+      existingEvents.forEach((e: any) => {
+        context += `- ${e.title} (${e.type || 'event'}) start: ${e.startTime} end: ${e.endTime} location: ${e.location || 'n/a'}\n`
       })
       context += '\n'
     }
@@ -78,11 +90,22 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    const prompt = `You are an expert at finding hidden assignments and deadlines that professors mention informally but don't create formal Canvas assignments for.
+    if (pages?.length > 0) {
+      context += `COURSE PAGES:\n`
+      pages.slice(0, 15).forEach((page: any) => {
+        context += `[${page.title}]: ${page.body}\n\n`
+      })
+    }
+
+    if (additionalContext) {
+      context += `USER PROVIDED CONTEXT:\n${additionalContext}\n\n`
+    }
+
+    const prompt = `You are an expert at finding hidden assignments, date/location changes, and recurring requirements that professors mention informally.
 
 ${context}
 
-Extract ANY tasks, deadlines, or requirements mentioned that are NOT in the already imported assignments list. Look for:
+Extract ANY tasks, deadlines, or requirements mentioned, and also detect updates to existing assignments/exams. Look for:
 
 1. Recurring tasks mentioned in syllabus (e.g., "Weekly reflections due Fridays", "Lab notebooks checked monthly")
 2. Assignments mentioned only in announcements (e.g., "Don't forget to submit your reading response by Tuesday")
@@ -90,21 +113,33 @@ Extract ANY tasks, deadlines, or requirements mentioned that are NOT in the alre
 4. Informal deadlines (e.g., "I expect you to have read Chapter 5 by next week")
 5. Participation requirements (e.g., "Post to discussion board twice weekly")
 6. Pre-work or prep mentioned casually (e.g., "Make sure to review the slides before class")
+7. Date or location changes for existing assignments/exams (e.g., "Exam moved to Dec 12 at 3pm", "Now in Room 101")
 
-Return a JSON object with:
+Return JSON EXACTLY in this shape (no extra fields):
 {
   "extractedTasks": [
     {
-      "title": "Clear task name",
-      "type": "assignment|reading|discussion|participation|review|preparation",
-      "dueDate": "ISO date or null if recurring",
+      "action": "add" | "update",
+      "title": "Task name",
+      "type": "assignment|reading|discussion|participation|review|preparation|exam|project|quiz",
+      "dueDate": "ISO string or null",
+      "location": "string or null",
       "recurring": true/false,
       "recurringPattern": "weekly|biweekly|monthly|null",
       "recurringDay": "Monday|Tuesday|...|null",
       "description": "What needs to be done",
-      "source": "Where this was found (syllabus/announcement/etc)",
+      "source": "syllabus|announcement|page|discussion|user-context|assignment-detail",
       "confidence": "high|medium|low",
       "estimatedHours": number
+    }
+  ],
+  "examUpdates": [
+    {
+      "title": "Exam name (match existing if possible)",
+      "startTime": "ISO string",
+      "endTime": "ISO string",
+      "location": "string or null",
+      "note": "what changed"
     }
   ],
   "hiddenPatterns": [
@@ -117,7 +152,12 @@ Return a JSON object with:
   "warnings": [
     "Any important notes about workload or hidden expectations"
   ]
-}`
+}
+
+Rules:
+- If you see a date/location change for an existing assignment/exam, emit an "update" task or an item in "examUpdates".
+- Do NOT duplicate existing assignments unless date/location changes.
+- Use ISO 8601 with timezone offsets intact from the source text.`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -136,18 +176,26 @@ Return a JSON object with:
       response_format: { type: "json_object" }
     })
 
-    const extracted = JSON.parse(completion.choices[0]?.message?.content || '{}')
+    const rawContent = completion.choices[0]?.message?.content || '{}'
+    let parsed: any = {}
+    try {
+      parsed = JSON.parse(rawContent)
+    } catch (e) {
+      parsed = {}
+    }
+
+    const extractedTasks = Array.isArray(parsed.extractedTasks) ? parsed.extractedTasks : []
+    const examUpdates = Array.isArray(parsed.examUpdates) ? parsed.examUpdates : []
 
     // Process recurring tasks into individual instances
     const processedTasks = []
     const today = new Date()
 
-    for (const task of extracted.extractedTasks || []) {
+    for (const task of extractedTasks) {
       if (task.recurring && task.recurringPattern) {
-        // Generate instances for the next 12 weeks
         const instances = generateRecurringInstances(task, today, 12)
         processedTasks.push(...instances)
-      } else if (task.dueDate) {
+      } else {
         processedTasks.push(task)
       }
     }
@@ -156,10 +204,11 @@ Return a JSON object with:
       success: true,
       extracted: {
         tasks: processedTasks,
-        patterns: extracted.hiddenPatterns || [],
-        warnings: extracted.warnings || []
+        patterns: parsed.hiddenPatterns || [],
+        warnings: parsed.warnings || [],
+        examUpdates
       },
-      summary: `Found ${processedTasks.length} hidden tasks and ${extracted.hiddenPatterns?.length || 0} recurring patterns`
+      summary: `Found ${processedTasks.length} tasks and ${examUpdates.length} exam updates`
     })
 
   } catch (error) {
