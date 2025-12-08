@@ -24,11 +24,21 @@ const normalizeEventRecord = (event: any) => {
     endTime = new Date(startTime.getTime() + DEFAULT_BUSY_EVENT_DURATION_MS);
   }
 
-  return {
+  // Preserve/derive type and title
+  const derivedType =
+    event?.type ||
+    event?.event_type ||
+    ((event?.title || '').toLowerCase().includes('exam') ? 'exam' : undefined);
+
+  const normalized = {
     ...event,
+    type: derivedType || event?.type,
+    title: event?.title || (derivedType === 'exam' ? 'Exam' : event?.title),
     startTime,
     endTime
   };
+
+  return normalized;
 };
 
 const eventsRoughlyEqual = (existing: any, incoming: any) => {
