@@ -463,8 +463,10 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
       return course.color;
     }
 
+    const safeType = event.type || (event as any)?.event_type || 'meeting';
+
     // Fallback colors for different event types when no course color
-    switch (event.type) {
+    switch (safeType) {
       case 'deadline': return '#ef4444'; // Bright red for deadlines
       case 'exam': return '#dc2626'; // Dark red for exams
       case 'clinical': return '#7c3aed'; // Purple for clinical
@@ -708,9 +710,25 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                   const task = getTaskForBlock(block.id);
                   return { ...block, courseId: task?.courseId };
                 }));
-                
-                // Combine and detect overlaps
-                const allItems = [...dayEvents, ...dayBlocks];
+
+                const normalizedDayEvents = dayEvents.filter(Boolean).map((event, idx) => {
+                  const fallbackType = (event as any)?.event_type ?? 'meeting';
+                  const type = event?.type || fallbackType;
+                  if (!event?.type) {
+                    console.warn('Injected default event type', { index: idx, event, type });
+                  }
+                  return { ...event, type };
+                });
+                const normalizedDayBlocks = dayBlocks.filter(Boolean).map((block, idx) => {
+                  const task = getTaskForBlock(block.id);
+                  const fallbackType = block?.type || task?.type || 'study';
+                  if (!block?.type) {
+                    console.warn('Injected default block type', { index: idx, block, fallbackType });
+                  }
+                  return { ...block, type: fallbackType };
+                });
+
+                const allItems = [...normalizedDayEvents, ...normalizedDayBlocks];
                 allItems.forEach((item, idx) => {
                   if (!item || !item.type) {
                     console.error('Bad calendar item before render', { index: idx, item });
@@ -763,42 +781,38 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       ))}
                       
                     {/* Events */}
-                    {dayEvents.filter(Boolean).map(event => {
+                    {normalizedDayEvents.map(event => {
                       const positionData = itemsWithPositions.get(event.id || event);
-                        const startTime = ensureDate(event.startTime);
-                        const endTime = ensureDate(event.endTime);
-                        const startHour = startTime.getHours() + startTime.getMinutes() / 60;
-                        const endHour = endTime.getHours() + endTime.getMinutes() / 60;
-                        const duration = endHour - startHour;
-                        const course = getCourseForEvent(event);
-                      if (!event?.type && isDevMode && !loggedEventWarn.current) {
-                        loggedEventWarn.current = true;
-                        console.warn('Event missing type', event);
+                      const startTime = ensureDate(event.startTime);
+                      const endTime = ensureDate(event.endTime);
+                      const startHour = startTime.getHours() + startTime.getMinutes() / 60;
+                      const endHour = endTime.getHours() + endTime.getMinutes() / 60;
+                      const duration = endHour - startHour;
+                      const course = getCourseForEvent(event);
+                      const loggedEvent = {
+                        id: event?.id,
+                        title: event?.title,
+                        type: event?.type,
+                        color: getEventColor(event),
+                      };
+                      if (!loggedEvent.type) {
+                        console.warn('Event payload before render', JSON.stringify(loggedEvent));
                       }
-                        const loggedEvent = {
-                          id: event?.id,
-                          title: event?.title,
-                          type: event?.type,
-                          color: getEventColor(event),
-                        };
-                        if (!loggedEvent.type) {
-                          console.warn('Event payload before render', JSON.stringify(loggedEvent));
-                        }
-                        const baseColor = loggedEvent.color;
-                        if (!baseColor || typeof baseColor !== 'string' || !baseColor.startsWith('#')) {
-                          console.warn('Event base color invalid', {
-                            event: loggedEvent,
-                            computed: baseColor,
-                          });
-                        }
-                        const visualKind = resolveVisualKindForEvent(event);
-                        const visual = deriveVisual(visualKind, baseColor);
-                        const bandLabel = getBandLabelForEvent(event);
-                        const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
-                        const column = positionData?.column || 0;
-                        const totalColumns = positionData?.totalColumns || 1;
-                        const width = `calc(${100 / totalColumns}% - 4px)`;
-                        const leftPosition = `${(column * 100) / totalColumns}%`;
+                      const baseColor = loggedEvent.color;
+                      if (!baseColor || typeof baseColor !== 'string' || !baseColor.startsWith('#')) {
+                        console.warn('Event base color invalid', {
+                          event: loggedEvent,
+                          computed: baseColor,
+                        });
+                      }
+                      const visualKind = resolveVisualKindForEvent(event);
+                      const visual = deriveVisual(visualKind, baseColor);
+                      const bandLabel = getBandLabelForEvent(event);
+                      const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
+                      const column = positionData?.column || 0;
+                      const totalColumns = positionData?.totalColumns || 1;
+                      const width = `calc(${100 / totalColumns}% - 4px)`;
+                      const leftPosition = `${(column * 100) / totalColumns}%`;
 
                         const datePill =
                           visualKind === 'DUE' ? (
@@ -933,7 +947,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                     })}
                     
                     {/* Study Blocks */}
-                    {dayBlocks.filter(Boolean).map(block => {
+                    {normalizedDayBlocks.map(block => {
                       const positionData = itemsWithPositions.get(block.id || block);
                       const task = getTaskForBlock(block.id);
                       const course = task ? getCourse(task.courseId) : null;
@@ -942,16 +956,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const startHour = startTime.getHours() + startTime.getMinutes() / 60;
                       const endHour = endTime.getHours() + endTime.getMinutes() / 60;
                       const duration = endHour - startHour;
-                      const taskType = task?.type;
-                      if ((!taskType || typeof taskType !== 'string') && isDevMode && !loggedBlockWarn.current) {
-                        loggedBlockWarn.current = true;
-                        console.warn('Block missing type', block, task);
-                      }
                       const courseColor = getCourseColor(course?.color);
                       const blockLog = {
                         id: block?.id,
                         taskId: block?.taskId,
-                        type: task?.type,
+                        type: block?.type,
                         color: courseColor,
                       };
                       if (!blockLog.type) {
@@ -964,9 +973,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
                       const visual = deriveVisual(visualKind, courseColor);
                       const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
-                        const bandLabel = visualKind === 'DUE'
-                          ? 'DUE'
-                          : visualKind === 'LECTURE'
+                      const bandLabel = visualKind === 'DUE'
+                        ? 'DUE'
+                        : visualKind === 'LECTURE'
                           ? 'LECTURE'
                           : 'STUDY';
 
