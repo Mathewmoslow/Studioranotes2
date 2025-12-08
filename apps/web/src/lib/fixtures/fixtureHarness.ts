@@ -167,6 +167,16 @@ export const loadFixtureIntoStore = (fixture: FixtureData = canvasFixture) => {
  * Converts meeting events into schedules (dayOfWeek, HH:mm) to let the store
  * generate recurring lectures, and maps exams/assignments with proper types.
  */
+const normalizeCalendarEventRecord = (evt: any) => {
+  if (!evt) return null;
+  return {
+    ...evt,
+    type:
+      evt?.event_type ||
+      ((evt?.title || '').toLowerCase().includes('exam') ? 'exam' : 'meeting'),
+  };
+};
+
 export const loadRawCanvasFixture = (fixture: RawCanvasFixture = rawCanvasFixture) => {
   // Clear
   useScheduleStore.setState({
@@ -184,7 +194,9 @@ export const loadRawCanvasFixture = (fixture: RawCanvasFixture = rawCanvasFixtur
     const normalized = normalizeCanvasCourse({ id: course.id, name: course.name, course_code: course.course_code });
 
     // Build schedule from meeting-like events
-    const meetingEvents = (course.calendar_events || []).filter(e => (e.event_type || '').toLowerCase() === 'meeting');
+    const meetingEvents = (course.calendar_events || [])
+      .map(normalizeCalendarEventRecord)
+      .filter((evt): evt is any => !!evt && (evt.event_type || evt.type || '').toLowerCase() === 'meeting');
     const schedule = meetingEvents.map(evt => {
       const start = parseISO(evt.start_at);
       const end = parseISO(evt.end_at);
@@ -218,7 +230,8 @@ export const loadRawCanvasFixture = (fixture: RawCanvasFixture = rawCanvasFixtur
 
     // Exams as events
     (course.calendar_events || [])
-      .filter(e => (e.event_type || '').toLowerCase() === 'exam')
+      .map(normalizeCalendarEventRecord)
+      .filter((evt): evt is any => !!evt && (evt.event_type || evt.type || '').toLowerCase() === 'exam')
       .forEach(exam => {
         const normalizedTitle = exam.title.replace(/^[A-Z]{3,}\d+\s*/i, '').trim() || exam.title;
         addEvent({
@@ -226,7 +239,7 @@ export const loadRawCanvasFixture = (fixture: RawCanvasFixture = rawCanvasFixtur
           title: normalizedTitle,
           startTime: parseISO(exam.start_at),
           endTime: parseISO(exam.end_at),
-          type: 'exam',
+          type: exam.type || 'exam',
           courseId: String(course.id),
           location: exam.location_name || '',
         } as any);

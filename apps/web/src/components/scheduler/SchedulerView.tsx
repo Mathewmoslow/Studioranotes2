@@ -711,13 +711,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 
                 // Combine and detect overlaps
                 const allItems = [...dayEvents, ...dayBlocks];
-                if (isDevMode) {
-                  allItems.forEach((item, idx) => {
-                    if (!item || !item.type) {
-                      console.error('Bad calendar item before render', { index: idx, item });
-                    }
-                  });
-                }
+                allItems.forEach((item, idx) => {
+                  if (!item || !item.type) {
+                    console.error('Bad calendar item before render', { index: idx, item });
+                  }
+                });
                 const itemsWithPositions = detectOverlaps(allItems);
                 
                 const columnWidth = viewType === 'day' ? '100%' : `${100 / 7}%`;
@@ -783,10 +781,16 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                           type: event?.type,
                           color: getEventColor(event),
                         };
-                        if (!loggedEvent.type && isDevMode) {
+                        if (!loggedEvent.type) {
                           console.warn('Event payload before render', JSON.stringify(loggedEvent));
                         }
                         const baseColor = loggedEvent.color;
+                        if (!baseColor || typeof baseColor !== 'string' || !baseColor.startsWith('#')) {
+                          console.warn('Event base color invalid', {
+                            event: loggedEvent,
+                            computed: baseColor,
+                          });
+                        }
                         const visualKind = resolveVisualKindForEvent(event);
                         const visual = deriveVisual(visualKind, baseColor);
                         const bandLabel = getBandLabelForEvent(event);
@@ -950,8 +954,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         type: task?.type,
                         color: courseColor,
                       };
-                      if (!blockLog.type && isDevMode) {
+                      if (!blockLog.type) {
                         console.warn('Block payload before render', JSON.stringify(blockLog));
+                      }
+                      if (!courseColor || typeof courseColor !== 'string' || !courseColor.startsWith('#')) {
+                        console.warn('Block course color invalid', courseColor);
                       }
                       const isExamStudy = ((task?.type || '').toLowerCase().includes('exam') || (task?.title || '').toLowerCase().includes('exam'));
                       const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
