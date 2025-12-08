@@ -1,6 +1,9 @@
 import { formatISO, parseISO, set } from 'date-fns';
-import { canvasFixture, FixtureData, FixtureCourse } from './canvasFixture';
+import { canvasFixture, FixtureData } from './canvasFixture';
+import { rawCanvasFixture, RawCanvasFixture } from './rawCanvasFixture';
 import { useScheduleStore } from '../../stores/useScheduleStore';
+import { normalizeCanvasCourse } from '../canvas/normalizeCourse';
+import { determineAssignmentType } from '../taskHours';
 
 type Assertion = { ok: boolean; message: string };
 
@@ -86,6 +89,97 @@ export const loadFixtureIntoStore = (fixture: FixtureData = canvasFixture) => {
   });
 };
 
+/**
+ * Simulate a Canvas import pipeline using raw Canvas-like data.
+ * Converts meeting events into schedules (dayOfWeek, HH:mm) to let the store
+ * generate recurring lectures, and maps exams/assignments with proper types.
+ */
+export const loadRawCanvasFixture = (fixture: RawCanvasFixture = rawCanvasFixture) => {
+  // Clear
+  useScheduleStore.setState({
+    courses: [],
+    tasks: [],
+    timeBlocks: [],
+    events: [],
+    preferences: useScheduleStore.getState().preferences,
+    settings: useScheduleStore.getState().settings,
+  });
+
+  const { addCourse, addTask, addEvent } = useScheduleStore.getState();
+
+  fixture.courses.forEach((course) => {
+    const normalized = normalizeCanvasCourse({ id: course.id, name: course.name, course_code: course.course_code });
+
+    // Build schedule from meeting-like events
+    const meetingEvents = (course.calendar_events || []).filter(e => (e.event_type || '').toLowerCase() === 'meeting');
+    const schedule = meetingEvents.map(evt => {
+      const start = parseISO(evt.start_at);
+      const end = parseISO(evt.end_at);
+      const toHHMM = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      const dayOfWeek = start.getDay(); // JS: 0=Sun
+      return {
+        dayOfWeek,
+        startTime: toHHMM(start),
+        endTime: toHHMM(end),
+        type: 'lecture',
+        location: evt.location_name || '',
+      };
+    });
+
+    const additionalContext = [
+      course.syllabus,
+      ...(course.announcements || []).map(a => `${a.title}: ${a.body}`),
+      ...(course.pages || []).map(p => `${p.title}: ${p.body}`)
+    ].filter(Boolean).join('\n\n');
+
+    addCourse({
+      id: String(course.id),
+      name: normalized.cleanName,
+      code: normalized.cleanCode,
+      color: undefined,
+      canvasId: String(course.id),
+      schedule,
+      pages: course.pages?.map(p => ({ title: p.title, snippet: p.body })),
+      additionalContext,
+    } as any);
+
+    // Exams as events
+    (course.calendar_events || [])
+      .filter(e => (e.event_type || '').toLowerCase() === 'exam')
+      .forEach(exam => {
+        const normalizedTitle = exam.title.replace(/^[A-Z]{3,}\d+\s*/i, '').trim() || exam.title;
+        addEvent({
+          id: `${course.id}-${exam.title}`,
+          title: normalizedTitle,
+          startTime: parseISO(exam.start_at),
+          endTime: parseISO(exam.end_at),
+          type: 'exam',
+          courseId: String(course.id),
+          location: exam.location_name || '',
+        } as any);
+      });
+
+    // Assignments as tasks
+    (course.assignments || []).forEach((assignment, aIdx) => {
+      const normalizedType = determineAssignmentType(assignment);
+      addTask({
+        id: `${course.id}-assign-${aIdx}`,
+        title: assignment.name,
+        courseId: String(course.id),
+        courseName: normalized.cleanName,
+        type: normalizedType,
+        dueDate: parseISO(assignment.due_at),
+        bufferDays: normalizedType === 'exam' ? 7 : 3,
+        estimatedHours: 2,
+        priority: normalizedType === 'exam' ? 'high' : 'medium',
+        status: 'pending',
+        description: '',
+        isHardDeadline: true,
+      } as any);
+    });
+  });
+};
+
 const assertLectures = (fixture: FixtureData): Assertion[] => {
   const { events } = useScheduleStore.getState();
   const problems: Assertion[] = [];
@@ -133,15 +227,19 @@ const assertDueDates = (fixture: FixtureData): Assertion[] => {
 
   fixture.courses.forEach(course => {
     (course.assignments || []).forEach(assign => {
-      const match = tasks.find(t => t.courseId === course.id && t.title === assign.title);
-      if (!match) {
+      const candidates = tasks.filter(t => t.courseId === course.id && t.title === assign.title);
+      if (!candidates.length) {
         problems.push({ ok: false, message: `${course.id}: missing assignment "${assign.title}"` });
         return;
       }
       const expected = toDate(assign.dueDate).getTime();
-      const actual = match.dueDate instanceof Date ? match.dueDate.getTime() : new Date(match.dueDate).getTime();
-      if (expected !== actual) {
-        problems.push({ ok: false, message: `${course.id}: due date mismatch for "${assign.title}"` });
+      const match = candidates.find(t => {
+        const actual = t.dueDate instanceof Date ? t.dueDate.getTime() : new Date(t.dueDate).getTime();
+        return actual === expected;
+      });
+      if (!match) {
+        const actuals = candidates.map(t => (t.dueDate instanceof Date ? t.dueDate.toISOString() : String(t.dueDate))).join(', ');
+        problems.push({ ok: false, message: `${course.id}: due date mismatch for "${assign.title}" (got: ${actuals})` });
       }
     });
   });

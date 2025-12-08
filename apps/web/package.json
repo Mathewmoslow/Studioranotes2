@@ -38,7 +38,7 @@
     "lodash": "^4.17.21",
     "mammoth": "^1.10.0",
     "marked": "^16.2.1",
-    "next": "15.5.2",
+    "next": "^15.5.7",
     "next-auth": "^4.24.11",
     "openai": "^5.19.1",
     "papaparse": "^5.5.3",
@@ -60,7 +60,7 @@
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.18.0",
-    "eslint-config-next": "15.5.2",
+    "eslint-config-next": "^15.5.7",
     "typescript": "^5.7.3"
   }
 }
