@@ -39,7 +39,13 @@ export const runRawFixtureAssertions = (fixture: RawCanvasFixture = rawCanvasFix
           e.courseId === String(course.id) &&
           ((e.type || '').toLowerCase() === 'exam' || (e.title || '').toLowerCase().includes('exam'))
         );
-        const match = candidates.find(e => (e.title || '').toLowerCase().includes(normalizedTitle.toLowerCase())) || candidates[0];
+        const matchByTime = candidates.find(e => {
+          const st = e.startTime instanceof Date ? e.startTime.getTime() : new Date(e.startTime).getTime();
+          const et = e.endTime instanceof Date ? e.endTime.getTime() : new Date(e.endTime).getTime();
+          return st === start && et === end;
+        });
+        const matchByTitle = candidates.find(e => (e.title || '').toLowerCase().includes(normalizedTitle.toLowerCase()));
+        const match = matchByTime || matchByTitle || candidates[0];
         if (!match) {
           assertions.push({ ok: false, message: `${course.id}: missing exam "${normalizedTitle}"` });
           return;
