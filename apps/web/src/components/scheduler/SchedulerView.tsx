@@ -208,9 +208,13 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const cardGap = compact ? 0.32 : 0.4;
   const cardShadow = CARD_SHADOW;
   
+  const isDevMode = process.env.NODE_ENV !== 'production';
   const ensureDate = (date: Date | string): Date => {
     return typeof date === 'string' ? new Date(date) : date;
   };
+
+  const loggedEventWarn = useRef(false);
+  const loggedBlockWarn = useRef(false);
   
   const getDaysToDisplay = () => {
     switch (viewType) {
@@ -707,6 +711,13 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 
                 // Combine and detect overlaps
                 const allItems = [...dayEvents, ...dayBlocks];
+                if (isDevMode) {
+                  allItems.forEach((item, idx) => {
+                    if (!item || !item.type) {
+                      console.error('Bad calendar item before render', { index: idx, item });
+                    }
+                  });
+                }
                 const itemsWithPositions = detectOverlaps(allItems);
                 
                 const columnWidth = viewType === 'day' ? '100%' : `${100 / 7}%`;
@@ -762,7 +773,20 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         const endHour = endTime.getHours() + endTime.getMinutes() / 60;
                         const duration = endHour - startHour;
                         const course = getCourseForEvent(event);
-                        const baseColor = getEventColor(event);
+                      if (!event?.type && isDevMode && !loggedEventWarn.current) {
+                        loggedEventWarn.current = true;
+                        console.warn('Event missing type', event);
+                      }
+                        const loggedEvent = {
+                          id: event?.id,
+                          title: event?.title,
+                          type: event?.type,
+                          color: getEventColor(event),
+                        };
+                        if (!loggedEvent.type && isDevMode) {
+                          console.warn('Event payload before render', JSON.stringify(loggedEvent));
+                        }
+                        const baseColor = loggedEvent.color;
                         const visualKind = resolveVisualKindForEvent(event);
                         const visual = deriveVisual(visualKind, baseColor);
                         const bandLabel = getBandLabelForEvent(event);
@@ -914,7 +938,21 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const startHour = startTime.getHours() + startTime.getMinutes() / 60;
                       const endHour = endTime.getHours() + endTime.getMinutes() / 60;
                       const duration = endHour - startHour;
+                      const taskType = task?.type;
+                      if ((!taskType || typeof taskType !== 'string') && isDevMode && !loggedBlockWarn.current) {
+                        loggedBlockWarn.current = true;
+                        console.warn('Block missing type', block, task);
+                      }
                       const courseColor = getCourseColor(course?.color);
+                      const blockLog = {
+                        id: block?.id,
+                        taskId: block?.taskId,
+                        type: task?.type,
+                        color: courseColor,
+                      };
+                      if (!blockLog.type && isDevMode) {
+                        console.warn('Block payload before render', JSON.stringify(blockLog));
+                      }
                       const isExamStudy = ((task?.type || '').toLowerCase().includes('exam') || (task?.title || '').toLowerCase().includes('exam'));
                       const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
                       const visual = deriveVisual(visualKind, courseColor);
