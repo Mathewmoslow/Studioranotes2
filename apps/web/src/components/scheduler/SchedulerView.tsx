@@ -357,10 +357,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   }, [tasks]);
   
   const getUniqueEventsForDay = (day: Date) => {
-    let dayEvents = events.filter(event => isSameDay(ensureDate(event.startTime), day));
+    let dayEvents = events.filter(event => event && isSameDay(ensureDate(event.startTime), day));
     
     // Filter clinical events to show only actual clinical sessions and deadlines
     dayEvents = dayEvents.filter(event => {
+      if (!event) return false;
       const course = getCourseForEvent(event);
       const isClinicalCourse = course && (
         course.name.toLowerCase().includes('clinical') ||
@@ -380,6 +381,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     
     // Filters: course, type, block category
     dayEvents = dayEvents.filter(evt => {
+      if (!evt) return false;
       if (selectedCourseId && evt.courseId !== selectedCourseId) return false;
       if (selectedTypes.length > 0 && evt.type && !selectedTypes.includes(evt.type)) return false;
       const cat = determineBlockCategory(evt.type || 'event', isHardDeadlineType(evt.type));
@@ -394,10 +396,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   };
   
   const getUniqueBlocksForDay = (day: Date) => {
-    let dayBlocks = timeBlocks.filter(block => isSameDay(ensureDate(block.startTime), day));
+    let dayBlocks = timeBlocks.filter(block => block && isSameDay(ensureDate(block.startTime), day));
     
     // Filter clinical-related study blocks
     dayBlocks = dayBlocks.filter(block => {
+      if (!block) return false;
       const task = getTaskForBlock(block.id);
       if (!task) return true;
       
