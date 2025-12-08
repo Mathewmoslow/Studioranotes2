@@ -42,3 +42,9 @@ lerna-debug.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# App env
+apps/web/.env
+
+# App env
+apps/web/.env

@@ -141,8 +141,9 @@ const deriveVisual = (kind: VisualKind, baseColor: string) => {
 
 const resolveVisualKindForEvent = (event: Event): VisualKind => {
   const type = (event.type || '').toLowerCase();
-  if (type.includes('exam') || type.includes('quiz')) return 'EXAM';
-  if (type.includes('due') || type.includes('deadline')) return 'DUE';
+  const title = (event.title || '').toLowerCase();
+  if (type.includes('exam') || type.includes('quiz') || title.includes('exam') || title.includes('quiz')) return 'EXAM';
+  if (type.includes('due') || type.includes('deadline') || title.includes('due') || title.includes('deadline')) return 'DUE';
   if (type.includes('lecture') || type.includes('class')) return 'LECTURE';
   return 'DO';
 };
@@ -241,9 +242,10 @@ const SchedulerView: React.FC = () => {
 
 const getBandLabelForEvent = (event: Event) => {
   const type = (event.type || '').toLowerCase();
-  if (type.includes('exam')) return 'EXAM';
-  if (type.includes('quiz')) return 'QUIZ';
-  if (type.includes('deadline') || type.includes('due')) return 'DUE';
+  const title = (event.title || '').toLowerCase();
+  if (type.includes('exam') || title.includes('exam')) return 'EXAM';
+  if (type.includes('quiz') || title.includes('quiz')) return 'QUIZ';
+  if (type.includes('deadline') || type.includes('due') || title.includes('deadline') || title.includes('due')) return 'DUE';
   if (type.includes('lecture') || type.includes('class')) return 'LECTURE';
   if (type.includes('clinical')) return 'CLINICAL';
   if (type.includes('lab')) return 'LAB';
@@ -261,7 +263,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   if (type.includes('video')) return 'VIDEO';
   if (type.includes('review')) return 'REVIEW';
   if (type.includes('project') || type.includes('work')) return 'WORK';
-  return 'DO';
+  return 'STUDY';
 };
 
   const typesInRange = useMemo(() => {
@@ -878,16 +880,15 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const endHour = endTime.getHours() + endTime.getMinutes() / 60;
                       const duration = endHour - startHour;
                       const courseColor = getCourseColor(course?.color);
-                      const visualKind = resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
+                      const isExamStudy = ((task?.type || '').toLowerCase().includes('exam') || (task?.title || '').toLowerCase().includes('exam'));
+                      const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
                       const visual = deriveVisual(visualKind, courseColor);
                       const cardHeight = Math.max(MIN_BLOCK_HEIGHT, duration * HOUR_HEIGHT - 4);
                         const bandLabel = visualKind === 'DUE'
                           ? 'DUE'
-                          : visualKind === 'EXAM'
-                          ? 'EXAM'
                           : visualKind === 'LECTURE'
                           ? 'LECTURE'
-                          : getBandLabelForBlock(task?.type, 'DO');
+                          : 'STUDY';
 
                       const column = positionData?.column || 0;
                       const totalColumns = positionData?.totalColumns || 1;
