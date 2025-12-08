@@ -41,13 +41,7 @@ export const runRawFixtureAssertions = (fixture: RawCanvasFixture = rawCanvasFix
         );
         const match = candidates.find(e => (e.title || '').toLowerCase().includes(normalizedTitle.toLowerCase())) || candidates[0];
         if (!match) {
-          // Fallback: if an exam task exists, accept it
-          const examTasks = tasks.filter(t => t.courseId === String(course.id) && (t.type || '').toLowerCase().includes('exam'));
-          const taskMatch = examTasks.find(t => (t.title || '').toLowerCase().includes(normalizedTitle.toLowerCase())) || examTasks[0];
-          if (!taskMatch) {
-            assertions.push({ ok: false, message: `${course.id}: missing exam "${normalizedTitle}"` });
-            return;
-          }
+          assertions.push({ ok: false, message: `${course.id}: missing exam "${normalizedTitle}"` });
           return;
         }
         const actualStart = (match.startTime instanceof Date ? match.startTime : new Date(match.startTime)).getTime();
