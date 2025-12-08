@@ -229,13 +229,15 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   };
   
   const days = getDaysToDisplay();
+  const safeEvents = useMemo(() => (events || []).filter((e): e is Event => Boolean(e)), [events]);
+  const safeBlocks = useMemo(() => (timeBlocks || []).filter((b): b is any => Boolean(b)), [timeBlocks]);
   
   const hoursRange = useMemo(() => {
     const startTs = days[0] ? new Date(days[0]) : new Date();
     const endTs = days[days.length - 1] ? addDays(days[days.length - 1], 1) : new Date();
 
     const allTimes: number[] = [];
-    [...events, ...timeBlocks].forEach(item => {
+    [...safeEvents, ...safeBlocks].forEach(item => {
       const start = ensureDate((item as any).startTime);
       const end = ensureDate((item as any).endTime);
       if (start >= startTs && start <= endTs) {
@@ -302,14 +304,14 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
 
     const taskMap = new Map(tasks.map(t => [t.id, t]));
 
-    events.forEach(evt => {
+    safeEvents.forEach(evt => {
       const start = ensureDate(evt.startTime);
       if (start >= rangeStart && start <= rangeEnd && evt.type) {
         typeSet.add(evt.type);
       }
     });
 
-    timeBlocks.forEach(block => {
+    safeBlocks.forEach(block => {
       const start = ensureDate(block.startTime);
       if (start >= rangeStart && start <= rangeEnd) {
         const task = taskMap.get(block.taskId);
@@ -318,7 +320,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     });
 
     return Array.from(typeSet);
-  }, [days, events, timeBlocks, tasks]);
+  }, [days, safeEvents, safeBlocks, tasks]);
 
   const blocksInRange = useMemo(() => {
     const blockSet = new Set<BlockCategory>();
@@ -328,7 +330,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
 
     const taskMap = new Map(tasks.map(t => [t.id, t]));
 
-    events.forEach(evt => {
+    safeEvents.forEach(evt => {
       const start = ensureDate(evt.startTime);
       if (start >= rangeStart && start <= rangeEnd) {
         const cat = determineBlockCategory(evt.type || 'event', isHardDeadlineType(evt.type));
@@ -336,7 +338,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
       }
     });
 
-    timeBlocks.forEach(block => {
+    safeBlocks.forEach(block => {
       const start = ensureDate(block.startTime);
       if (start >= rangeStart && start <= rangeEnd) {
         const task = taskMap.get(block.taskId);
@@ -346,7 +348,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     });
 
     return Array.from(blockSet);
-  }, [days, events, timeBlocks, tasks]);
+  }, [days, safeEvents, safeBlocks, tasks]);
 
   const overdueTasks = useMemo(() => {
     const today = new Date();
@@ -357,7 +359,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   }, [tasks]);
   
   const getUniqueEventsForDay = (day: Date) => {
-    let dayEvents = events.filter(event => event && isSameDay(ensureDate(event.startTime), day));
+    let dayEvents = safeEvents.filter(event => event && isSameDay(ensureDate(event.startTime), day));
     
     // Filter clinical events to show only actual clinical sessions and deadlines
     dayEvents = dayEvents.filter(event => {
@@ -396,7 +398,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   };
   
   const getUniqueBlocksForDay = (day: Date) => {
-    let dayBlocks = timeBlocks.filter(block => block && isSameDay(ensureDate(block.startTime), day));
+    let dayBlocks = safeBlocks.filter(block => block && isSameDay(ensureDate(block.startTime), day));
     
     // Filter clinical-related study blocks
     dayBlocks = dayBlocks.filter(block => {
