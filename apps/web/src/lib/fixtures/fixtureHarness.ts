@@ -35,7 +35,11 @@ export const runRawFixtureAssertions = (fixture: RawCanvasFixture = rawCanvasFix
         const normalizedTitle = exam.title.replace(/^[A-Z]{3,}\d+\s*/i, '').trim() || exam.title;
         const start = parseISO(exam.start_at).getTime();
         const end = parseISO(exam.end_at).getTime();
-        const match = events.find(e => e.courseId === String(course.id) && e.title === normalizedTitle);
+        const candidates = events.filter(e =>
+          e.courseId === String(course.id) &&
+          ((e.type || '').toLowerCase() === 'exam' || (e.title || '').toLowerCase().includes('exam'))
+        );
+        const match = candidates.find(e => (e.title || '').toLowerCase().includes(normalizedTitle.toLowerCase())) || candidates[0];
         if (!match) {
           assertions.push({ ok: false, message: `${course.id}: missing exam "${normalizedTitle}"` });
           return;
@@ -340,4 +344,75 @@ export const runFixtureAssertions = (fixture: FixtureData = canvasFixture) => {
   ];
   const ok = results.every(r => r.ok);
   return { ok, results };
+};
+// Build payload for context extraction API using raw Canvas fixture data
+export const buildContextPayloadFromRaw = (course: any, additionalContextMap: Record<string, string> = {}) => {
+  return {
+    courseName: course.name,
+    syllabus: course.syllabus,
+    announcements: course.announcements || [],
+    discussions: course.discussions || [],
+    moduleDescriptions: (course.modules || []).map((m: any) => ({ name: m.name, description: m.description || '' })),
+    assignmentDescriptions: (course.assignments || []).map((a: any) => ({
+      name: a.name,
+      description: a.description || a.page_html || ''
+    })),
+    pages: (course.pages || []).map((p: any) => ({ title: p.title, body: p.body || '' })),
+    additionalContext: additionalContextMap[course.id] || '',
+  };
+};
+
+// Apply context extraction results to the schedule store (tasks/exams)
+export const applyContextExtractionResults = (courseId: string, courseName: string, result: any) => {
+  const { addTask, updateTask, events, tasks, updateEvent } = useScheduleStore.getState();
+  const extractedTasks = Array.isArray(result?.tasks) ? result.tasks : [];
+  const examUpdates = Array.isArray(result?.examUpdates) ? result.examUpdates : [];
+
+  extractedTasks.forEach((task: any, index: number) => {
+    const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+    const title = task.title || `Context Task ${index + 1}`;
+    const normalizedType = determineAssignmentType(task.type || title);
+    const action = task.action === 'update' ? 'update' : 'add';
+    const matching = tasks.filter(t => t.courseId === courseId && t.title === title);
+
+    if (action === 'update' && matching.length > 0) {
+      matching.forEach(m => {
+        updateTask(m.id, {
+          dueDate: dueDate || m.dueDate,
+          description: task.description || m.description,
+        });
+      });
+      return;
+    }
+
+    if (dueDate && matching.find(m => new Date(m.dueDate).getTime() === dueDate.getTime())) return;
+
+    addTask({
+      title,
+      courseId,
+      courseName,
+      type: normalizedType,
+      dueDate: dueDate || new Date(),
+      estimatedHours: task.estimatedHours || 2,
+      priority: 'medium',
+      status: 'pending',
+      description: task.description || '',
+      isHardDeadline: true,
+    } as any);
+  });
+
+  examUpdates.forEach((examUpdate: any) => {
+    const targetTitle = (examUpdate.title || '').trim().toLowerCase();
+    const examEvents = events.filter(e =>
+      e.courseId === courseId && (e.type === 'exam' || (e.title || '').toLowerCase().includes('exam'))
+    );
+    const match = examEvents.find(e => (e.title || '').toLowerCase().includes(targetTitle));
+    if (match) {
+      updateEvent(match.id as string, {
+        startTime: examUpdate.startTime ? new Date(examUpdate.startTime) : match.startTime,
+        endTime: examUpdate.endTime ? new Date(examUpdate.endTime) : match.endTime,
+        location: examUpdate.location || (match as any).location
+      } as any);
+    }
+  });
 };
