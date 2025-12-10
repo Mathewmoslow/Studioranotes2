@@ -15,14 +15,12 @@ import {
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  Today as TodayIcon,
-  FilterList as FilterListIcon
+  Today as TodayIcon
 } from '@mui/icons-material';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { Event, BlockCategory } from '@studioranotes/types';
 import { format, startOfWeek, addDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
 import EventModalMUI from './EventModalMUI';
-import LegendFiltersModal from './LegendFiltersModal';
 import { clinicalFilter } from '../../lib/clinicalFilter';
 import { determineBlockCategory } from '../../lib/blockVisuals';
 
@@ -115,6 +113,37 @@ const getTextOn = (hex: string) => {
   return luminance > 0.6 ? '#0f172a' : '#ffffff';
 };
 
+const logRenderProbe = (context: string, item: any) => {
+  const payload = {
+    context,
+    id: item?.id,
+    title: item?.title,
+    type: item?.type ?? item?.taskType ?? item?.visualKind,
+    visualKind: item?.visualKind,
+    color: item?.color,
+    courseId: item?.courseId ?? item?.course?.id,
+    raw: item,
+  };
+  console.error('[Scheduler Debug] Render probe', payload);
+  return payload;
+};
+
+const safeDeriveVisual = (context: string, visualKind: VisualKind, baseColor: string, item: any) => {
+  const colorToUse = baseColor && typeof baseColor === 'string' ? baseColor : FALLBACK_COLOR;
+  if (!colorToUse.startsWith('#')) {
+    console.warn('[Scheduler Debug] Non-hex color passed to deriveVisual', { context, visualKind, colorToUse, item });
+  }
+  if (!item?.type && !item?.visualKind) {
+    logRenderProbe(`${context} missing type`, item);
+  }
+  try {
+    return deriveVisual(visualKind, colorToUse || FALLBACK_COLOR);
+  } catch (error) {
+    console.error('[Scheduler Debug] Visual derivation failed', { context, visualKind, colorToUse, item, error });
+    return deriveVisual('DO', FALLBACK_COLOR);
+  }
+};
+
 const deriveVisual = (kind: VisualKind, baseColor: string) => {
   const course = getCourseColor(baseColor);
   const courseDark = darken(course, 0.2);
@@ -182,12 +211,9 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<any>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedBlockCats, setSelectedBlockCats] = useState<BlockCategory[]>([]);
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const {
     timeBlocks,
@@ -215,7 +241,56 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
 
   const loggedEventWarn = useRef(false);
   const loggedBlockWarn = useRef(false);
+  const subscribedToStore = useRef(false);
   
+  useEffect(() => {
+    if (!isDevMode || subscribedToStore.current) return;
+    const unsubscribe = useScheduleStore.subscribe(
+      (state, prev) => {
+        console.groupCollapsed('[Scheduler Debug] Store change');
+        console.log('diff', {
+          tasks: { prev: prev?.tasks?.length, next: state?.tasks?.length },
+          events: { prev: prev?.events?.length, next: state?.events?.length },
+          timeBlocks: { prev: prev?.timeBlocks?.length, next: state?.timeBlocks?.length },
+          courses: { prev: prev?.courses?.length, next: state?.courses?.length },
+        });
+        console.log('prev snapshot', {
+          tasks: prev?.tasks,
+          events: prev?.events,
+          timeBlocks: prev?.timeBlocks,
+          courses: prev?.courses,
+        });
+        console.log('next snapshot', {
+          tasks: state?.tasks,
+          events: state?.events,
+          timeBlocks: state?.timeBlocks,
+          courses: state?.courses,
+        });
+        console.groupEnd();
+      },
+      (state) => state
+    );
+    subscribedToStore.current = true;
+    return () => unsubscribe();
+  }, [isDevMode]);
+
+  useEffect(() => {
+    if (!isDevMode) return;
+    const logKey = (event: KeyboardEvent) => {
+      console.info('[Scheduler Debug] Key press', {
+        key: event.key,
+        code: event.code,
+        ctrl: event.ctrlKey,
+        meta: event.metaKey,
+        shift: event.shiftKey,
+        alt: event.altKey,
+        target: (event.target as HTMLElement)?.tagName,
+      });
+    };
+    window.addEventListener('keydown', logKey, true);
+    return () => window.removeEventListener('keydown', logKey, true);
+  }, [isDevMode]);
+
   const getDaysToDisplay = () => {
     switch (viewType) {
       case 'day':
@@ -262,18 +337,6 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     return Array.from({ length: hoursRange.end - hoursRange.start + 1 }, (_, i) => hoursRange.start + i);
   }, [hoursRange]);
 
-  const toggleTypeFilter = (type: string) => {
-    setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
-  const toggleBlockFilter = (cat: BlockCategory) => {
-    setSelectedBlockCats((prev) =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
-  };
-
 const getBandLabelForEvent = (event: Event) => {
   const type = (event.type || '').toLowerCase();
   const title = (event.title || '').toLowerCase();
@@ -299,60 +362,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   if (type.includes('project') || type.includes('work')) return 'WORK';
   return 'STUDY';
 };
-
-  const typesInRange = useMemo(() => {
-    const typeSet = new Set<string>();
-    const rangeStart = days[0] ? new Date(days[0]) : new Date();
-    rangeStart.setHours(0, 0, 0, 0);
-    const rangeEnd = days[days.length - 1] ? addDays(days[days.length - 1], 1) : new Date();
-
-    const taskMap = new Map(tasks.map(t => [t.id, t]));
-
-    safeEvents.forEach(evt => {
-      const start = ensureDate(evt.startTime);
-      if (start >= rangeStart && start <= rangeEnd && evt.type) {
-        typeSet.add(evt.type);
-      }
-    });
-
-    safeBlocks.forEach(block => {
-      const start = ensureDate(block.startTime);
-      if (start >= rangeStart && start <= rangeEnd) {
-        const task = taskMap.get(block.taskId);
-        if (task?.type) typeSet.add(task.type);
-      }
-    });
-
-    return Array.from(typeSet);
-  }, [days, safeEvents, safeBlocks, tasks]);
-
-  const blocksInRange = useMemo(() => {
-    const blockSet = new Set<BlockCategory>();
-    const rangeStart = days[0] ? new Date(days[0]) : new Date();
-    rangeStart.setHours(0, 0, 0, 0);
-    const rangeEnd = days[days.length - 1] ? addDays(days[days.length - 1], 1) : new Date();
-
-    const taskMap = new Map(tasks.map(t => [t.id, t]));
-
-    safeEvents.forEach(evt => {
-      const start = ensureDate(evt.startTime);
-      if (start >= rangeStart && start <= rangeEnd) {
-        const cat = determineBlockCategory(evt.type || 'event', isHardDeadlineType(evt.type));
-        blockSet.add(cat);
-      }
-    });
-
-    safeBlocks.forEach(block => {
-      const start = ensureDate(block.startTime);
-      if (start >= rangeStart && start <= rangeEnd) {
-        const task = taskMap.get(block.taskId);
-        const cat = determineBlockCategory(task?.type || 'assignment', Boolean(task?.isHardDeadline));
-        blockSet.add(cat);
-      }
-    });
-
-    return Array.from(blockSet);
-  }, [days, safeEvents, safeBlocks, tasks]);
 
   const overdueTasks = useMemo(() => {
     const today = new Date();
@@ -389,9 +398,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     dayEvents = dayEvents.filter(evt => {
       if (!evt) return false;
       if (selectedCourseId && evt.courseId !== selectedCourseId) return false;
-      if (selectedTypes.length > 0 && evt.type && !selectedTypes.includes(evt.type)) return false;
-      const cat = determineBlockCategory(evt.type || 'event', isHardDeadlineType(evt.type));
-      if (selectedBlockCats.length > 0 && !selectedBlockCats.includes(cat)) return false;
       return true;
     });
 
@@ -430,9 +436,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     dayBlocks = dayBlocks.filter(block => {
       const task = getTaskForBlock(block.id);
       if (selectedCourseId && task?.courseId !== selectedCourseId) return false;
-      if (selectedTypes.length > 0 && task?.type && !selectedTypes.includes(task.type)) return false;
-      const cat = determineBlockCategory(task?.type || 'assignment', Boolean(task?.isHardDeadline));
-      if (selectedBlockCats.length > 0 && !selectedBlockCats.includes(cat)) return false;
       return true;
     });
 
@@ -806,7 +809,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         });
                       }
                       const visualKind = resolveVisualKindForEvent(event);
-                      const visual = deriveVisual(visualKind, baseColor);
+                      const visual = safeDeriveVisual('week-event', visualKind, baseColor, event);
                       const bandLabel = getBandLabelForEvent(event);
                       const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
                       const column = positionData?.column || 0;
@@ -971,7 +974,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       }
                       const isExamStudy = ((task?.type || '').toLowerCase().includes('exam') || (task?.title || '').toLowerCase().includes('exam'));
                       const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
-                      const visual = deriveVisual(visualKind, courseColor);
+                      const visual = safeDeriveVisual('week-block', visualKind, courseColor, {
+                        ...block,
+                        taskType: task?.type,
+                        course,
+                      });
                       const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
                       const bandLabel = visualKind === 'DUE'
                         ? 'DUE'
@@ -1202,7 +1209,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       
                       <Stack spacing={0.75} sx={{ mt: 1 }}>
                         {dayItems.slice(0, 3).map(item => {
-                          const visual = deriveVisual(item.visualKind, item.color);
+                          const visual = safeDeriveVisual('month-item', item.visualKind, item.color, item);
                           const bandLabel =
                             item.visualKind === 'DUE'
                               ? 'DUE'
@@ -1338,14 +1345,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 Month
               </Button>
             </ButtonGroup>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<FilterListIcon />}
-              onClick={() => setFiltersOpen(true)}
-            >
-              Legend & Filters
-            </Button>
           </Box>
         </Box>
 
@@ -1421,19 +1420,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
           />
         )}
 
-        <LegendFiltersModal
-          open={filtersOpen}
-          onClose={() => setFiltersOpen(false)}
-          courses={courses}
-          typesInRange={typesInRange}
-          blocksInRange={blocksInRange}
-          selectedCourseId={selectedCourseId}
-          onSelectCourse={setSelectedCourseId}
-          selectedTypes={selectedTypes}
-          onToggleType={toggleTypeFilter}
-          selectedBlocks={selectedBlockCats}
-          onToggleBlock={toggleBlockFilter}
-        />
       </Container>
     </Box>
   );
