@@ -27,13 +27,30 @@ import { determineBlockCategory } from '../../lib/blockVisuals';
 type ViewType = 'week' | 'day' | 'month';
 
 const FALLBACK_COLOR = '#6b7280';
+const COURSE_PALETTES = [
+  {
+    id: 'bright-study',
+    label: 'Bright Study',
+    colors: ['#2563eb', '#a855f7', '#f59e0b', '#0ea5e9', '#10b981', '#7ca1f3', '#db99fa', '#6ec9f2', '#70d5b3', '#f9c56d'],
+  },
+  {
+    id: 'coastline',
+    label: 'Coastline',
+    colors: ['#40798c', '#70a9a1', '#b08d57', '#5b7b9a', '#8cc8d3', '#4f6f52', '#9fb7b9', '#c8af3c'],
+  },
+  {
+    id: 'earth-heritage',
+    label: 'Earth & Heritage',
+    colors: ['#8b4513', '#b3874f', '#c8af3c', '#6f4e37', '#9c7b4f', '#a17c38', '#7a5733', '#c3a267'],
+  },
+];
 const HOUR_HEIGHT = 52;
 const RED_BAND = '#c53030';
 const MIN_BLOCK_HEIGHT = 50;
-const BAND_WIDTH = 18;
+const BAND_WIDTH = 22;
 const MIN_CARD_WIDTH = 120;
-const CARD_RADIUS = 0.6;
-const CARD_SHADOW = '0 2px 6px rgba(0,0,0,0.04)';
+const CARD_RADIUS = 1.4;
+const CARD_SHADOW = '0 4px 10px rgba(0,0,0,0.06)';
 
 type VisualKind = 'DO' | 'LECTURE' | 'EXAM' | 'DUE';
 
@@ -74,18 +91,36 @@ const isHardDeadlineType = (type?: string) => {
 };
 
 const sanitizeCourseColor = (color?: string) => {
-  if (!color) return FALLBACK_COLOR;
+  if (!color) return undefined;
   const clean = color.replace('#', '');
-  if (clean.length !== 6) return FALLBACK_COLOR;
+  if (clean.length !== 6) return undefined;
   const num = parseInt(clean, 16);
   const r = (num >> 16) & 255;
   const g = (num >> 8) & 255;
   const b = num & 255;
   const redDominant = r > 180 && r > g + 30 && r > b + 30;
-  return redDominant ? FALLBACK_COLOR : `#${clean}`;
+  if (redDominant) return undefined;
+  return `#${clean}`;
 };
 
-const getCourseColor = (color?: string) => sanitizeCourseColor(color) || FALLBACK_COLOR;
+const hashId = (input?: string) => {
+  if (!input) return 0;
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const getApprovedPaletteColor = (courseId?: string, paletteColors: string[] = COURSE_PALETTES[0].colors) => {
+  const palette = paletteColors.length > 0 ? paletteColors : COURSE_PALETTES[0].colors;
+  const idx = hashId(courseId) % palette.length;
+  return palette[idx] || palette[0];
+};
+
+const getCourseColor = (color?: string, courseId?: string, paletteColors?: string[]) =>
+  sanitizeCourseColor(color) || getApprovedPaletteColor(courseId, paletteColors);
 
 const adjustColor = (hex: string, percent: number) => {
   const clean = hex.replace('#', '');
@@ -101,6 +136,30 @@ const adjustColor = (hex: string, percent: number) => {
 
 const darken = (hex: string, amount = 0.15) => adjustColor(hex, -Math.abs(amount));
 const lighten = (hex: string, amount = 0.2) => adjustColor(hex, Math.abs(amount));
+
+const mixWithWhite = (hex: string, whiteRatio: number) => {
+  const ratio = Math.max(0, Math.min(1, whiteRatio));
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return hex;
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const mix = (channel: number) => Math.round(channel * (1 - ratio) + 255 * ratio);
+  return `#${mix(r).toString(16).padStart(2, '0')}${mix(g).toString(16).padStart(2, '0')}${mix(b).toString(16).padStart(2, '0')}`;
+};
+
+const mixWithBlack = (hex: string, blackRatio: number) => {
+  const ratio = Math.max(0, Math.min(1, blackRatio));
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) return hex;
+  const num = parseInt(clean, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const mix = (channel: number) => Math.round(channel * (1 - ratio));
+  return `#${mix(r).toString(16).padStart(2, '0')}${mix(g).toString(16).padStart(2, '0')}${mix(b).toString(16).padStart(2, '0')}`;
+};
 
 const getTextOn = (hex: string) => {
   const clean = hex.replace('#', '');
@@ -145,45 +204,47 @@ const safeDeriveVisual = (context: string, visualKind: VisualKind, baseColor: st
 };
 
 const deriveVisual = (kind: VisualKind, baseColor: string) => {
-  const course = getCourseColor(baseColor);
-  const courseDark = darken(course, 0.2);
-  const courseDeeper = darken(course, 0.28);
-  const courseLight = lighten(course, 0.55);
-  const outline = hexToRgba(course, 0.55);
+  const course = sanitizeCourseColor(baseColor) || FALLBACK_COLOR;
+  const bandColor = course;
+  const lectureTag = mixWithWhite(course, 0.4);
+  const lectureFill = mixWithWhite(course, 0.8);
+  const doFill = mixWithBlack(course, 0.15);
+  const doBorder = course;
+  const examFill = mixWithBlack(course, 0.45);
 
   switch (kind) {
     case 'EXAM':
       return {
-        fill: courseDeeper,
-        border: courseDeeper,
-        band: RED_BAND,
+        fill: examFill,
+        border: examFill,
+        band: '#ff0000',
         text: '#ffffff',
-        subtle: '#e2e8f0',
+        subtle: hexToRgba(course, 0.2),
       };
     case 'DUE':
       return {
-        fill: courseDeeper,
-        border: RED_BAND,
-        band: RED_BAND,
+        fill: examFill,
+        border: '#ff0000',
+        band: '#ff0000',
         text: '#ffffff',
-        subtle: '#e2e8f0',
+        subtle: hexToRgba(course, 0.2),
       };
     case 'LECTURE':
       return {
-        fill: lighten(course, 0.6),
+        fill: lectureFill,
         border: hexToRgba(course, 0.35),
-        band: course,
-        text: darken(course, 0.55),
-        subtle: darken(course, 0.25),
+        band: lectureTag,
+        text: mixWithBlack(course, 0.25),
+        subtle: hexToRgba(course, 0.18),
       };
     case 'DO':
     default:
       return {
-        fill: course,
-        border: courseDark,
-        band: courseDark,
-        text: getTextOn(course),
-        subtle: darken(course, 0.25),
+        fill: doFill,
+        border: doBorder,
+        band: bandColor,
+        text: getTextOn(doFill),
+        subtle: hexToRgba(course, 0.18),
       };
   }
 };
@@ -216,6 +277,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
 
   const {
+    preferences,
     timeBlocks,
     tasks,
     events,
@@ -233,6 +295,10 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const cardPadding = compact ? 0.32 : 0.4;
   const cardGap = compact ? 0.32 : 0.4;
   const cardShadow = CARD_SHADOW;
+  const activePaletteColors = useMemo(() => {
+    const palette = COURSE_PALETTES.find(p => p.id === preferences?.themePaletteId);
+    return palette?.colors || COURSE_PALETTES[0].colors;
+  }, [preferences?.themePaletteId]);
   
   const isDevMode = process.env.NODE_ENV !== 'production';
   const ensureDate = (date: Date | string): Date => {
@@ -959,7 +1025,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const startHour = startTime.getHours() + startTime.getMinutes() / 60;
                       const endHour = endTime.getHours() + endTime.getMinutes() / 60;
                       const duration = endHour - startHour;
-                      const courseColor = getCourseColor(course?.color);
+                      const courseColor = getCourseColor(course?.color, course?.id, activePaletteColors);
                       const blockLog = {
                         id: block?.id,
                         taskId: block?.taskId,
@@ -1184,7 +1250,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       subtitle: `${format(ensureDate(block.startTime), 'h:mm a')}${course?.code ? ` • ${course.code}` : ''}`,
                       startTime: ensureDate(block.startTime),
                       visualKind,
-                      color: getCourseColor(course?.color),
+                      color: getCourseColor(course?.color, course?.id, activePaletteColors),
                       onClick: () => handleBlockClick(block),
                     };
                   }),

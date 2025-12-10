@@ -268,6 +268,7 @@ interface ScheduleStore {
 
 const defaultPreferences: UserPreferences = {
   studyHours: { start: '09:00', end: '22:00' },
+  themePaletteId: 'bright-study',
   breakDuration: 15,
   sessionDuration: 120,
   studySessionDuration: 120,

@@ -413,6 +413,7 @@ export interface UserPreferences {
     start: string // HH:mm
     end: string // HH:mm
   }
+  themePaletteId?: string
   breakDuration: number // minutes
   sessionDuration: number // minutes
   studySessionDuration?: number
