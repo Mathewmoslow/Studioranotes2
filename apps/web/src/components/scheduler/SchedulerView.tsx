@@ -526,11 +526,8 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   
   const getEventColor = (event: Event) => {
     const course = getCourseForEvent(event);
-
-    // Always use course color if available
-    if (course?.color) {
-      return course.color;
-    }
+    const paletteColor = getCourseColor(course?.color, course?.id || event.courseId || event.title, activePaletteColors);
+    if (paletteColor) return paletteColor;
 
     const safeType = event.type || (event as any)?.event_type || 'meeting';
 
@@ -932,7 +929,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 color: visual.text,
                                 cursor: 'move',
                                 zIndex: event.type === 'deadline' ? 3 : 2,
-                                mx: 0.1,
                                 borderRadius: cardRadius,
                                 border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
                                 boxShadow: CARD_SHADOW,
@@ -944,7 +940,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               }}
                               onClick={() => handleEventClick(event)}
                           >
-                            <CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
+                            <CardContent sx={{ pl: 0, pr: cardPadding, py: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
@@ -984,7 +980,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                       fontSize: '10px',
                                       fontWeight: 800,
                                       letterSpacing: 0.5,
-                                      px: 0.2
+                                      px: 0.2,
+                                      borderTopLeftRadius: cardRadius,
+                                      borderBottomLeftRadius: cardRadius
                                     }}
                                   >
                                     {bandLabel}
@@ -1025,7 +1023,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const startHour = startTime.getHours() + startTime.getMinutes() / 60;
                       const endHour = endTime.getHours() + endTime.getMinutes() / 60;
                       const duration = endHour - startHour;
-                      const courseColor = getCourseColor(course?.color, course?.id, activePaletteColors);
+                      const courseColor = getCourseColor(course?.color, course?.id || task?.courseId || task?.title, activePaletteColors);
                       const blockLog = {
                         id: block?.id,
                         taskId: block?.taskId,
@@ -1107,7 +1105,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               overflow: 'hidden',
                               cursor: 'move',
                               zIndex: visualKind === 'EXAM' || visualKind === 'DUE' ? 3 : 1,
-                              mx: 0.1,
                               border: `1px solid ${visualKind === 'DUE' ? RED_BAND : visual.border}`,
                               boxShadow: CARD_SHADOW,
                               '&:hover': {
@@ -1117,7 +1114,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                             }}
                             onClick={() => handleBlockClick(block)}
                           >
-                            <CardContent sx={{ p: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
+                            <CardContent sx={{ pl: 0, pr: cardPadding, py: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
                                 <>
                                   {datePill}
@@ -1157,7 +1154,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                       fontSize: '10px',
                                       fontWeight: 800,
                                       letterSpacing: 0.5,
-                                      px: 0.2
+                                      px: 0.2,
+                                      borderTopLeftRadius: cardRadius,
+                                      borderBottomLeftRadius: cardRadius
                                     }}
                                   >
                                     {bandLabel}
