@@ -107,7 +107,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       saturday: true,
       sunday: false,
     },
-    useAutoEstimation: false,
+    useAutoEstimation: true,
     taskDurations: {
       assignment: 3,
       exam: 8,
@@ -116,6 +116,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       quiz: 1.5,
       homework: 3,
       lab: 4,
+      video: 1,
+      prep: 1,
+      lecture: 1.5,
+      skills: 2,
     },
   })
 
@@ -129,7 +133,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       'reading',
       'quiz',
       'homework',
-      'lab'
+      'lab',
+      'video',
+      'prep',
+      'lecture',
+      'skills'
     ]
     if (validKeys.includes(normalized as any)) {
       return normalized as keyof typeof formData.taskDurations
@@ -1533,23 +1541,11 @@ const importCanvasCourses = async () => {
                 Task Duration Defaults
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Customize estimated hours for different task types
+                Set how much time you want us to set aside to study or complete each type. We’ll also auto-fill missing hours from imports silently.
               </Typography>
 
-              <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                <Chip
-                  label="Auto Estimation"
-                  clickable
-                  color={formData.useAutoEstimation ? 'primary' : 'default'}
-                  variant={formData.useAutoEstimation ? 'filled' : 'outlined'}
-                  onClick={() => setFormData({
-                    ...formData,
-                    useAutoEstimation: !formData.useAutoEstimation
-                  })}
-                />
-              </Stack>
               <FormHelperText sx={{ mb: 2 }}>
-                Per-type defaults below are always used. Auto Estimation only lets us fill in blank hours from Canvas or AI when they are missing.
+                Applies to: assignments/DO items, exams/quizzes, projects, per-chapter readings, videos/prep/pre-recorded lectures, skills practice (labs/sim), homework. Imported durations (e.g., video lengths) are used when present; otherwise we use these defaults.
               </FormHelperText>
 
               <Grid container spacing={2}>
@@ -1607,7 +1603,7 @@ const importCanvasCourses = async () => {
                 <Grid item xs={6} md={4}>
                   <TextField
                     fullWidth
-                    label="Reading (hours)"
+                    label="Reading (per chapter)"
                     type="number"
                     value={formData.taskDurations.reading}
                     onChange={(e) => setFormData({
@@ -1641,7 +1637,7 @@ const importCanvasCourses = async () => {
                 <Grid item xs={6} md={4}>
                   <TextField
                     fullWidth
-                    label="Lab (hours)"
+                    label="Skills practice (labs/sim)"
                     type="number"
                     value={formData.taskDurations.lab}
                     onChange={(e) => setFormData({
@@ -1652,6 +1648,57 @@ const importCanvasCourses = async () => {
                       }
                     })}
                     InputProps={{ inputProps: { min: 0.5, max: 10, step: 0.5 } }}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Video / pre-recorded lecture (hours)"
+                    type="number"
+                    value={formData.taskDurations.video}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      taskDurations: {
+                        ...formData.taskDurations,
+                        video: Math.max(0.25, Number(e.target.value))
+                      }
+                    })}
+                    InputProps={{ inputProps: { min: 0.25, max: 6, step: 0.25 } }}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Prep / miscellaneous (hours)"
+                    type="number"
+                    value={formData.taskDurations.prep}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      taskDurations: {
+                        ...formData.taskDurations,
+                        prep: Math.max(0.25, Number(e.target.value))
+                      }
+                    })}
+                    InputProps={{ inputProps: { min: 0.25, max: 6, step: 0.25 } }}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Lecture / review (hours)"
+                    type="number"
+                    value={formData.taskDurations.lecture}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      taskDurations: {
+                        ...formData.taskDurations,
+                        lecture: Math.max(0.5, Number(e.target.value))
+                      }
+                    })}
+                    InputProps={{ inputProps: { min: 0.5, max: 6, step: 0.25 } }}
                     size="small"
                   />
                 </Grid>
