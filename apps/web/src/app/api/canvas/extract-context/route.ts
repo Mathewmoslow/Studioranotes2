@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import OpenAI from 'openai'
+import { augmentContextTasks } from '@/lib/contextAugmentor'
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -10,8 +11,9 @@ const openai = process.env.OPENAI_API_KEY
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
+    const allowMock = process.env.MOCK_EXTRACTION === 'true'
 
-    if (!session?.user?.email) {
+    if (!allowMock && !session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -29,14 +31,8 @@ export async function POST(request: NextRequest) {
       existingEvents = []
     } = body
 
-    if (!openai) {
-      return NextResponse.json({
-        error: 'OpenAI not configured',
-        extractedTasks: []
-      })
-    }
-
     // Build context for AI
+
     let context = `Course: ${courseName}\n\n`
 
     // List existing assignments so AI knows what NOT to duplicate
@@ -159,29 +155,35 @@ Rules:
 - Do NOT duplicate existing assignments unless date/location changes.
 - Use ISO 8601 with timezone offsets intact from the source text.`
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert at finding hidden academic requirements and informal deadlines that professors mention but don’t formalize in Canvas. Respond ONLY with valid JSON matching the requested schema.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 2000,
-      temperature: 0.2,
-      response_format: { type: "json_object" }
-    })
-
-    const rawContent = completion.choices[0]?.message?.content || '{}'
     let parsed: any = {}
-    try {
-      parsed = JSON.parse(rawContent)
-    } catch (e) {
-      parsed = {}
+
+    // If mocking, skip OpenAI and return empty extracted tasks (augmentations will still run)
+    if (allowMock || !openai) {
+      parsed = { extractedTasks: [], examUpdates: [], hiddenPatterns: [], warnings: [] }
+    } else {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert at finding hidden academic requirements and informal deadlines that professors mention but don’t formalize in Canvas. Respond ONLY with valid JSON matching the requested schema.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.2,
+        response_format: { type: "json_object" }
+      })
+
+      const rawContent = completion.choices[0]?.message?.content || '{}'
+      try {
+        parsed = JSON.parse(rawContent)
+      } catch (e) {
+        parsed = {}
+      }
     }
 
     // Validate and sanitize fields
@@ -233,15 +235,27 @@ Rules:
       }
     }
 
+    // Augment with deterministic suggestions (video durations, chapter splits) without overwriting anything
+    const augmentationSourceText = [
+      syllabus,
+      additionalContext,
+      moduleDescriptions?.map((m: any) => `${m.name}: ${m.description}`).join('\n'),
+      assignmentDescriptions?.map((a: any) => `${a.name}: ${a.description}`).join('\n'),
+      pages?.map((p: any) => `${p.title}: ${p.body || p.content || ''}`).join('\n'),
+    ].filter(Boolean).join('\n')
+
+    const augmentations = augmentContextTasks(augmentationSourceText)
+
     return NextResponse.json({
       success: true,
       extracted: {
         tasks: processedTasks,
         patterns: parsed.hiddenPatterns || [],
         warnings: parsed.warnings || [],
-        examUpdates
+        examUpdates,
+        suggestions: augmentations.suggestions || []
       },
-      summary: `Found ${processedTasks.length} tasks and ${examUpdates.length} exam updates`
+      summary: `Found ${processedTasks.length} tasks and ${examUpdates.length} exam updates; ${augmentations.suggestions?.length || 0} additional suggestions`
     })
 
   } catch (error) {

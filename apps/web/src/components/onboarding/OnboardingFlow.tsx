@@ -647,6 +647,30 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           } as any)
         }
       })
+
+      // Non-destructive suggestions (e.g., video durations, chapter splits)
+      ;(data.extracted?.suggestions || []).forEach((suggestion: any, index: number) => {
+        const title = suggestion.title || `Suggested Task ${index + 1}`
+        const normalizedType = determineAssignmentType(suggestion.type || title)
+        const dueDate = suggestion.dueDate ? parseDueDateValue(suggestion.dueDate) : undefined
+        if (dueDate && hasExistingTask(courseId, title, dueDate)) return
+
+        addTask({
+          title,
+          courseId,
+          courseName: course.name,
+          type: normalizedType,
+          dueDate: dueDate || new Date(),
+          estimatedHours: suggestion.estimatedHours || getEstimatedHoursForTask(normalizedType),
+          priority: 'low',
+          status: 'pending',
+          description: [suggestion.description, 'Needs review'].filter(Boolean).join(' | '),
+          canvasId: `${courseId}-suggestion-${index}`,
+          fromContext: true,
+          needsReview: true,
+          source: suggestion.source || 'context-augmentor'
+        } as any)
+      })
     } catch (error) {
       console.error('Context extraction error for', course.name, error)
     }

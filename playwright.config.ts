@@ -35,6 +35,7 @@ export default defineConfig({
     stderr: 'pipe',
     env: {
       NODE_ENV: 'development',
+      MOCK_EXTRACTION: 'true',
     },
   },
 });
