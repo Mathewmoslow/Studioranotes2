@@ -15,6 +15,7 @@ export type AugmentedTask = {
 const VIDEO_TIME_REGEX = /\((\d{1,2}):(\d{2})(?::(\d{2}))?\)/; // e.g. (33:23) or (1:02:30)
 const CHAPTER_RANGE_REGEX = /Chapter(?:s)?\s+(\d+)\s*(?:[-–]\s*(\d+))?/i;
 const PAGE_RANGE_REGEX = /pp?\.\s*([\d\-–]+)/i;
+const CHAPTER_TOKEN_REGEX = /Chapter\s+(\d+)/gi;
 
 function parseVideoDurationHours(text: string): number | null {
   const match = text.match(VIDEO_TIME_REGEX);
@@ -70,6 +71,11 @@ function uniqueByTitle(tasks: AugmentedTask[]): AugmentedTask[] {
   });
 }
 
+function extractSingleChapters(text: string): string[] {
+  const matches = Array.from(text.matchAll(CHAPTER_TOKEN_REGEX)).map(m => m[1]);
+  return matches.filter(Boolean);
+}
+
 export function augmentContextTasks(rawText: string): {
   tasks: AugmentedTask[];
   suggestions: AugmentedTask[];
@@ -114,6 +120,21 @@ export function augmentContextTasks(rawText: string): {
       });
       return;
     }
+
+    // Standalone chapter tokens (e.g., "Chapter 10") even if combined with ranges
+    const singles = extractSingleChapters(line);
+    singles.forEach(num => {
+      const title = `Chapter ${num} Reading`;
+      augmented.push({
+        title,
+        type: 'reading',
+        estimatedHours: estimateReadingHours(line) ?? 1,
+        description: line,
+        source: 'context-augmentor',
+        needsReview: true,
+        suggestedBy: 'chapter-token',
+      });
+    });
   });
 
   // Deduplicate by title to avoid noisy repeats
