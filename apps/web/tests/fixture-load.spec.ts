@@ -11,7 +11,7 @@ test.describe('Fixture load smoke', () => {
 
     const response = await page.goto('/dev/mock-test', { waitUntil: 'networkidle' });
     expect(response?.status(), 'dev mock-test page should load').toBeLessThan(400);
-    await expect(page.getByRole('heading', { name: /Mock Context Extraction Test/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Shifted Canvas Test Harness/i })).toBeVisible();
 
     await page.getByTestId('load-fixture-btn').click();
 
