@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Box, Button, Container, Paper, Stack, Typography, Chip, Divider, FormControlLabel, Switch } from '@mui/material';
 import { useScheduleStore } from '@/stores/useScheduleStore';
 import { determineAssignmentType, estimateTaskHours } from '@/lib/taskHours';
+import { autoScheduleTasks } from '@/stores/scheduleActions';
 import shiftedFixture from '@/lib/fixtures/canvas-shifted.json';
 
 const SAMPLE_CONTEXT = `
@@ -19,13 +20,12 @@ export default function MockTestPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [schedulerOutput, setSchedulerOutput] = useState<string[]>([]);
-  const [schedulerRunning, setSchedulerRunning] = useState(false);
   const [showJson, setShowJson] = useState(false);
   const [lastRequest, setLastRequest] = useState<any>(null);
   const [fixtureStatus, setFixtureStatus] = useState<string | null>(null);
   const [fixtureError, setFixtureError] = useState<string | null>(null);
   const [fixtureStats, setFixtureStats] = useState<{ courses: number; tasks: number }>({ courses: 0, tasks: 0 });
+  const [scheduleSummary, setScheduleSummary] = useState<{ tasksScheduled: number; blocksCreated: number } | null>(null);
 
   const { addCourse, addTask, deleteTask, deleteCourse } = useScheduleStore();
   const tasksStore = useScheduleStore(state => state.tasks);
@@ -71,23 +71,8 @@ export default function MockTestPage() {
     }
   };
 
-  const runSchedulerMock = async () => {
-    setSchedulerRunning(true);
-    setSchedulerOutput([]);
-    try {
-      const res = await fetch('/dev/scheduler-mock');
-      if (!res.ok) {
-        throw new Error(`Scheduler mock failed (${res.status})`);
-      }
-      setSchedulerOutput([
-        'Opened /dev/scheduler-mock. Open devtools console to view Scheduler Debug logs.',
-        'Use the UI to click "Load Raw Fixture" and verify colors/layout.',
-      ]);
-    } catch (e: any) {
-      setSchedulerOutput([e?.message || 'Unknown error']);
-    } finally {
-      setSchedulerRunning(false);
-    }
+  const openSchedulerMock = () => {
+    window.open('/dev/scheduler-mock', '_blank', 'noopener,noreferrer');
   };
 
   const suggestions = result?.extracted?.suggestions || [];
@@ -185,22 +170,61 @@ export default function MockTestPage() {
     }
   };
 
+  const runSchedule = () => {
+    const summary = autoScheduleTasks();
+    setScheduleSummary(summary);
+  };
+
   return (
     <Container sx={{ py: 4 }}>
-      <Typography variant="h5" gutterBottom>
-        Mock Context Extraction Test
+      <Typography variant="h5" gutterBottom>Shifted Canvas Test Harness</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Plain steps: load Canvas data (+30d), schedule it, view the calendar, and (optional) run the messy context extraction check.
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Runs the context extraction endpoint using a hardcoded messy narrative (videos + chapters) and shows the returned tasks/suggestions.
-        Uses your configured OpenAI key unless MOCK_EXTRACTION=true.
-      </Typography>
-      <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        <Button variant="contained" onClick={runTest} disabled={loading}>
-          {loading ? 'Running…' : 'Run Extraction'}
-        </Button>
-        <Chip label={`Tasks: ${extractedTasks.length || 0}`} />
-        <Chip label={`Suggestions: ${suggestions.length || 0}`} />
-      </Stack>
+
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1">Step 1: Load Canvas data (+30d)</Typography>
+          <Stack direction="row" spacing={2}>
+            <Button variant="contained" onClick={loadFixture} data-testid="load-fixture-btn">Load Canvas data (+30d)</Button>
+            <Button variant="outlined" color="error" onClick={clearFixture} data-testid="clear-fixture-btn">Clear loaded data</Button>
+            <Chip label={`Available in file: ${fixtureCourses.length} | Loading filtered: ${filteredCourses.length}`} />
+          </Stack>
+          {(fixtureStatus || fixtureError) && (
+            <Paper sx={{ p: 2 }}>
+              {fixtureStatus && (
+                <Typography variant="body2" color="success.main" data-testid="fixture-status">
+                  {fixtureStatus} (courses loaded: {fixtureStats.courses}, tasks loaded: {fixtureStats.tasks})
+                </Typography>
+              )}
+              {fixtureError && <Typography variant="body2" color="error.main" data-testid="fixture-error">{fixtureError}</Typography>}
+            </Paper>
+          )}
+          <Typography variant="body2" color="text.secondary">
+            Fixture sample (filtered): {filteredCourses.map((c: any) => c.course_code || c.name).join(', ') || 'None'}
+          </Typography>
+
+          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 2: Schedule shifted data</Typography>
+          <Button variant="contained" color="secondary" onClick={runSchedule}>Schedule shifted data</Button>
+          {scheduleSummary && (
+            <Typography variant="body2" color="text.secondary">
+              Scheduled tasks: {scheduleSummary.tasksScheduled}, Study blocks created: {scheduleSummary.blocksCreated}
+            </Typography>
+          )}
+
+          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 3: View calendar</Typography>
+          <Button variant="outlined" onClick={openSchedulerMock}>View calendar with shifted data</Button>
+
+          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 4 (optional): Context extraction check</Typography>
+          <Stack direction="row" spacing={2}>
+            <Button variant="outlined" onClick={runTest} disabled={loading}>
+              {loading ? 'Running…' : 'Run extraction'}
+            </Button>
+            <Chip label={`Tasks: ${extractedTasks.length || 0}`} />
+            <Chip label={`Suggestions: ${suggestions.length || 0}`} />
+          </Stack>
+        </Stack>
+      </Paper>
 
       {error && (
         <Paper sx={{ p: 2, mb: 2, border: '1px solid', borderColor: 'error.light' }}>
@@ -237,57 +261,6 @@ export default function MockTestPage() {
           </Stack>
         </Paper>
       )}
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="h6" gutterBottom>
-        Scheduler Mock Quick Launch
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Opens /dev/scheduler-mock so you can visually confirm event/task rendering, colors, and debug logs.
-        Use the browser console to see Scheduler Debug output.
-      </Typography>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Button variant="outlined" onClick={runSchedulerMock} disabled={schedulerRunning}>
-          {schedulerRunning ? 'Opening…' : 'Open Scheduler Mock'}
-        </Button>
-      </Stack>
-      {schedulerOutput.length > 0 && (
-        <Paper sx={{ p: 2 }}>
-          <Stack spacing={1}>
-            {schedulerOutput.map((line, idx) => (
-              <Typography key={idx} variant="body2">{line}</Typography>
-            ))}
-          </Stack>
-        </Paper>
-      )}
-
-      <Divider sx={{ my: 3 }} />
-
-      <Typography variant="h6" gutterBottom>
-        Fixture Loader (shifted Canvas data)
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Loads the locally shifted Canvas fixture (due dates +30d) into the store as if imported. Also supports clearing it.
-      </Typography>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={loadFixture} data-testid="load-fixture-btn">Load Fixture</Button>
-        <Button variant="outlined" color="error" onClick={clearFixture} data-testid="clear-fixture-btn">Clear Fixture</Button>
-        <Chip label={`Fixture courses: ${fixtureCourses.length}`} />
-      </Stack>
-      {(fixtureStatus || fixtureError) && (
-        <Paper sx={{ p: 2, mb: 2 }}>
-          {fixtureStatus && (
-            <Typography variant="body2" color="success.main" data-testid="fixture-status">
-              {fixtureStatus} (courses loaded: {fixtureStats.courses}, tasks loaded: {fixtureStats.tasks})
-            </Typography>
-          )}
-          {fixtureError && <Typography variant="body2" color="error.main" data-testid="fixture-error">{fixtureError}</Typography>}
-        </Paper>
-      )}
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Fixture sample (filtered): {filteredCourses.map((c: any) => c.course_code || c.name).join(', ') || 'None'}
-      </Typography>
 
       <Divider sx={{ my: 3 }} />
 
