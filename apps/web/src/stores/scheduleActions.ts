@@ -3,11 +3,13 @@ import { addDays, startOfDay, setHours, isBefore, isAfter, differenceInDays, isW
 import { TimeBlock, Task } from '@studioranotes/types';
 import { v4 as uuidv4 } from 'uuid';
 
+const isDebug = () => process.env.NEXT_PUBLIC_SCHEDULER_DEBUG === 'true';
+
 export const autoScheduleTasks = () => {
   const state = useScheduleStore.getState();
   const { tasks, preferences, timeBlocks } = state;
   
-  console.log('=== SIMPLIFIED AUTO-SCHEDULE ===');
+  if (isDebug()) console.log('=== SIMPLIFIED AUTO-SCHEDULE ===');
   
   // Get user preferences with defaults
   const hoursPerWeekday = preferences.hoursPerWeekday || 3;
@@ -43,7 +45,7 @@ export const autoScheduleTasks = () => {
   );
   
   if (incompleteTasks.length === 0) {
-    console.log('No tasks to schedule');
+    if (isDebug()) console.log('No tasks to schedule');
     return {
       tasksScheduled: 0,
       blocksCreated: 0
@@ -144,7 +146,7 @@ export const autoScheduleTasks = () => {
     tasks: tasks
   });
   
-  console.log(`Created ${newBlocks.length} study blocks for ${sortedTasks.length} tasks`);
+  if (isDebug()) console.log(`Created ${newBlocks.length} study blocks for ${sortedTasks.length} tasks`);
   
   return {
     tasksScheduled: sortedTasks.length,

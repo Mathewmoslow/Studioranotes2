@@ -95,6 +95,21 @@ export default function MockTestPage() {
 
   const fixtureCourses = useMemo(() => (shiftedFixture as any)?.courses || [], []);
 
+  const filteredCourses = useMemo(() => {
+    // Prefer courses with recent start/end dates; fallback to first 6
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+    const filtered = fixtureCourses.filter((c: any) => {
+      const start = c.start_at ? new Date(c.start_at) : null;
+      const end = c.end_at ? new Date(c.end_at) : null;
+      if (start && end) {
+        return start >= sixMonthsAgo || end >= sixMonthsAgo;
+      }
+      return false;
+    });
+    return filtered.length > 0 ? filtered.slice(0, 8) : fixtureCourses.slice(0, 6);
+  }, [fixtureCourses]);
+
   const clearFixture = () => {
     setFixtureError(null);
     setFixtureStatus(null);
@@ -129,7 +144,7 @@ export default function MockTestPage() {
       const colorPalette = ['#2563eb', '#a855f7', '#f59e0b', '#0ea5e9', '#10b981'];
       let addedCourses = 0;
       let addedTasks = 0;
-      fixtureCourses.forEach((course: any, idx: number) => {
+      filteredCourses.forEach((course: any, idx: number) => {
         const courseId = `fixture-${course.id}`;
         addCourse({
           id: courseId,
@@ -270,6 +285,9 @@ export default function MockTestPage() {
           {fixtureError && <Typography variant="body2" color="error.main" data-testid="fixture-error">{fixtureError}</Typography>}
         </Paper>
       )}
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Fixture sample (filtered): {filteredCourses.map((c: any) => c.course_code || c.name).join(', ') || 'None'}
+      </Typography>
 
       <Divider sx={{ my: 3 }} />
 

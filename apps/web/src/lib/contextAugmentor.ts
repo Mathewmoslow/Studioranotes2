@@ -118,7 +118,7 @@ export function augmentContextTasks(rawText: string): {
           suggestedBy: 'chapter-split',
         });
       });
-      return;
+      // Fall through to also capture standalone tokens in the same line (e.g., "Chapter 10")
     }
 
     // Standalone chapter tokens (e.g., "Chapter 10") even if combined with ranges
