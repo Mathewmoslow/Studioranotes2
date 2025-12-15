@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Box, Button, Container, Paper, Stack, Typography, Chip, Divider, FormControlLabel, Switch } from '@mui/material';
-import useScheduleStore from '@/stores/useScheduleStore';
+import { useScheduleStore } from '@/stores/useScheduleStore';
 import { determineAssignmentType, estimateTaskHours } from '@/lib/taskHours';
 import shiftedFixture from '@/lib/fixtures/canvas-shifted.json';
 
