@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import fixture from '../../src/lib/fixtures/canvas-shifted.json';
+import fixture from '../src/lib/fixtures/canvas-shifted.json';
 
 const filterCourses = (courses: any[]) => {
   const now = new Date();
