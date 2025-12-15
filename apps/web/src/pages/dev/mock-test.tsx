@@ -25,6 +25,7 @@ export default function MockTestPage() {
   const [lastRequest, setLastRequest] = useState<any>(null);
   const [fixtureStatus, setFixtureStatus] = useState<string | null>(null);
   const [fixtureError, setFixtureError] = useState<string | null>(null);
+  const [fixtureStats, setFixtureStats] = useState<{ courses: number; tasks: number }>({ courses: 0, tasks: 0 });
 
   const { addCourse, addTask, deleteTask, deleteCourse } = useScheduleStore();
   const tasksStore = useScheduleStore(state => state.tasks);
@@ -113,6 +114,7 @@ export default function MockTestPage() {
           deleteCourse(c.id);
         }
       });
+      setFixtureStats({ courses: 0, tasks: 0 });
       setFixtureStatus('Fixture data cleared.');
     } catch (e: any) {
       setFixtureError(e?.message || 'Failed to clear fixture data');
@@ -125,6 +127,8 @@ export default function MockTestPage() {
     try {
       clearFixture();
       const colorPalette = ['#2563eb', '#a855f7', '#f59e0b', '#0ea5e9', '#10b981'];
+      let addedCourses = 0;
+      let addedTasks = 0;
       fixtureCourses.forEach((course: any, idx: number) => {
         const courseId = `fixture-${course.id}`;
         addCourse({
@@ -134,6 +138,8 @@ export default function MockTestPage() {
           color: colorPalette[idx % colorPalette.length],
           canvasId: `fixture-${course.id}`,
         } as any);
+
+        addedCourses += 1;
 
         (course.assignments || []).forEach((a: any) => {
           const type = determineAssignmentType(a);
@@ -154,9 +160,11 @@ export default function MockTestPage() {
             fromCanvas: true,
             source: 'fixture'
           } as any);
+          addedTasks += 1;
         });
       });
-      setFixtureStatus(`Loaded ${fixtureCourses.length} courses from fixture.`);
+      setFixtureStats({ courses: addedCourses, tasks: addedTasks });
+      setFixtureStatus(`Loaded ${addedCourses} courses and ${addedTasks} tasks from fixture.`);
     } catch (e: any) {
       setFixtureError(e?.message || 'Failed to load fixture');
     }
@@ -248,12 +256,20 @@ export default function MockTestPage() {
         Loads the locally shifted Canvas fixture (due dates +30d) into the store as if imported. Also supports clearing it.
       </Typography>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={loadFixture}>Load Fixture</Button>
-        <Button variant="outlined" color="error" onClick={clearFixture}>Clear Fixture</Button>
+        <Button variant="contained" onClick={loadFixture} data-testid="load-fixture-btn">Load Fixture</Button>
+        <Button variant="outlined" color="error" onClick={clearFixture} data-testid="clear-fixture-btn">Clear Fixture</Button>
         <Chip label={`Fixture courses: ${fixtureCourses.length}`} />
       </Stack>
-      {fixtureStatus && <Typography variant="body2" color="success.main">{fixtureStatus}</Typography>}
-      {fixtureError && <Typography variant="body2" color="error.main">{fixtureError}</Typography>}
+      {(fixtureStatus || fixtureError) && (
+        <Paper sx={{ p: 2, mb: 2 }}>
+          {fixtureStatus && (
+            <Typography variant="body2" color="success.main" data-testid="fixture-status">
+              {fixtureStatus} (courses loaded: {fixtureStats.courses}, tasks loaded: {fixtureStats.tasks})
+            </Typography>
+          )}
+          {fixtureError && <Typography variant="body2" color="error.main" data-testid="fixture-error">{fixtureError}</Typography>}
+        </Paper>
+      )}
 
       <Divider sx={{ my: 3 }} />
 

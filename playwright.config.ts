@@ -36,6 +36,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'development',
       MOCK_EXTRACTION: 'true',
+      NEXT_PUBLIC_ENABLE_FIXTURE: 'true',
     },
   },
 });

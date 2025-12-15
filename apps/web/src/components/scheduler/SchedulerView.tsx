@@ -307,10 +307,11 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
 
   const loggedEventWarn = useRef(false);
   const loggedBlockWarn = useRef(false);
+  const isDebugLogging = isDevMode && process.env.NEXT_PUBLIC_SCHEDULER_DEBUG === 'true';
   const subscribedToStore = useRef(false);
-  
+
   useEffect(() => {
-    if (!isDevMode || subscribedToStore.current) return;
+    if (!isDebugLogging || subscribedToStore.current) return;
     const unsubscribe = useScheduleStore.subscribe(
       (state, prev) => {
         console.groupCollapsed('[Scheduler Debug] Store change');
@@ -338,10 +339,10 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     );
     subscribedToStore.current = true;
     return () => unsubscribe();
-  }, [isDevMode]);
+  }, [isDebugLogging]);
 
   useEffect(() => {
-    if (!isDevMode) return;
+    if (!isDebugLogging) return;
     const logKey = (event: KeyboardEvent) => {
       console.info('[Scheduler Debug] Key press', {
         key: event.key,
@@ -355,7 +356,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     };
     window.addEventListener('keydown', logKey, true);
     return () => window.removeEventListener('keydown', logKey, true);
-  }, [isDevMode]);
+  }, [isDebugLogging]);
 
   const getDaysToDisplay = () => {
     switch (viewType) {
