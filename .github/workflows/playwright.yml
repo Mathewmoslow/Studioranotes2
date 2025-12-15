@@ -9,6 +9,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      statuses: write
+      actions: write
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -32,7 +37,8 @@ jobs:
         run: npx playwright test --project=chromium --reporter=list
 
       - name: Notify Vercel (playwright)
-        if: ${{ always() }}
+        if: ${{ success() }}
         uses: vercel/repository-dispatch/actions/status@v1
         with:
           name: Vercel - studioranotes2: playwright
+          token: ${{ secrets.GITHUB_TOKEN }}
