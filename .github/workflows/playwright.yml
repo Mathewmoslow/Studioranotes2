@@ -30,3 +30,9 @@ jobs:
           NEXT_PUBLIC_ENABLE_FIXTURE: 'true'
           MOCK_EXTRACTION: 'true'
         run: npx playwright test --project=chromium --reporter=list
+
+      - name: Notify Vercel (playwright)
+        if: ${{ always() }}
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: Vercel - studioranotes2: playwright
