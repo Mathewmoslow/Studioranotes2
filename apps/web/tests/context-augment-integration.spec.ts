@@ -58,17 +58,22 @@ test.describe('Context augmentor integration with fixture present', () => {
 
     expect(response.status).toBeLessThan(400);
     const extracted = response.json?.extracted || {};
-    // If the API is mocked and returns nothing, fall back to local augmentor; if still empty, skip hard fail
-    let tasksCount = extracted.tasks?.length || 0;
-    let suggCount = extracted.suggestions?.length || 0;
+    let finalTasks = extracted.tasks || [];
+    let finalSuggestions = extracted.suggestions || [];
+    let tasksCount = finalTasks.length;
+    let suggCount = finalSuggestions.length;
+
+    // If the API is mocked and returns nothing, fall back to local augmentor
     if (tasksCount === 0 && suggCount === 0) {
       const fallback = await page.evaluate((letter) => {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { augmentContextTasks } = require('../src/lib/contextAugmentor');
         return augmentContextTasks(letter);
       }, LETTER);
-      tasksCount = fallback.tasks?.length || 0;
-      suggCount = fallback.suggestions?.length || 0;
+      finalTasks = fallback.tasks || [];
+      finalSuggestions = fallback.suggestions || [];
+      tasksCount = finalTasks.length;
+      suggCount = finalSuggestions.length;
     }
 
     if (tasksCount === 0 && suggCount === 0) {
@@ -76,16 +81,12 @@ test.describe('Context augmentor integration with fixture present', () => {
     } else {
       expect(tasksCount).toBeGreaterThan(0);
       expect(suggCount).toBeGreaterThan(0);
-    }
 
-    // Basic content checks
-    const titles = [
-      ...(extracted.tasks || []).map((t: any) => t.title || ''),
-      ...(extracted.suggestions || []).map((s: any) => s.title || ''),
-    ].join(' ');
-    expect(titles.toLowerCase()).toContain('midterm');
-    expect(titles.toLowerCase()).toContain('final');
-    expect(titles.toLowerCase()).toContain('chapter 10');
+      const titles = [...finalTasks, ...finalSuggestions].map((t: any) => t.title || '').join(' ');
+      expect(titles.toLowerCase()).toContain('midterm');
+      expect(titles.toLowerCase()).toContain('final');
+      expect(titles.toLowerCase()).toContain('chapter 10');
+    }
 
     // Ensure fixture store remains populated
     const afterStore = await page.evaluate(() => {
