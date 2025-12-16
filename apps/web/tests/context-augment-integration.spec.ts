@@ -34,25 +34,28 @@ test.describe('Context augmentor integration with fixture present', () => {
     const beforeTasks = beforeStore?.state?.tasks?.length || 0;
     const beforeCourses = beforeStore?.state?.courses?.length || 0;
 
-    // Call the extract-context API directly with the welcome letter
+    // Call the extract-context API directly with the welcome letter and log request/response
     const response = await page.evaluate(async (letter) => {
+      const payload = {
+        syllabus: letter,
+        additionalContext: letter,
+        courseName: 'Welcome Letter Test',
+        moduleDescriptions: [],
+        assignmentDescriptions: [],
+        pages: [],
+        announcements: [],
+        discussions: [],
+        existingAssignments: [],
+        existingEvents: [],
+      };
       const res = await fetch('/api/canvas/extract-context', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          syllabus: letter,
-          additionalContext: letter,
-          courseName: 'Welcome Letter Test',
-          moduleDescriptions: [],
-          assignmentDescriptions: [],
-          pages: [],
-          announcements: [],
-          discussions: [],
-          existingAssignments: [],
-          existingEvents: [],
-        }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
+      console.log('[Context Augment Integration] Request payload:', payload);
+      console.log('[Context Augment Integration] Response JSON:', json);
       return { status: res.status, json };
     }, LETTER);
 
