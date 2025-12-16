@@ -6,8 +6,8 @@ const FATAL_MATCHERS = [
   'bad calendar item before render',
 ];
 
-test.describe('Scheduler mock raw fixture', () => {
-  test('captures console output when loading raw fixture', async ({ page }) => {
+test.describe('Scheduler mock filtered fixture', () => {
+  test('captures console output when loading filtered fixture', async ({ page }) => {
     const consoleMessages: string[] = [];
 
     page.on('console', (msg) => {
@@ -28,7 +28,7 @@ test.describe('Scheduler mock raw fixture', () => {
     // Smoke check page is rendered
     await expect(page.getByRole('heading', { name: /scheduler/i })).toBeVisible({ timeout: 30_000 });
 
-    await page.getByRole('button', { name: /Load Raw Fixture/i }).click({ force: true });
+    await page.getByRole('button', { name: /Load Filtered Fixture/i }).click({ force: true });
 
     // Let any runtime crashes/console noise flush
     await page.waitForTimeout(6_000);
