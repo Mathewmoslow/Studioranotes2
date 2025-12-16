@@ -34,7 +34,7 @@ jobs:
         env:
           NEXT_PUBLIC_ENABLE_FIXTURE: 'true'
           MOCK_EXTRACTION: 'false'
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_CONTEXT }}
         run: npx playwright test --project=chromium --reporter=list
 
       - name: Notify Vercel (playwright)
