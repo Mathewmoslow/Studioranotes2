@@ -40,5 +40,5 @@ jobs:
         if: ${{ success() }}
         uses: vercel/repository-dispatch/actions/status@v1
         with:
-          name: Vercel - studioranotes2: playwright
+          name: Vercel - studioranotes2: Playwright
           token: ${{ secrets.GITHUB_TOKEN }}
