@@ -336,11 +336,23 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
           {/* Date Info */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CalendarIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-            <Typography variant="body2" color="text.secondary">Date:</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {timeBlock ? 'Scheduled Date:' : 'Date:'}
+            </Typography>
             <Typography variant="body2" fontWeight={500}>
               {format(new Date(item.startTime), 'EEEE, MMMM d, yyyy')}
             </Typography>
           </Box>
+
+          {timeBlock && task?.dueDate && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              <Typography variant="body2" color="text.secondary">Due Date:</Typography>
+              <Typography variant="body2" fontWeight={500}>
+                {format(new Date(task.dueDate), 'EEEE, MMMM d, yyyy')}
+              </Typography>
+            </Box>
+          )}
           
           {/* Location Info */}
           {event?.location && (
