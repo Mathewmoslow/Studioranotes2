@@ -214,6 +214,10 @@ interface ScheduleStore {
     breakDuration: { short: number; long: number };
     sessionDuration: { min: number; max: number; preferred: number };
   };
+  scheduleWarnings: {
+    unscheduledTaskIds: string[];
+    message: string;
+  };
   
   // Course actions
   addCourse: (course: Omit<Course, 'id'>) => void;
@@ -373,6 +377,10 @@ export const useScheduleStore = create<ScheduleStore>()(
         dailyStudyHours: { min: 2, max: 8, preferred: 4 },
         breakDuration: { short: 5, long: 20 },
         sessionDuration: { min: 25, max: 90, preferred: 50 }
+      },
+      scheduleWarnings: {
+        unscheduledTaskIds: [],
+        message: ''
       },
       
       // Course actions
@@ -954,8 +962,14 @@ export const useScheduleStore = create<ScheduleStore>()(
         }
 
         // Convert tasks to scheduler format
+        const today = startOfDay(new Date());
         const schedulerTasks = state.tasks
           .filter(t => t.status !== 'completed')
+          .filter(t => {
+            const due = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate);
+            // Keep active/ future tasks; skip historical (due before today)
+            return !Number.isNaN(due.getTime()) && !isBefore(startOfDay(due), today);
+          })
           .map(task => {
             const preferredHours = state.preferences.defaultHoursPerType?.[task.type];
             const estimatedHours =
@@ -970,6 +984,9 @@ export const useScheduleStore = create<ScheduleStore>()(
 
         console.log(`📋 Found ${schedulerTasks.length} tasks to schedule`);
 
+        const manualBlocks = state.timeBlocks.filter(b => b.isManual === true);
+        const normalizeTime = (value: Date | string) => (value instanceof Date ? value : new Date(value));
+
         // Convert existing events to busy slots
         const existingEvents = state.events
           .map(normalizeEventRecord)
@@ -979,6 +996,11 @@ export const useScheduleStore = create<ScheduleStore>()(
             end: e.endTime
           }));
 
+        const manualBusy = manualBlocks.map(b => ({
+          start: normalizeTime(b.startTime),
+          end: normalizeTime(b.endTime)
+        }));
+
         console.log(`📅 Blocking out ${existingEvents.length} existing events`);
 
         // Generate optimized schedule
@@ -986,8 +1008,19 @@ export const useScheduleStore = create<ScheduleStore>()(
           schedulerTasks,
           scheduleStart,
           scheduleEnd,
-          existingEvents
+          [...existingEvents, ...manualBusy]
         );
+
+        const estimatedByTask = new Map(schedulerTasks.map(t => [t.id, t.estimatedDuration]));
+        const scheduledByTask = new Map<string, number>();
+        studyBlocks.forEach(block => {
+          const duration = (block.endTime.getTime() - block.startTime.getTime()) / 60000;
+          scheduledByTask.set(block.taskId, (scheduledByTask.get(block.taskId) || 0) + duration);
+        });
+
+        const unscheduledTaskIds = schedulerTasks
+          .filter(task => (scheduledByTask.get(task.id) || 0) + 1 < (estimatedByTask.get(task.id) || 0))
+          .map(task => task.id);
 
         // Convert study blocks to time blocks
         const newTimeBlocks: TimeBlock[] = studyBlocks
@@ -1001,12 +1034,15 @@ export const useScheduleStore = create<ScheduleStore>()(
                   block.taskType === 'reading' ? 'study' : 'work'
           }));
 
-        // Keep manual blocks
-        const manualBlocks = state.timeBlocks.filter(b => b.isManual === true);
-
         set({
           timeBlocks: [...manualBlocks, ...newTimeBlocks],
-          dynamicScheduler: scheduler
+          dynamicScheduler: scheduler,
+          scheduleWarnings: {
+            unscheduledTaskIds,
+            message: unscheduledTaskIds.length
+              ? `${unscheduledTaskIds.length} tasks could not be fully scheduled. Adjust your study window or preferences to fit the required hours.`
+              : ''
+          }
         });
 
         console.log(`📅 Smart schedule generated: ${newTimeBlocks.length} study blocks created`);

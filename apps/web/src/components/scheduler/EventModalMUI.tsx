@@ -41,9 +41,11 @@ interface EventModalProps {
   timeBlock: any | null;
   courses: any[];
   onClose: () => void;
+  onViewDue?: () => void;
+  readOnly?: boolean;
 }
 
-const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, onClose }) => {
+const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, onClose, onViewDue, readOnly }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     title: '',
@@ -82,6 +84,27 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
       case 'deadline': return '#ef4444';
       default: return '#3b82f6';
     }
+  };
+
+  const getDoSubcategory = (taskInfo?: any) => {
+    const type = (taskInfo?.type || '').toLowerCase();
+    const title = (taskInfo?.title || '').toLowerCase();
+
+    if (/(watch|video|lecture|panopto|osmosis)/.test(title) || type === 'video') return 'WATCH';
+    if (/(read|chapter|textbook|pages)/.test(title) || type === 'reading') return 'READ';
+    if (/(review|recap|study guide|practice test)/.test(title)) return 'REVIEW';
+    if (/(prep|prepare|pre-class|pre class|prework)/.test(title) || type === 'prep') return 'PREP';
+    if (/(exam|quiz|test|midterm|final)/.test(title) || type === 'exam' || type === 'quiz') return 'PREP';
+    if (
+      /(assignment|project|homework|problem set|worksheet|discussion|case study|work)/.test(title) ||
+      ['assignment', 'project', 'homework', 'discussion'].includes(type)
+    ) {
+      return 'WORK';
+    }
+    if (/(lab|clinical|simulation|vsim)/.test(title) || ['lab', 'clinical', 'simulation', 'vsim'].includes(type)) return 'WORK';
+    if (/(study|review)/.test(title)) return 'STUDY';
+
+    return 'STUDY';
   };
   
   const handleEdit = () => {
@@ -150,6 +173,7 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
   const task = timeBlock?.task;
   const course = event ? getCourse(event.courseId) : task ? getCourse(task.courseId) : null;
   const isCompleted = event?.completed || timeBlock?.block?.completed;
+  const isReadOnly = Boolean(readOnly);
   
   const headerColor = event ? getEventTypeColor(event.type) : '#10b981';
   
@@ -292,7 +316,7 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
             {event ? event.title : task?.title || 'Study Session'}
           </Typography>
           <Chip
-            label={event ? event.type : 'Study Block'}
+            label={event ? event.type : getDoSubcategory(task)}
             size="small"
             sx={{ 
               bgcolor: 'rgba(255,255,255,0.2)', 
@@ -349,7 +373,7 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
               <CalendarIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
               <Typography variant="body2" color="text.secondary">Due Date:</Typography>
               <Typography variant="body2" fontWeight={500}>
-                {format(new Date(task.dueDate), 'EEEE, MMMM d, yyyy')}
+                {format(new Date(task.dueDate), 'EEEE, MMMM d, yyyy h:mm a')}
               </Typography>
             </Box>
           )}
@@ -424,29 +448,42 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
       </DialogContent>
       
       <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button
-          onClick={handleDelete}
-          color="error"
-          startIcon={<DeleteIcon />}
-        >
-          Delete
-        </Button>
-        <Button
-          onClick={handleEdit}
-          color="inherit"
-          startIcon={<EditIcon />}
-        >
-          Edit
-        </Button>
-        {!isCompleted && (
-          <Button
-            onClick={handleComplete}
-            variant="contained"
-            color="success"
-            startIcon={<CheckIcon />}
-          >
-            Mark Complete
+        {isReadOnly ? (
+          <Button onClick={onClose} color="inherit">
+            Close
           </Button>
+        ) : (
+          <>
+            {timeBlock && task?.dueDate && onViewDue && (
+              <Button onClick={onViewDue} color="primary" variant="outlined">
+                View Due Block
+              </Button>
+            )}
+            <Button
+              onClick={handleDelete}
+              color="error"
+              startIcon={<DeleteIcon />}
+            >
+              Delete
+            </Button>
+            <Button
+              onClick={handleEdit}
+              color="inherit"
+              startIcon={<EditIcon />}
+            >
+              Edit
+            </Button>
+            {!isCompleted && (
+              <Button
+                onClick={handleComplete}
+                variant="contained"
+                color="success"
+                startIcon={<CheckIcon />}
+              >
+                Mark Complete
+              </Button>
+            )}
+          </>
         )}
       </DialogActions>
     </Dialog>

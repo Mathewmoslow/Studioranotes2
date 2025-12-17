@@ -4,6 +4,7 @@ import { useScheduleStore } from '@/stores/useScheduleStore';
 import { determineAssignmentType, estimateTaskHours } from '@/lib/taskHours';
 import { autoScheduleTasks } from '@/stores/scheduleActions';
 import shiftedFixture from '@/lib/fixtures/canvas-shifted.json';
+import { addDays, startOfDay } from 'date-fns';
 
 const SAMPLE_CONTEXT = `
 Reproductive Health Disorders: Women’s and Men’s Health Pre-Class Videos
@@ -30,6 +31,8 @@ export default function MockTestPage() {
   const { addCourse, addTask, deleteTask, deleteCourse } = useScheduleStore();
   const tasksStore = useScheduleStore(state => state.tasks);
   const coursesStore = useScheduleStore(state => state.courses);
+  const eventsStore = useScheduleStore(state => state.events);
+  const timeBlocksStore = useScheduleStore(state => state.timeBlocks);
 
   const runTest = async () => {
     setLoading(true);
@@ -95,27 +98,25 @@ export default function MockTestPage() {
     return filtered.length > 0 ? filtered.slice(0, 8) : fixtureCourses.slice(0, 6);
   }, [fixtureCourses]);
 
+  const resetStore = () => {
+    useScheduleStore.setState((state) => ({
+      courses: [],
+      tasks: [],
+      timeBlocks: [],
+      events: [],
+      scheduleWarnings: { unscheduledTaskIds: [], message: '' },
+      preferences: state.preferences,
+      settings: state.settings,
+    }));
+  };
+
   const clearFixture = () => {
     setFixtureError(null);
     setFixtureStatus(null);
     try {
-      const fixtureIds = new Set(fixtureCourses.map((c: any) => `fixture-${c.id}`));
-
-      // Remove tasks
-      tasksStore.forEach((t: any) => {
-        if (t.source === 'fixture' || t.id?.startsWith('fixture-') || fixtureIds.has(t.courseId)) {
-          deleteTask(t.id);
-        }
-      });
-
-      // Remove courses
-      coursesStore.forEach((c: any) => {
-        if (fixtureIds.has(c.id)) {
-          deleteCourse(c.id);
-        }
-      });
+      resetStore();
       setFixtureStats({ courses: 0, tasks: 0 });
-      setFixtureStatus('Fixture data cleared.');
+      setFixtureStatus('All test data cleared.');
     } catch (e: any) {
       setFixtureError(e?.message || 'Failed to clear fixture data');
     }
@@ -125,10 +126,12 @@ export default function MockTestPage() {
     setFixtureError(null);
     setFixtureStatus(null);
     try {
-      clearFixture();
+      resetStore();
       const colorPalette = ['#2563eb', '#a855f7', '#f59e0b', '#0ea5e9', '#10b981'];
       let addedCourses = 0;
       let addedTasks = 0;
+      const today = startOfDay(new Date());
+      const minFutureDue = addDays(today, 3);
       filteredCourses.forEach((course: any, idx: number) => {
         const courseId = `fixture-${course.id}`;
         addCourse({
@@ -137,13 +140,24 @@ export default function MockTestPage() {
           code: course.course_code || `FIX-${course.id}`,
           color: colorPalette[idx % colorPalette.length],
           canvasId: `fixture-${course.id}`,
+          startDate: course.start_at ? new Date(course.start_at) : undefined,
+          endDate: course.end_at ? new Date(course.end_at) : undefined,
         } as any);
 
         addedCourses += 1;
 
         (course.assignments || []).forEach((a: any) => {
           const type = determineAssignmentType(a);
-          const dueDate = a.due_at ? new Date(a.due_at) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          let dueDate = a.due_at ? new Date(a.due_at) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          if (dueDate < today) {
+            // Shift historical due dates forward to keep them schedulable in the harness
+            const shiftDays = 30;
+            dueDate = addDays(today, shiftDays);
+          }
+          // Ensure a small buffer into the future so scheduling doesn't skip
+          if (dueDate < minFutureDue) {
+            dueDate = addDays(minFutureDue, 0);
+          }
           const estimatedHours = estimateTaskHours({ type, title: a.name, userPreferences: { useAutoEstimation: true } });
           addTask({
             id: `fixture-task-${course.id}-${a.id}`,
@@ -170,6 +184,40 @@ export default function MockTestPage() {
     }
   };
 
+  const clearHistoricalCourses = () => {
+    const today = startOfDay(new Date());
+    const courses = useScheduleStore.getState().courses;
+    const historicalIds = courses
+      .filter(c => c.endDate && startOfDay(new Date(c.endDate)) < today)
+      .map(c => c.id);
+
+    if (!historicalIds.length) {
+      setFixtureStatus('No historical courses to remove.');
+      return;
+    }
+
+    // Remove tasks, events, blocks tied to those courses
+    historicalIds.forEach(id => {
+      tasksStore.forEach((t: any) => {
+        if (t.courseId === id) deleteTask(t.id);
+      });
+      eventsStore.forEach((e: any) => {
+        if (e.courseId === id) useScheduleStore.getState().deleteEvent?.(e.id);
+      });
+      timeBlocksStore.forEach((b: any) => {
+        const task = tasksStore.find((t: any) => t.id === b.taskId);
+        if (task?.courseId === id) useScheduleStore.getState().deleteTimeBlock?.(b.id);
+      });
+      deleteCourse(id);
+    });
+
+    setFixtureStats({
+      courses: courses.length - historicalIds.length,
+      tasks: useScheduleStore.getState().tasks.length,
+    });
+    setFixtureStatus(`Removed ${historicalIds.length} historical courses (ended before today).`);
+  };
+
   const runSchedule = () => {
     const summary = autoScheduleTasks();
     setScheduleSummary(summary);
@@ -187,7 +235,8 @@ export default function MockTestPage() {
           <Typography variant="subtitle1">Step 1: Load Canvas data (+30d)</Typography>
           <Stack direction="row" spacing={2}>
             <Button variant="contained" onClick={loadFixture} data-testid="load-fixture-btn">Load Canvas data (+30d)</Button>
-            <Button variant="outlined" color="error" onClick={clearFixture} data-testid="clear-fixture-btn">Clear loaded data</Button>
+            <Button variant="outlined" color="error" onClick={clearFixture} data-testid="clear-fixture-btn">Clear all test data</Button>
+            <Button variant="outlined" onClick={clearHistoricalCourses}>Remove historical courses</Button>
             <Chip label={`Available in file: ${fixtureCourses.length} | Loading filtered: ${filteredCourses.length}`} />
           </Stack>
           {(fixtureStatus || fixtureError) && (

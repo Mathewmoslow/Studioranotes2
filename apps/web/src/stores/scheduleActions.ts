@@ -62,6 +62,21 @@ export const autoScheduleTasks = () => {
   
   const newBlocks: TimeBlock[] = [];
   const today = startOfDay(new Date());
+  const hasOverlap = (start: Date, end: Date) => {
+    const overlapsEvents = state.events.some(event => {
+      const eventStart = new Date(event.startTime);
+      const eventEnd = new Date(event.endTime);
+      return start < eventEnd && end > eventStart;
+    });
+
+    const overlapsBlocks = [...timeBlocks, ...newBlocks].some(block => {
+      const blockStart = new Date(block.startTime);
+      const blockEnd = new Date(block.endTime);
+      return start < blockEnd && end > blockStart;
+    });
+
+    return overlapsEvents || overlapsBlocks;
+  };
   
   sortedTasks.forEach(task => {
     // Determine task type and get default hours if not set
@@ -117,7 +132,12 @@ export const autoScheduleTasks = () => {
         
         const blockStartTime = setHours(currentDate, startHour);
         const blockEndTime = new Date(blockStartTime.getTime() + hoursToSchedule * 60 * 60 * 1000);
-        
+
+        if (hasOverlap(blockStartTime, blockEndTime)) {
+          currentDate = addDays(currentDate, 1);
+          continue;
+        }
+
         const block: TimeBlock = {
           id: uuidv4(),
           taskId: task.id,

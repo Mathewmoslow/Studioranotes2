@@ -10,6 +10,7 @@ import {
   Stack,
   Card,
   CardContent,
+  Alert,
   Tooltip
 } from '@mui/material';
 import {
@@ -19,7 +20,7 @@ import {
 } from '@mui/icons-material';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { Event, BlockCategory } from '@studioranotes/types';
-import { format, startOfWeek, addDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
+import { format, startOfWeek, addDays, addMinutes, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfDay } from 'date-fns';
 import EventModalMUI from './EventModalMUI';
 import { clinicalFilter } from '../../lib/clinicalFilter';
 import { determineBlockCategory } from '../../lib/blockVisuals';
@@ -117,6 +118,27 @@ const getApprovedPaletteColor = (courseId?: string, paletteColors: string[] = CO
   const palette = paletteColors.length > 0 ? paletteColors : COURSE_PALETTES[0].colors;
   const idx = hashId(courseId) % palette.length;
   return palette[idx] || palette[0];
+};
+
+const getDoSubcategory = (task?: any) => {
+  const type = (task?.type || '').toLowerCase();
+  const title = (task?.title || '').toLowerCase();
+
+  if (/(watch|video|lecture|panopto|osmosis)/.test(title) || type === 'video') return 'WATCH';
+  if (/(read|chapter|textbook|pages)/.test(title) || type === 'reading') return 'READ';
+  if (/(review|recap|study guide|practice test)/.test(title)) return 'REVIEW';
+  if (/(prep|prepare|pre-class|pre class|prework)/.test(title) || type === 'prep') return 'PREP';
+  if (/(exam|quiz|test|midterm|final)/.test(title) || type === 'exam' || type === 'quiz') return 'PREP';
+  if (
+    /(assignment|project|homework|problem set|worksheet|discussion|case study|work)/.test(title) ||
+    ['assignment', 'project', 'homework', 'discussion'].includes(type)
+  ) {
+    return 'WORK';
+  }
+  if (/(lab|clinical|simulation|vsim)/.test(title) || ['lab', 'clinical', 'simulation', 'vsim'].includes(type)) return 'WORK';
+  if (/(study|review)/.test(title)) return 'STUDY';
+
+  return 'STUDY';
 };
 
 const getCourseColor = (color?: string, courseId?: string, paletteColors?: string[]) =>
@@ -272,6 +294,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<any>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [isDuePreview, setIsDuePreview] = useState(false);
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
@@ -285,7 +308,9 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     updateEvent,
     updateTimeBlock,
     updateTask,
+    scheduleTask,
     generateSmartSchedule,
+    scheduleWarnings,
   } = useScheduleStore();
 
   // Responsive scaling for tighter/mobile views
@@ -524,6 +549,35 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   const getCourse = (courseId: string) => {
     return courses.find(c => c.id === courseId);
   };
+
+  const visibleCourseIds = useMemo(() => {
+    const ids = new Set<string>();
+    const rangeStart = days[0] ? startOfDay(days[0]) : startOfDay(new Date());
+    const rangeEnd = days[days.length - 1] ? addDays(days[days.length - 1], 1) : addDays(new Date(), 1);
+
+    safeEvents.forEach(event => {
+      if (!event?.courseId) return;
+      const start = ensureDate(event.startTime);
+      if (start >= rangeStart && start <= rangeEnd) {
+        ids.add(event.courseId);
+      }
+    });
+
+    safeBlocks.forEach(block => {
+      const start = ensureDate(block.startTime);
+      if (start >= rangeStart && start <= rangeEnd) {
+        const task = tasks.find(t => t.id === block.taskId);
+        if (task?.courseId) ids.add(task.courseId);
+      }
+    });
+
+    return ids;
+  }, [days, safeEvents, safeBlocks, tasks]);
+
+  const visibleCourses = useMemo(
+    () => courses.filter(course => visibleCourseIds.has(course.id)),
+    [courses, visibleCourseIds]
+  );
   
   const getEventColor = (event: Event) => {
     const course = getCourseForEvent(event);
@@ -682,11 +736,40 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
+    setIsDuePreview(false);
   };
   
   const handleBlockClick = (block: any) => {
     const task = getTaskForBlock(block.id);
     setSelectedTimeBlock({ block, task });
+    setIsDuePreview(false);
+  };
+
+  const handleRescheduleOverdue = (task: any) => {
+    const bufferDays = Math.max(3, task?.bufferDays || 3);
+    const newDueDate = addDays(startOfDay(new Date()), bufferDays);
+    updateTask(task.id, { dueDate: newDueDate, status: 'not-started' });
+    setTimeout(() => scheduleTask(task.id), 0);
+  };
+
+  const handleViewDueForTask = (task: any) => {
+    if (!task?.dueDate) return;
+    const dueDate = new Date(task.dueDate);
+    if (Number.isNaN(dueDate.getTime())) return;
+    const dueEvent = {
+      id: `due-${task.id}`,
+      type: 'deadline',
+      title: task.title || 'Due Item',
+      startTime: dueDate,
+      endTime: addMinutes(dueDate, 60),
+      courseId: task.courseId,
+      location: task.location || '',
+      description: task.description || '',
+      completed: task.status === 'completed',
+    } as Event;
+    setSelectedEvent(dueEvent);
+    setSelectedTimeBlock(null);
+    setIsDuePreview(true);
   };
   
   // Drag and Drop handlers
@@ -1037,19 +1120,19 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       if (!courseColor || typeof courseColor !== 'string' || !courseColor.startsWith('#')) {
                         console.warn('Block course color invalid', courseColor);
                       }
-                      const isExamStudy = ((task?.type || '').toLowerCase().includes('exam') || (task?.title || '').toLowerCase().includes('exam'));
-                      const visualKind: VisualKind = isExamStudy ? 'DO' : resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
+                      const visualKind: VisualKind = block?.type === 'due' ? 'DUE' : 'DO';
                       const visual = safeDeriveVisual('week-block', visualKind, courseColor, {
                         ...block,
                         taskType: task?.type,
                         course,
                       });
                       const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
+                      const blockLabel = getDoSubcategory(task);
                       const bandLabel = visualKind === 'DUE'
                         ? 'DUE'
                         : visualKind === 'LECTURE'
                           ? 'LECTURE'
-                          : 'STUDY';
+                          : blockLabel;
 
                       const column = positionData?.column || 0;
                       const totalColumns = positionData?.totalColumns || 1;
@@ -1243,13 +1326,15 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                   ...dayBlocks.map(block => {
                     const task = getTaskForBlock(block.id);
                     const course = task ? getCourse(task.courseId) : null;
-                    const visualKind = resolveVisualKindForTask(task?.type, Boolean(task?.isHardDeadline));
+                    const visualKind: VisualKind = block?.type === 'due' ? 'DUE' : 'DO';
+                    const blockLabel = getDoSubcategory(task);
                     return {
                       id: block.id,
                       title: task?.title || 'Study',
                       subtitle: `${format(ensureDate(block.startTime), 'h:mm a')}${course?.code ? ` • ${course.code}` : ''}`,
                       startTime: ensureDate(block.startTime),
                       visualKind,
+                      blockLabel,
                       color: getCourseColor(course?.color, course?.id, activePaletteColors),
                       onClick: () => handleBlockClick(block),
                     };
@@ -1283,7 +1368,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               ? 'EXAM'
                               : item.visualKind === 'LECTURE'
                               ? 'LECTURE'
-                              : 'DO';
+                              : item.blockLabel || 'STUDY';
 
                           return (
                             <Card
@@ -1422,12 +1507,22 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
             <Stack spacing={0.5}>
               {overdueTasks.slice(0, 4).map(task => (
                 <Stack key={task.id} direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" noWrap sx={{ flex: 1 }}>
-                    {task.title}
-                  </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    onClick={() => handleViewDueForTask(task)}
+                    sx={{ textTransform: 'none', justifyContent: 'flex-start', flex: 1 }}
+                  >
+                    <Typography variant="body2" noWrap sx={{ textAlign: 'left', width: '100%' }}>
+                      {task.title}
+                    </Typography>
+                  </Button>
                   <Typography variant="caption" color="text.secondary" noWrap>
                     Due {format(new Date(task.dueDate), 'MMM d')}
                   </Typography>
+                  <Button size="small" variant="outlined" onClick={() => handleRescheduleOverdue(task)}>
+                    Reschedule
+                  </Button>
                   <Button size="small" color="success" onClick={() => updateTask(task.id, { status: 'completed' })}>
                     Mark done
                   </Button>
@@ -1440,6 +1535,48 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
               )}
             </Stack>
           </Paper>
+        )}
+
+        {scheduleWarnings.unscheduledTaskIds.length > 0 && (
+          <Alert severity="warning" sx={{ mb: 1.5 }}>
+            {scheduleWarnings.message}
+          </Alert>
+        )}
+
+        {visibleCourses.length > 0 && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+            {visibleCourses.map(course => {
+              const color = getCourseColor(course.color, course.id, activePaletteColors);
+              return (
+                <Box
+                  key={course.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 999,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      bgcolor: color || FALLBACK_COLOR
+                    }}
+                  />
+                  <Typography variant="caption" fontWeight={600} noWrap>
+                    {course.code}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
         )}
         
         {/* Navigation */}
@@ -1482,7 +1619,14 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
             onClose={() => {
               setSelectedEvent(null);
               setSelectedTimeBlock(null);
+              setIsDuePreview(false);
             }}
+            onViewDue={
+              selectedTimeBlock?.task?.dueDate
+                ? () => handleViewDueForTask(selectedTimeBlock.task)
+                : undefined
+            }
+            readOnly={isDuePreview}
           />
         )}
 
