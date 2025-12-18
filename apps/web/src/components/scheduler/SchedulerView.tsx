@@ -307,6 +307,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
   const cleanupRan = useRef(false);
   const [dueModal, setDueModal] = useState<{ open: boolean; items: any[]; date?: Date }>({ open: false, items: [] });
+  const [health, setHealth] = useState<{ openaiEnabled: boolean; fixtureEnabled: boolean; mockExtraction: boolean } | null>(null);
 
   const {
     preferences,
@@ -645,6 +646,14 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     cleanupRan.current = true;
   }, [removeHistoricalCourses]);
 
+  useEffect(() => {
+    // Health indicators (OpenAI, fixture/mock status)
+    fetch('/api/health')
+      .then(res => res.json())
+      .then(setHealth)
+      .catch(() => setHealth(null));
+  }, []);
+
   // Detect and handle overlapping events - only group actually overlapping items
   const detectOverlaps = (items: any[]) => {
     const sortedItems = [...items].sort((a, b) => {
@@ -897,6 +906,35 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                   }
                   return { ...event, type };
                 });
+                // Group DUE events by course (same day)
+                const groupedDue = new Map<string, any[]>();
+                normalizedDayEvents.forEach(evt => {
+                  const kind = resolveVisualKindForEvent(evt);
+                  if (kind !== 'DUE') return;
+                  const course = getCourseForEvent(evt);
+                  const key = course?.id || course?.code || 'unknown';
+                  if (!groupedDue.has(key)) groupedDue.set(key, []);
+                  groupedDue.get(key)!.push(evt);
+                });
+                const collapsedDueEvents: any[] = [];
+                groupedDue.forEach((list, key) => {
+                  const first = list[0];
+                  const course = getCourseForEvent(first);
+                  const titleBase = course?.code || course?.name || 'Due';
+                  collapsedDueEvents.push({
+                    ...first,
+                    title: list.length > 1 ? `${titleBase} • ${list.length} due` : first.title,
+                    onClick: () => setDueModal({ open: true, items: list.map((d: any) => ({
+                      id: d.id,
+                      title: d.title,
+                      subtitle: format(ensureDate(d.startTime), 'h:mm a'),
+                      course
+                    })), date: day }),
+                  });
+                });
+                const nonDueEvents = normalizedDayEvents.filter(evt => resolveVisualKindForEvent(evt) !== 'DUE');
+                const normalizedDayEventsWithGroups = [...nonDueEvents, ...collapsedDueEvents];
+
                 const normalizedDayBlocks = dayBlocks.filter(Boolean).map((block, idx) => {
                   const task = getTaskForBlock(block.id);
                   const fallbackType = block?.type || task?.type || 'study';
@@ -906,7 +944,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                   return { ...block, type: fallbackType };
                 });
 
-                const allItems = [...normalizedDayEvents, ...normalizedDayBlocks];
+                const allItems = [...normalizedDayEventsWithGroups, ...normalizedDayBlocks];
                 allItems.forEach((item, idx) => {
                   if (!item || !item.type) {
                     console.error('Bad calendar item before render', { index: idx, item });
@@ -1544,6 +1582,13 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 Month
               </Button>
             </ButtonGroup>
+            {health && (
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Chip size="small" label="OpenAI" color={health.openaiEnabled ? 'success' : 'default'} />
+                <Chip size="small" label="Fixture" color={health.fixtureEnabled ? 'info' : 'default'} />
+                <Chip size="small" label="Mock" color={health.mockExtraction ? 'warning' : 'default'} />
+              </Stack>
+            )}
           </Box>
         </Box>
 
