@@ -18,7 +18,8 @@ import {
   DialogActions,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Chip,
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
