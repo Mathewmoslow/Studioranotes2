@@ -81,23 +81,23 @@ export default function SettingsPage() {
   };
 
   return (
-    <Container maxWidth=\"lg\" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       <Stack spacing={3}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant=\"h4\" fontWeight={700}>Settings</Typography>
-            <Typography color=\"text.secondary\">Tune your study schedule. Changes apply to future scheduling.</Typography>
+            <Typography variant="h4" fontWeight={700}>Settings</Typography>
+            <Typography color="text.secondary">Tune your study schedule. Changes apply to future scheduling.</Typography>
           </Box>
           <Button variant=\"contained\" onClick={handleSave}>Save</Button>
         </Box>
 
         <Paper sx={{ p: 3 }}>
-          <Typography variant=\"h6\" fontWeight={700} gutterBottom>Study hours & days</Typography>
+          <Typography variant="h6" fontWeight={700} gutterBottom>Study hours & days</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label=\"Start time\"
-                type=\"time\"
+                label="Start time"
+                type="time"
                 fullWidth
                 value={studyStart}
                 onChange={(e) => setStudyStart(e.target.value)}
@@ -106,8 +106,8 @@ export default function SettingsPage() {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label=\"End time\"
-                type=\"time\"
+                label="End time"
+                type="time"
                 fullWidth
                 value={studyEnd}
                 onChange={(e) => setStudyEnd(e.target.value)}
@@ -116,8 +116,8 @@ export default function SettingsPage() {
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                label=\"Max hours per day\"
-                type=\"number\"
+                label="Max hours per day"
+                type="number"
                 fullWidth
                 value={maxDaily}
                 onChange={(e) => setMaxDaily(e.target.value)}
@@ -127,7 +127,7 @@ export default function SettingsPage() {
             <Grid item xs={12} sm={6} md={3}>
               <FormControlLabel
                 control={<Checkbox checked={allowWeekend} onChange={(e) => setAllowWeekend(e.target.checked)} />}
-                label=\"Allow weekend study\"
+                label="Allow weekend study"
               />
             </Grid>
           </Grid>
@@ -145,12 +145,12 @@ export default function SettingsPage() {
         </Paper>
 
         <Paper sx={{ p: 3 }}>
-          <Typography variant=\"h6\" fontWeight={700} gutterBottom>Sessions & breaks</Typography>
+          <Typography variant="h6" fontWeight={700} gutterBottom>Sessions & breaks</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <TextField
-                label=\"Session duration (min)\"
-                type=\"number\"
+                label="Session duration (min)"
+                type="number"
                 fullWidth
                 value={sessionDuration}
                 onChange={(e) => setSessionDuration(e.target.value)}
@@ -159,8 +159,8 @@ export default function SettingsPage() {
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
-                label=\"Short break (min)\"
-                type=\"number\"
+                label="Short break (min)"
+                type="number"
                 fullWidth
                 value={shortBreak}
                 onChange={(e) => setShortBreak(e.target.value)}
@@ -169,8 +169,8 @@ export default function SettingsPage() {
             </Grid>
             <Grid item xs={12} sm={4}>
               <TextField
-                label=\"Long break (min)\"
-                type=\"number\"
+                label="Long break (min)"
+                type="number"
                 fullWidth
                 value={longBreak}
                 onChange={(e) => setLongBreak(e.target.value)}
@@ -181,7 +181,7 @@ export default function SettingsPage() {
         </Paper>
 
         <Paper sx={{ p: 3 }}>
-          <Typography variant=\"h6\" fontWeight={700} gutterBottom>Preferred times</Typography>
+          <Typography variant="h6" fontWeight={700} gutterBottom>Preferred times</Typography>
           <Stack direction=\"row\" spacing={1} flexWrap=\"wrap\">
             {studyTimeChips.map((chip) => (
               <Chip
