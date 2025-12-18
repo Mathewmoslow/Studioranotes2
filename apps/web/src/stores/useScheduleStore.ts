@@ -1010,6 +1010,17 @@ export const useScheduleStore = create<ScheduleStore>()(
         const bedHour = parseHourSafe(state.preferences.studyHours?.end?.split(':')[0], 23);
         const safeBedHour = bedHour <= wakeHour ? Math.min(23, wakeHour + 8) : bedHour;
 
+        // Normalize session duration into object form
+        const prefSession = state.preferences.sessionDuration as any;
+        const sessionDurationConfig =
+          typeof prefSession === 'number'
+            ? {
+                min: Math.max(15, prefSession),
+                max: Math.max(prefSession, state.schedulerConfig.sessionDuration.max),
+                preferred: prefSession,
+              }
+            : prefSession || state.schedulerConfig.sessionDuration;
+
         // Initialize new scheduler with config including user preferences
         // Derive daily study capacity from user preferences (honor onboarding input)
         const studyStartHour = parseHourSafe(state.preferences.studyHours?.start?.split(':')[0], 9);
@@ -1024,7 +1035,7 @@ export const useScheduleStore = create<ScheduleStore>()(
             preferred: Math.max(studyRangeHours, preferredDaily),
           },
           breakDuration: state.schedulerConfig.breakDuration,
-          sessionDuration: state.preferences.sessionDuration || state.schedulerConfig.sessionDuration,
+          sessionDuration: sessionDurationConfig,
           sleepSchedule: {
             bedtime: safeBedHour,
             wakeTime: wakeHour
