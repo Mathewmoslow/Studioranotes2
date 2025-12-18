@@ -1035,9 +1035,23 @@ export const useScheduleStore = create<ScheduleStore>()(
           allowWeekendStudy: state.preferences.allowWeekendStudy
         });
 
-        // Update energy patterns if available
+        // Update energy patterns if available, otherwise derive a gentle pattern from preferredStudyTimes
         if (state.energyPatterns.length > 0) {
           scheduler.updateEnergyPattern(state.energyPatterns);
+        } else if (state.preferences.preferredStudyTimes) {
+          const prefs = state.preferences.preferredStudyTimes as any;
+          const pattern = [];
+          const bump = (hour: number, weight: number) => pattern.push({ hour, energyLevel: weight, productivity: weight * 0.9 });
+
+          if (prefs.earlyMorning) [5, 6, 7].forEach(h => bump(h, 8));
+          if (prefs.morning) [8, 9, 10, 11].forEach(h => bump(h, 9));
+          if (prefs.afternoon) [12, 13, 14, 15].forEach(h => bump(h, 9));
+          if (prefs.evening) [16, 17, 18, 19].forEach(h => bump(h, 8));
+          if (prefs.night) [20, 21, 22].forEach(h => bump(h, 7));
+
+          if (pattern.length > 0) {
+            scheduler.updateEnergyPattern(pattern);
+          }
         }
 
         // Convert tasks to scheduler format

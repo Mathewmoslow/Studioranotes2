@@ -11,7 +11,14 @@ import {
   Card,
   CardContent,
   Alert,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -299,6 +306,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
   const cleanupRan = useRef(false);
+  const [dueModal, setDueModal] = useState<{ open: boolean; items: any[]; date?: Date }>({ open: false, items: [] });
 
   const {
     preferences,
@@ -1360,6 +1368,20 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                     };
                   }),
                 ].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+                const dueItems = dayItems.filter(item => item.visualKind === 'DUE');
+                const nonDueItems = dayItems.filter(item => item.visualKind !== 'DUE');
+                const collapsedDueItems: any[] = [];
+                if (dueItems.length > 0) {
+                  const first = dueItems[0];
+                  collapsedDueItems.push({
+                    ...first,
+                    title: dueItems.length > 1 ? `Due: ${dueItems.length} items` : first.title,
+                    subtitle: dueItems.length > 1 ? `${format(first.startTime, 'h:mm a')} • +${dueItems.length - 1} more` : first.subtitle,
+                    onClick: () => setDueModal({ open: true, items: dueItems, date: day }),
+                  });
+                }
+                const renderItems = [...nonDueItems, ...collapsedDueItems].sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
                 
                 return (
                   <Box key={day.toISOString()} sx={{
@@ -1379,7 +1401,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       </Typography>
                       
                       <Stack spacing={0.75} sx={{ mt: 1 }}>
-                        {dayItems.slice(0, 3).map(item => {
+                        {renderItems.slice(0, 3).map(item => {
                           const visual = safeDeriveVisual('month-item', item.visualKind, item.color, item);
                           const bandLabel =
                             item.visualKind === 'DUE'
@@ -1461,15 +1483,15 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                           );
                         })}
 
-                        {dayItems.length === 0 && (
+                        {renderItems.length === 0 && (
                           <Typography variant="caption" color="text.disabled">
                             No items
                           </Typography>
                         )}
 
-                        {dayItems.length > 3 && (
+                        {renderItems.length > 3 && (
                           <Typography variant="caption" color="text.secondary">
-                            +{dayItems.length - 3} more
+                            +{renderItems.length - 3} more
                           </Typography>
                         )}
                       </Stack>
@@ -1669,7 +1691,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
         
         {/* Calendar View */}
         {viewType === 'month' ? <MonthView /> : <WeekDayView />}
-        
+
         {/* Event Modal */}
         {(selectedEvent || selectedTimeBlock) && (
           <EventModalMUI
@@ -1689,6 +1711,25 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
             readOnly={isDuePreview}
           />
         )}
+
+        <Dialog open={dueModal.open} onClose={() => setDueModal({ open: false, items: [] })} maxWidth="sm" fullWidth>
+          <DialogTitle>Due items{dueModal.date ? ` — ${format(dueModal.date, 'MMM d')}` : ''}</DialogTitle>
+          <DialogContent dividers>
+            <List dense>
+              {dueModal.items.map((d) => (
+                <ListItem key={d.id}>
+                  <ListItemText
+                    primary={d.title}
+                    secondary={d.subtitle || format(d.startTime, 'h:mm a')}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDueModal({ open: false, items: [] })}>Close</Button>
+          </DialogActions>
+        </Dialog>
 
       </Container>
     </Box>
