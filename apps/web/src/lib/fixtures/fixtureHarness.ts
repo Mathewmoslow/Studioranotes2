@@ -4,6 +4,7 @@ import { rawCanvasFixture, RawCanvasFixture } from './rawCanvasFixture';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { normalizeCanvasCourse } from '../canvas/normalizeCourse';
 import { determineAssignmentType } from '../taskHours';
+import { v4 as uuidv4 } from 'uuid';
 
 type Assertion = { ok: boolean; message: string };
 
@@ -264,6 +265,220 @@ export const loadRawCanvasFixture = (fixture: RawCanvasFixture = rawCanvasFixtur
       } as any);
     });
   });
+};
+
+/**
+ * Deterministic 2026 semester fixture (single, clean dataset):
+ * - Term: Jan 1 2026 – Mar 27 2026
+ * - 4 courses, each with ≥20 assignments across subcategories, plus lectures and exams.
+ * - Includes welcome/announcement context.
+ */
+export const loadDeterministicFixture = () => {
+  const startTerm = new Date('2026-01-01T00:00:00Z');
+  const endTerm = new Date('2026-03-27T23:59:59Z');
+
+  // Clear store but keep preferences/settings
+  const existingPrefs = useScheduleStore.getState().preferences;
+  const existingSettings = useScheduleStore.getState().settings;
+  useScheduleStore.setState({
+    courses: [],
+    tasks: [],
+    timeBlocks: [],
+    events: [],
+    preferences: {
+      ...existingPrefs,
+      weekdayStartTime: '08:00',
+      weekdayEndTime: '22:00',
+      weekendStartTime: '08:00',
+      weekendEndTime: '22:00',
+      weekdayStudyHours: 8,
+      weekendStudyHours: 8,
+      studyDays: { mon: true, tue: true, wed: true, thu: true, fri: true, sat: true, sun: true },
+      allowWeekends: true,
+      preferredTimes: ['morning', 'afternoon', 'evening'],
+      sessionDurationMinutes: 60,
+      breakInterval: 3,
+      shortBreakMinutes: 5,
+      longBreakMinutes: 15,
+    },
+    settings: existingSettings,
+    schedulerConfig: {
+      dailyStudyHours: { min: 4, max: 12, preferred: 8 },
+      breakDuration: { short: 5, long: 15 },
+      sessionDuration: { min: 40, max: 90, preferred: 60 },
+    },
+  });
+
+  const { addCourse, addEvent, addTask } = useScheduleStore.getState();
+
+  type CourseDef = {
+    id: string;
+    name: string;
+    code: string;
+    color: string;
+    schedule: { dayOfWeek: number; startTime: string; endTime: string; type?: string; location?: string }[];
+    exams: { title: string; start: string; end: string }[];
+    assignments: { title: string; due: string; type: string; bufferDays?: number }[];
+    welcome: string;
+    announcements: string[];
+  };
+
+  const courses: CourseDef[] = [
+    {
+      id: 'AH2',
+      name: 'Adult Health II',
+      code: 'NURS320',
+      color: '#2563eb',
+      schedule: [
+        { dayOfWeek: 1, startTime: '10:00', endTime: '11:30', type: 'lecture', location: 'Sim Lab A' }, // Mon
+        { dayOfWeek: 3, startTime: '10:00', endTime: '11:30', type: 'lecture', location: 'Sim Lab A' }, // Wed
+      ],
+      exams: [
+        { title: 'Midterm Exam', start: '2026-02-10T14:00:00-05:00', end: '2026-02-10T15:30:00-05:00' },
+        { title: 'Final Exam', start: '2026-03-20T13:00:00-04:00', end: '2026-03-20T15:00:00-04:00' },
+      ],
+      assignments: [],
+      welcome: 'Welcome to Adult Health II. This term we focus on complex med-surg care. Expect simulations and clinical prep weekly.',
+      announcements: ['Clinical rotations finalize in week 2. Bring stethoscope and IV kit to all labs.'],
+    },
+    {
+      id: 'BIO2',
+      name: 'Human Biology II',
+      code: 'BIO201',
+      color: '#a855f7',
+      schedule: [
+        { dayOfWeek: 2, startTime: '09:30', endTime: '11:00', type: 'lecture', location: 'Room 210' }, // Tue
+        { dayOfWeek: 4, startTime: '09:30', endTime: '11:00', type: 'lecture', location: 'Room 210' }, // Thu
+      ],
+      exams: [
+        { title: 'Metabolism Exam', start: '2026-02-17T10:00:00-05:00', end: '2026-02-17T11:30:00-05:00' },
+        { title: 'Comprehensive Final', start: '2026-03-25T10:00:00-04:00', end: '2026-03-25T12:00:00-04:00' },
+      ],
+      assignments: [],
+      welcome: 'Welcome to Human Biology II. We dive into endocrine, metabolism, and systems integration.',
+      announcements: ['Lab practicals start week 3. Safety gear required.'],
+    },
+    {
+      id: 'PHARM',
+      name: 'Pharmacology Concepts',
+      code: 'NURS350',
+      color: '#f59e0b',
+      schedule: [
+        { dayOfWeek: 1, startTime: '14:00', endTime: '15:30', type: 'lecture', location: 'Auditorium A' }, // Mon
+        { dayOfWeek: 3, startTime: '14:00', endTime: '15:30', type: 'lecture', location: 'Auditorium A' }, // Wed
+      ],
+      exams: [
+        { title: 'Pharm Midterm', start: '2026-02-12T15:00:00-05:00', end: '2026-02-12T16:30:00-05:00' },
+        { title: 'Pharm Final', start: '2026-03-24T15:00:00-04:00', end: '2026-03-24T17:00:00-04:00' },
+      ],
+      assignments: [],
+      welcome: 'Welcome to Pharmacology Concepts. Emphasis on safe med admin and mechanism of action.',
+      announcements: ['Drug cards due weekly; check rubric in LMS.'],
+    },
+    {
+      id: 'PEDS',
+      name: 'Pediatric Nursing',
+      code: 'NURS330',
+      color: '#0ea5e9',
+      schedule: [
+        { dayOfWeek: 2, startTime: '13:00', endTime: '14:30', type: 'lecture', location: 'Peds Lab' }, // Tue
+        { dayOfWeek: 4, startTime: '13:00', endTime: '14:30', type: 'lecture', location: 'Peds Lab' }, // Thu
+      ],
+      exams: [
+        { title: 'Peds Growth & Dev Exam', start: '2026-02-18T13:30:00-05:00', end: '2026-02-18T15:00:00-05:00' },
+        { title: 'Peds Final', start: '2026-03-26T13:30:00-04:00', end: '2026-03-26T15:30:00-04:00' },
+      ],
+      assignments: [],
+      welcome: 'Welcome to Pediatric Nursing. We will cover growth/development and acute pediatrics.',
+      announcements: ['Clinical site onboarding due by week 2.'],
+    },
+  ];
+
+  // Helper to distribute due dates across term
+  const spreadDueDates = (count: number, start: Date, end: Date) => {
+    const dates: string[] = [];
+    const span = end.getTime() - start.getTime();
+    for (let i = 0; i < count; i++) {
+      const offset = Math.round((span / (count + 1)) * (i + 1));
+      const d = new Date(start.getTime() + offset);
+      d.setHours(17, 0, 0, 0);
+      dates.push(d.toISOString());
+    }
+    return dates;
+  };
+
+  const subcategories = ['READ', 'WATCH', 'PREP', 'REVIEW', 'WORK', 'LAB'];
+
+  courses.forEach((course) => {
+    // generate assignments
+    const dueDates = spreadDueDates(22, startTerm, endTerm);
+    course.assignments = dueDates.map((iso, idx) => {
+      const sub = subcategories[idx % subcategories.length];
+      const titlePrefix = {
+        READ: 'Chapter Reading',
+        WATCH: 'Video Review',
+        PREP: 'Prep Task',
+        REVIEW: 'Study Guide',
+        WORK: 'Case Study',
+        LAB: 'Lab/Clinical Prep',
+      }[sub] || 'Task';
+      return {
+        title: `${titlePrefix} ${idx + 1}`,
+        due: iso,
+        type: sub.toLowerCase(),
+        bufferDays: 2,
+      };
+    });
+
+    // add course
+    addCourse({
+      id: course.id,
+      name: course.name,
+      code: course.code,
+      color: course.color,
+      canvasId: course.id,
+      startDate: startTerm,
+      endDate: endTerm,
+      schedule: course.schedule,
+      pages: [{ title: 'Welcome', body: course.welcome }],
+      additionalContext: `${course.welcome}\n\nAnnouncements:\n- ${course.announcements.join('\n- ')}`,
+    } as any);
+
+    // add exams
+    course.exams.forEach((exam) => {
+      addEvent({
+        id: `${course.id}-${exam.title}-${uuidv4()}`,
+        title: exam.title,
+        startTime: parseISO(exam.start),
+        endTime: parseISO(exam.end),
+        type: 'exam',
+        courseId: course.id,
+        location: course.schedule?.[0]?.location || '',
+        source: 'fixture',
+      } as any);
+    });
+
+    // add assignments as tasks
+    course.assignments.forEach((assignment, idx) => {
+      addTask({
+        id: `${course.id}-assign-${idx}`,
+        title: assignment.title,
+        courseId: course.id,
+        courseName: course.name,
+        type: assignment.type,
+        dueDate: parseISO(assignment.due),
+        bufferDays: assignment.bufferDays ?? 2,
+        estimatedHours: 2,
+        priority: 'high',
+        status: 'pending',
+        description: assignment.title,
+        isHardDeadline: true,
+        source: 'fixture',
+      } as any);
+    });
+  });
+
+  return { coursesLoaded: courses.length, tasksLoaded: useScheduleStore.getState().tasks.length };
 };
 
 const assertLectures = (fixture: FixtureData): Assertion[] => {

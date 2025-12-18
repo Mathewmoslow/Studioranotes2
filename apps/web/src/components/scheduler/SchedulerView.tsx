@@ -1150,6 +1150,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         return (
                           <Tooltip key={event.id} title={`${groupTitle} - ${course?.name || 'Unknown Course'}`}>
                             <Card
+                              data-testid="schedule-item"
                               draggable
                               onDragStart={(e) => handleDragStart(e, event, 'event')}
                               onDragEnd={handleDragEnd}
@@ -1340,6 +1341,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       return (
                         <Tooltip key={block.id} title={`${task?.type || 'Study'}: ${task?.title || 'Study Session'}`}>
                           <Card
+                            data-testid="schedule-item"
                             draggable
                             onDragStart={(e) => handleDragStart(e, block, 'block')}
                             onDragEnd={handleDragEnd}
@@ -1685,9 +1687,13 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
             </ButtonGroup>
             {health && (
               <Stack direction="row" spacing={0.5} alignItems="center">
-                <Chip size="small" label="OpenAI" color={health.openaiEnabled ? 'success' : 'default'} />
-                <Chip size="small" label="Fixture" color={health.fixtureEnabled ? 'info' : 'default'} />
-                <Chip size="small" label="Mock" color={health.mockExtraction ? 'warning' : 'default'} />
+                <Chip size="small" label="OpenAI" color={health.openaiEnabled ? 'success' : 'error'} />
+                <Chip size="small" label="Fixture" color={health.fixtureEnabled ? 'success' : 'error'} />
+                <Chip
+                  size="small"
+                  label="Mock"
+                  color={health.mockExtraction ? 'error' : 'success'}
+                />
               </Stack>
             )}
           </Box>

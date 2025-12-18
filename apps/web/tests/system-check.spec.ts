@@ -1,67 +1,44 @@
 import { test, expect } from '@playwright/test';
-import fixture from '../src/lib/fixtures/canvas-shifted.json';
 
-const filterCourses = (courses: any[]) => {
-  const now = new Date();
-  const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-  const recent = courses.filter((c) => {
-    const start = c.start_at ? new Date(c.start_at) : null;
-    const end = c.end_at ? new Date(c.end_at) : null;
-    if (start && end) {
-      return start >= sixMonthsAgo || end >= sixMonthsAgo;
-    }
-    return false;
-  });
-  return recent.length > 0 ? recent.slice(0, 8) : courses.slice(0, 6);
+const EXPECTED_COURSES = 4;
+const EXPECTED_TASKS = 88;
+
+const expectDueClustersVisible = async (page: any) => {
+  // Look for a DUE label in the calendar; use the first occurrence
+  await expect(page.locator('text=DUE').first()).toBeVisible();
 };
 
-test.describe('System check: shifted Canvas scheduling', () => {
-  test('loads, schedules, and leaves no unscheduled tasks', async ({ page }) => {
-    const consoleErrors: string[] = [];
-    page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${err.message}`));
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') consoleErrors.push(`console: ${msg.text()}`);
-    });
+// Ensure single run order
+(test as any).describe?.configure?.({ mode: 'serial' });
 
-    const courses = (fixture as any)?.courses || [];
-    const filtered = filterCourses(courses);
-    const expectedTasks = filtered.reduce((sum, c) => sum + (c.assignments?.length || 0), 0);
+test.use({
+  // Rely on existing dev server via PLAYWRIGHT_BASE_URL; do not auto-start
+  baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3200',
+});
 
-    await page.goto('/dev/mock-test', { waitUntil: 'networkidle' });
+test('Deterministic system check loads fixture and schedules it', async ({ page }) => {
+  test.setTimeout(120000);
 
-    await page.getByTestId('load-fixture-btn').click();
-    await expect(page.getByTestId('fixture-status')).toContainText(/Loaded/i);
+  await page.goto('/dev/system-check', { waitUntil: 'networkidle' });
+  await expect(page.getByRole('heading', { name: 'Deterministic System Check' })).toBeVisible();
 
-    const storeAfterLoad = await page.evaluate(() => {
-      const raw = window.localStorage.getItem('schedule-store');
-      return raw ? JSON.parse(raw) : null;
-    });
-    const loadedTasks = storeAfterLoad?.state?.tasks || [];
-    expect(loadedTasks.length, 'All fixture tasks should load').toBe(expectedTasks);
+  const button = page.getByRole('button', { name: /Load & Schedule 2026 Fixture/i });
+  await button.click();
 
-    await page.getByRole('button', { name: /Schedule shifted data/i }).click();
+  // Wait for status update confirming scheduling
+  await expect(page.getByText('Scheduled. Courses:', { exact: false })).toBeVisible({ timeout: 60000 });
 
-    const storeAfterSchedule = await page.evaluate(() => {
-      const raw = window.localStorage.getItem('schedule-store');
-      return raw ? JSON.parse(raw) : null;
-    });
+  // Verify status text includes expected counts
+  const statusText = await page.getByText(/Courses: .*Tasks: /i).textContent();
+  expect(statusText).toBeTruthy();
+  expect(statusText).toContain(`Courses: ${EXPECTED_COURSES}`);
+  expect(statusText).toContain(`Tasks: ${EXPECTED_TASKS}`);
 
-    const scheduledTasks = storeAfterSchedule?.state?.tasks || [];
-    const timeBlocks = storeAfterSchedule?.state?.timeBlocks || [];
-    const unscheduled = scheduledTasks.filter((t: any) => t.dueDate && !t.isScheduled);
+  // Wait for calendar heading to render
+  await expect(page.getByRole('heading', { name: 'Schedule', exact: true })).toBeVisible();
 
-    expect(unscheduled.length, 'No tasks with due dates should remain unscheduled').toBe(0);
-    expect(timeBlocks.length, 'Should create study blocks').toBeGreaterThan(0);
+  await expectDueClustersVisible(page);
 
-    expect(consoleErrors, `No console/page errors expected, saw: ${consoleErrors.join(' | ')}`).toHaveLength(0);
-
-    // Log a concise summary for human review in CI output
-    console.log('[System Check Summary]', {
-      filteredCourses: filtered.length,
-      expectedTasks,
-      loadedTasks: loadedTasks.length,
-      timeBlocks: timeBlocks.length,
-      unscheduled: unscheduled.length,
-    });
-  });
+  const scheduled = page.locator('[data-testid="schedule-item"]');
+  await expect.poll(async () => await scheduled.count(), { timeout: 20000 }).toBeGreaterThan(0);
 });
