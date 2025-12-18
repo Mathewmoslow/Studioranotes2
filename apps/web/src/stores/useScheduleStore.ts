@@ -217,12 +217,19 @@ interface ScheduleStore {
   scheduleWarnings: {
     unscheduledTaskIds: string[];
     message: string;
+    details: Array<{
+      taskId: string;
+      title: string;
+      remainingMinutes: number;
+      dueDate?: Date;
+    }>;
   };
   
   // Course actions
   addCourse: (course: Omit<Course, 'id'>) => void;
   updateCourse: (id: string, course: Partial<Course>) => void;
   deleteCourse: (id: string) => void;
+  removeHistoricalCourses: (cutoffDate?: Date) => void;
   
   // Task actions
   addTask: (task: Omit<Task, 'id' | 'scheduledBlocks'>) => void;
@@ -380,7 +387,8 @@ export const useScheduleStore = create<ScheduleStore>()(
       },
       scheduleWarnings: {
         unscheduledTaskIds: [],
-        message: ''
+        message: '',
+        details: [],
       },
       
       // Course actions
@@ -428,6 +436,54 @@ export const useScheduleStore = create<ScheduleStore>()(
         tasks: state.tasks.filter((t) => t.courseId !== id),
         events: state.events.filter((e) => e.courseId !== id),
       })),
+
+      removeHistoricalCourses: (cutoffDate?: Date) => {
+        const state = get();
+        const cutoff = cutoffDate ? new Date(cutoffDate) : new Date();
+        cutoff.setHours(0, 0, 0, 0);
+
+        const keepIds: Set<string> = new Set();
+
+        state.courses.forEach((course) => {
+          let latest: Date | null = null;
+          const courseTasks = state.tasks.filter((t) => t.courseId === course.id);
+          const courseEvents = state.events.filter((e) => e.courseId === course.id);
+          const courseBlocks = state.timeBlocks.filter((b) => {
+            const task = state.tasks.find((t) => t.id === b.taskId);
+            return task?.courseId === course.id;
+          });
+
+          const consider = (d?: Date) => {
+            if (!d) return;
+            const dt = new Date(d);
+            if (!latest || dt > latest) latest = dt;
+          };
+
+          const courseEnd = (course as any)?.endDate ? new Date((course as any).endDate) : null;
+          consider(courseEnd || undefined);
+          courseTasks.forEach((t) => consider(t.dueDate));
+          courseEvents.forEach((e) => consider(e.endTime || e.startTime));
+          courseBlocks.forEach((b) => consider(b.endTime || b.startTime));
+
+          const hasCourseEndInPast = courseEnd ? courseEnd < cutoff : false;
+          const hasAnyActivityAfterCutoff = latest && latest >= cutoff;
+
+          // Keep if no course end is known (err on the side of caution) or any activity is after cutoff
+          if (!hasCourseEndInPast || hasAnyActivityAfterCutoff) {
+            keepIds.add(course.id);
+          }
+        });
+
+        const courses = state.courses.filter((c) => keepIds.has(c.id));
+        const tasks = state.tasks.filter((t) => keepIds.has(t.courseId));
+        const events = state.events.filter((e) => !e.courseId || keepIds.has(e.courseId));
+        const timeBlocks = state.timeBlocks.filter((b) => {
+          const task = state.tasks.find((t) => t.id === b.taskId);
+          return task ? keepIds.has(task.courseId) : true;
+        });
+
+        set({ courses, tasks, events, timeBlocks });
+      },
       
       // Task actions
       addTask: (taskData) => {
@@ -927,7 +983,20 @@ export const useScheduleStore = create<ScheduleStore>()(
         const defaultEnd = addDays(defaultStart, 60);
 
         const scheduleStart = startDate || defaultStart;
-        const scheduleEnd = endDate || defaultEnd;
+        const schedulerTasksRaw = state.tasks
+          .filter(t => t.status !== 'completed')
+          .filter(t => {
+            const due = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate);
+            return !Number.isNaN(due.getTime());
+          });
+
+        const maxDue = schedulerTasksRaw.reduce<Date | null>((latest, t) => {
+          const due = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate);
+          if (!latest || due > latest) return due;
+          return latest;
+        }, null);
+
+        const scheduleEnd = endDate || maxDue || defaultEnd;
 
         console.log(`🔄 Generating smart schedule from ${format(scheduleStart, 'MMM d')} to ${format(scheduleEnd, 'MMM d')}...`);
 
@@ -963,11 +1032,10 @@ export const useScheduleStore = create<ScheduleStore>()(
 
         // Convert tasks to scheduler format
         const today = startOfDay(new Date());
-        const schedulerTasks = state.tasks
-          .filter(t => t.status !== 'completed')
+        const schedulerTasks = schedulerTasksRaw
           .filter(t => {
             const due = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate);
-            // Keep active/ future tasks; skip historical (due before today)
+            // Skip historical (due before today)
             return !Number.isNaN(due.getTime()) && !isBefore(startOfDay(due), today);
           })
           .map(task => {
@@ -1018,9 +1086,22 @@ export const useScheduleStore = create<ScheduleStore>()(
           scheduledByTask.set(block.taskId, (scheduledByTask.get(block.taskId) || 0) + duration);
         });
 
-        const unscheduledTaskIds = schedulerTasks
-          .filter(task => (scheduledByTask.get(task.id) || 0) + 1 < (estimatedByTask.get(task.id) || 0))
-          .map(task => task.id);
+        const unscheduledDetails = schedulerTasks
+          .map(task => {
+            const est = estimatedByTask.get(task.id) || 0;
+            const scheduled = scheduledByTask.get(task.id) || 0;
+            const remaining = Math.max(0, est - scheduled);
+            return { task, remaining };
+          })
+          .filter(({ remaining }) => remaining > 1)
+          .map(({ task, remaining }) => ({
+            taskId: task.id,
+            title: task.title,
+            remainingMinutes: remaining,
+            dueDate: task.dueDate instanceof Date ? task.dueDate : new Date(task.dueDate),
+          }));
+
+        const unscheduledTaskIds = unscheduledDetails.map((d) => d.taskId);
 
         // Convert study blocks to time blocks
         const newTimeBlocks: TimeBlock[] = studyBlocks
@@ -1041,7 +1122,8 @@ export const useScheduleStore = create<ScheduleStore>()(
             unscheduledTaskIds,
             message: unscheduledTaskIds.length
               ? `${unscheduledTaskIds.length} tasks could not be fully scheduled. Adjust your study window or preferences to fit the required hours.`
-              : ''
+              : '',
+            details: unscheduledDetails,
           }
         });
 

@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { Box, Button, Container, Paper, Stack, Typography, Chip, Divider, FormControlLabel, Switch } from '@mui/material';
 import { useScheduleStore } from '@/stores/useScheduleStore';
 import { determineAssignmentType, estimateTaskHours } from '@/lib/taskHours';
-import { autoScheduleTasks } from '@/stores/scheduleActions';
 import shiftedFixture from '@/lib/fixtures/canvas-shifted.json';
 import { addDays, startOfDay } from 'date-fns';
 
@@ -26,7 +25,6 @@ export default function MockTestPage() {
   const [fixtureStatus, setFixtureStatus] = useState<string | null>(null);
   const [fixtureError, setFixtureError] = useState<string | null>(null);
   const [fixtureStats, setFixtureStats] = useState<{ courses: number; tasks: number }>({ courses: 0, tasks: 0 });
-  const [scheduleSummary, setScheduleSummary] = useState<{ tasksScheduled: number; blocksCreated: number } | null>(null);
 
   const { addCourse, addTask, deleteTask, deleteCourse } = useScheduleStore();
   const tasksStore = useScheduleStore(state => state.tasks);
@@ -104,7 +102,7 @@ export default function MockTestPage() {
       tasks: [],
       timeBlocks: [],
       events: [],
-      scheduleWarnings: { unscheduledTaskIds: [], message: '' },
+      scheduleWarnings: { unscheduledTaskIds: [], message: '', details: [] },
       preferences: state.preferences,
       settings: state.settings,
     }));
@@ -218,11 +216,6 @@ export default function MockTestPage() {
     setFixtureStatus(`Removed ${historicalIds.length} historical courses (ended before today).`);
   };
 
-  const runSchedule = () => {
-    const summary = autoScheduleTasks();
-    setScheduleSummary(summary);
-  };
-
   return (
     <Container sx={{ py: 4 }}>
       <Typography variant="h5" gutterBottom>Shifted Canvas Test Harness</Typography>
@@ -253,18 +246,10 @@ export default function MockTestPage() {
             Fixture sample (filtered): {filteredCourses.map((c: any) => c.course_code || c.name).join(', ') || 'None'}
           </Typography>
 
-          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 2: Schedule shifted data</Typography>
-          <Button variant="contained" color="secondary" onClick={runSchedule}>Schedule shifted data</Button>
-          {scheduleSummary && (
-            <Typography variant="body2" color="text.secondary">
-              Scheduled tasks: {scheduleSummary.tasksScheduled}, Study blocks created: {scheduleSummary.blocksCreated}
-            </Typography>
-          )}
-
-          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 3: View calendar</Typography>
+          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 2: View calendar</Typography>
           <Button variant="outlined" onClick={openSchedulerMock}>View calendar with shifted data</Button>
 
-          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 4 (optional): Context extraction check</Typography>
+          <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 3 (optional): Context extraction check</Typography>
           <Stack direction="row" spacing={2}>
             <Button variant="outlined" onClick={runTest} disabled={loading}>
               {loading ? 'Running…' : 'Run extraction'}

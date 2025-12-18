@@ -298,6 +298,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
+  const cleanupRan = useRef(false);
 
   const {
     preferences,
@@ -308,6 +309,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     updateEvent,
     updateTimeBlock,
     updateTask,
+    removeHistoricalCourses,
     scheduleTask,
     generateSmartSchedule,
     scheduleWarnings,
@@ -614,8 +616,26 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   };
 
   const handleGenerateSchedule = () => {
-    generateSmartSchedule(new Date(), addDays(new Date(), 14));
+    generateSmartSchedule();
   };
+
+  const handleClearHistorical = () => {
+    const confirmed = window.confirm(
+      'Remove courses and items that ended in the past? This keeps only active courses based on due dates and events.'
+    );
+    if (confirmed) {
+      removeHistoricalCourses();
+    }
+  };
+
+  // Auto-clean historical courses/items (grace window: 10 days)
+  useEffect(() => {
+    if (cleanupRan.current) return;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 10);
+    removeHistoricalCourses(cutoff);
+    cleanupRan.current = true;
+  }, [removeHistoricalCourses]);
 
   // Detect and handle overlapping events - only group actually overlapping items
   const detectOverlaps = (items: any[]) => {
@@ -1476,6 +1496,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
             <Button variant="contained" size="small" onClick={handleGenerateSchedule}>
               Generate
             </Button>
+            <Button variant="outlined" size="small" color="warning" onClick={handleClearHistorical}>
+              Remove past courses
+            </Button>
             <ButtonGroup variant="outlined" size="small">
               <Button
                 variant={viewType === 'day' ? 'contained' : 'outlined'}
@@ -1541,6 +1564,32 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
           <Alert severity="warning" sx={{ mb: 1.5 }}>
             {scheduleWarnings.message}
           </Alert>
+        )}
+        {scheduleWarnings.details && scheduleWarnings.details.length > 0 && (
+          <Paper variant="outlined" sx={{ p: 1.25, mb: 1.5 }}>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 0.75 }}>
+              Unscheduled details
+            </Typography>
+            <Stack spacing={0.5}>
+              {scheduleWarnings.details.slice(0, 8).map((d) => (
+                <Stack key={d.taskId} direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" noWrap sx={{ flex: 1 }}>
+                    {d.title || 'Task'} — {Math.ceil(d.remainingMinutes / 60 * 10) / 10}h remaining
+                  </Typography>
+                  {d.dueDate && (
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      Due {format(new Date(d.dueDate), 'MMM d')}
+                    </Typography>
+                  )}
+                </Stack>
+              ))}
+              {scheduleWarnings.details.length > 8 && (
+                <Typography variant="caption" color="text.secondary">
+                  +{scheduleWarnings.details.length - 8} more
+                </Typography>
+              )}
+            </Stack>
+          </Paper>
         )}
 
         {visibleCourses.length > 0 && (
