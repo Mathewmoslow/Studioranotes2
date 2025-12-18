@@ -88,7 +88,7 @@ export default function SettingsPage() {
             <Typography variant="h4" fontWeight={700}>Settings</Typography>
             <Typography color="text.secondary">Tune your study schedule. Changes apply to future scheduling.</Typography>
           </Box>
-          <Button variant=\"contained\" onClick={handleSave}>Save</Button>
+          <Button variant="contained" onClick={handleSave}>Save</Button>
         </Box>
 
         <Paper sx={{ p: 3 }}>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
               />
             </Grid>
           </Grid>
-          <Stack direction=\"row\" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
+          <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
             {dayKeys.map((key) => (
               <Chip
                 key={key}
@@ -182,7 +182,7 @@ export default function SettingsPage() {
 
         <Paper sx={{ p: 3 }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>Preferred times</Typography>
-          <Stack direction=\"row\" spacing={1} flexWrap=\"wrap\">
+          <Stack direction="row" spacing={1} flexWrap="wrap">
             {studyTimeChips.map((chip) => (
               <Chip
                 key={chip.key}
