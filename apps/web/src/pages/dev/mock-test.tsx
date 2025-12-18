@@ -248,6 +248,9 @@ export default function MockTestPage() {
 
           <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 2: View calendar</Typography>
           <Button variant="outlined" onClick={openSchedulerMock}>View calendar with shifted data</Button>
+          <Typography variant="body2" color="text.secondary">
+            On the calendar page, use the single Generate button; other harness buttons are hidden there.
+          </Typography>
 
           <Typography variant="subtitle1" sx={{ pt: 1 }}>Step 3 (optional): Context extraction check</Typography>
           <Stack direction="row" spacing={2}>

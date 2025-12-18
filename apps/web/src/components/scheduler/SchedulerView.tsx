@@ -1483,6 +1483,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     );
   };
   
+  // Hide top harness buttons when navigated from mock-test to avoid confusion
+  const hideHarnessControls = Boolean(typeof window !== 'undefined' && window.location.pathname.includes('/dev/scheduler-mock'));
+
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
       <Container maxWidth="xl" sx={{ py: 1 }}>
@@ -1521,6 +1524,14 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
             </ButtonGroup>
           </Box>
         </Box>
+
+        {hideHarnessControls && (
+          <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+            <Alert severity="info" sx={{ flex: 1 }}>
+              Data already loaded from mock-test. Use the Generate button above to reschedule; top harness buttons are hidden.
+            </Alert>
+          </Box>
+        )}
 
         {overdueTasks.length > 0 && (
           <Paper variant="outlined" sx={{ p: 1.25, mb: 1.5, borderColor: 'error.light', bgcolor: 'error.lighter' }}>
