@@ -907,35 +907,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                   }
                   return { ...event, type };
                 });
-                // Group DUE events by course (same day)
-                const groupedDue = new Map<string, any[]>();
-                normalizedDayEvents.forEach(evt => {
-                  const kind = resolveVisualKindForEvent(evt);
-                  if (kind !== 'DUE') return;
-                  const course = getCourseForEvent(evt);
-                  const key = course?.id || course?.code || 'unknown';
-                  if (!groupedDue.has(key)) groupedDue.set(key, []);
-                  groupedDue.get(key)!.push(evt);
-                });
-                const collapsedDueEvents: any[] = [];
-                groupedDue.forEach((list, key) => {
-                  const first = list[0];
-                  const course = getCourseForEvent(first);
-                  const titleBase = course?.code || course?.name || 'Due';
-                  collapsedDueEvents.push({
-                    ...first,
-                    title: list.length > 1 ? `${titleBase} • ${list.length} due` : first.title,
-                    onClick: () => setDueModal({ open: true, items: list.map((d: any) => ({
-                      id: d.id,
-                      title: d.title,
-                      subtitle: format(ensureDate(d.startTime), 'h:mm a'),
-                      course
-                    })), date: day }),
-                  });
-                });
-                const nonDueEvents = normalizedDayEvents.filter(evt => resolveVisualKindForEvent(evt) !== 'DUE');
-                const normalizedDayEventsWithGroups = [...nonDueEvents, ...collapsedDueEvents];
-
                 const normalizedDayBlocks = dayBlocks.filter(Boolean).map((block, idx) => {
                   const task = getTaskForBlock(block.id);
                   const fallbackType = block?.type || task?.type || 'study';
@@ -945,7 +916,75 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                   return { ...block, type: fallbackType };
                 });
 
-                const allItems = [...normalizedDayEventsWithGroups, ...normalizedDayBlocks];
+                const dueBlocks = normalizedDayBlocks.filter(b => b.type === 'due' || b.type === 'deadline');
+                const remainingBlocks = normalizedDayBlocks.filter(b => b.type !== 'due' && b.type !== 'deadline');
+
+                // Group DUE events/blocks by course (same day)
+                const groupedDue = new Map<string, any[]>();
+                const addDue = (item: any, course: any) => {
+                  const key = course?.id || course?.code || 'unknown';
+                  if (!groupedDue.has(key)) groupedDue.set(key, []);
+                  groupedDue.get(key)!.push(item);
+                };
+
+                normalizedDayEvents.forEach(evt => {
+                  const kind = resolveVisualKindForEvent(evt);
+                  if (kind !== 'DUE') return;
+                  const course = getCourseForEvent(evt);
+                  addDue(evt, course);
+                });
+
+                dueBlocks.forEach(block => {
+                  const task = getTaskForBlock(block.id);
+                  const course = task ? getCourse(task.courseId) : null;
+                  const start = ensureDate(block.startTime);
+                  addDue({
+                    ...block,
+                    startTime: start,
+                    endTime: ensureDate(block.endTime || addMinutes(start, 30)),
+                    title: task?.title || 'Due',
+                    courseId: task?.courseId,
+                  }, course);
+                });
+
+                const collapsedDueItems: any[] = [];
+                groupedDue.forEach((list, key) => {
+                  const first = list[0];
+                  const course = getCourseForEvent(first) || getCourse((first as any).courseId || key);
+                  const titleBase = course?.code || course?.name || 'Due';
+                  const earliest = list.reduce((acc: Date, item: any) => {
+                    const st = ensureDate(item.startTime);
+                    return st < acc ? st : acc;
+                  }, ensureDate(list[0].startTime));
+                  const compact = list.length > 3;
+                  collapsedDueItems.push({
+                    ...first,
+                    id: `due-group-${key}-${day.toISOString()}`,
+                    type: 'deadline',
+                    title: compact ? `${titleBase}` : list.length > 1 ? `${titleBase} • ${list.length} due` : first.title,
+                    startTime: earliest,
+                    endTime: addMinutes(earliest, 30),
+                    isDueGroup: true,
+                    dueCount: list.length,
+                    courseId: course?.id,
+                    onClick: () => setDueModal({
+                      open: true,
+                      items: list.map((d: any) => ({
+                        id: d.id,
+                        title: d.title,
+                        subtitle: format(ensureDate(d.startTime), 'h:mm a'),
+                        course
+                      })),
+                      date: day
+                    }),
+                    compact,
+                  });
+                });
+
+                const nonDueEvents = normalizedDayEvents.filter(evt => resolveVisualKindForEvent(evt) !== 'DUE');
+                const normalizedDayEventsWithGroups = [...nonDueEvents, ...collapsedDueItems];
+
+                const allItems = [...normalizedDayEventsWithGroups, ...remainingBlocks];
                 allItems.forEach((item, idx) => {
                   if (!item || !item.type) {
                     console.error('Bad calendar item before render', { index: idx, item });
@@ -998,7 +1037,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       ))}
                       
                     {/* Events */}
-                    {normalizedDayEvents.map(event => {
+                    {normalizedDayEventsWithGroups.map(event => {
                       const positionData = itemsWithPositions.get(event.id || event);
                       const startTime = ensureDate(event.startTime);
                       const endTime = ensureDate(event.endTime);
@@ -1030,6 +1069,12 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const totalColumns = positionData?.totalColumns || 1;
                       const width = `calc(${100 / totalColumns}% - 4px)`;
                       const leftPosition = `${(column * 100) / totalColumns}%`;
+                      const isDueGroup = (event as any).isDueGroup;
+                      const dueCount = (event as any).dueCount || 0;
+                      const isCompactDue = isDueGroup && (event as any).compact;
+                      const groupTitle = isDueGroup
+                        ? `${event.title}${dueCount > 1 ? ` (+${dueCount - 1} more)` : ''}`
+                        : event.title;
 
                         const datePill =
                           visualKind === 'DUE' ? (
@@ -1063,8 +1108,47 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                             </Box>
                           ) : null;
 
+                        if (isCompactDue) {
+                          return (
+                            <Tooltip key={event.id} title={groupTitle}>
+                              <Card
+                                sx={{
+                                  position: 'absolute',
+                                  top: `${(startHour - hoursRange.start) * HOUR_HEIGHT}px`,
+                                  height: 70,
+                                  width: 70,
+                                  left: leftPosition,
+                                  backgroundColor: visual.fill,
+                                  color: visual.text,
+                                  border: `1px solid ${RED_BAND}`,
+                                  borderRadius: 1,
+                                  boxShadow: CARD_SHADOW,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  textAlign: 'center',
+                                  cursor: 'pointer',
+                                }}
+                                onClick={(event as any).onClick}
+                              >
+                                <Stack spacing={0.3} alignItems="center">
+                                  <Typography variant="caption" fontWeight={800} sx={{ lineHeight: 1, color: RED_BAND }}>
+                                    DUE
+                                  </Typography>
+                                  <Typography variant="caption" fontWeight={700} sx={{ lineHeight: 1.1 }} noWrap>
+                                    {course?.code || 'Course'}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
+                                    +{dueCount} due
+                                  </Typography>
+                                </Stack>
+                              </Card>
+                            </Tooltip>
+                          );
+                        }
+
                         return (
-                          <Tooltip key={event.id} title={`${event.title} - ${course?.name || 'Unknown Course'}`}>
+                          <Tooltip key={event.id} title={`${groupTitle} - ${course?.name || 'Unknown Course'}`}>
                             <Card
                               draggable
                               onDragStart={(e) => handleDragStart(e, event, 'event')}
@@ -1089,7 +1173,13 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                   transition: 'all 0.12s'
                                 }
                               }}
-                              onClick={() => handleEventClick(event)}
+                              onClick={() => {
+                                if ((event as any).onClick) {
+                                  (event as any).onClick();
+                                } else {
+                                  handleEventClick(event);
+                                }
+                              }}
                           >
                             <CardContent sx={{ pl: 0, pr: cardPadding, py: cardPadding, '&:last-child': { pb: cardPadding }, height: '100%', display: 'flex', gap: cardGap, alignItems: 'stretch' }}>
                               {visualKind === 'DUE' ? (
@@ -1102,7 +1192,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                       noWrap
                                       sx={{ fontSize: '11px', letterSpacing: 0.3, color: '#fff' }}
                                     >
-                                      {event.title}
+                                      {isDueGroup ? groupTitle : event.title}
                                     </Typography>
                                     <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
                                       {format(startTime, 'h:mm a')}
@@ -1110,6 +1200,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                     {course?.code && (
                                       <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
                                         {course.code}
+                                      </Typography>
+                                    )}
+                                    {isDueGroup && dueCount > 1 && (
+                                      <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px', color: '#fff' }} noWrap>
+                                        +{dueCount - 1} more
                                       </Typography>
                                     )}
                                   </Stack>
@@ -1145,7 +1240,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                       noWrap
                                       sx={{ fontSize: '11px', letterSpacing: 0.3 }}
                                     >
-                                      {event.title}
+                                      {isDueGroup ? groupTitle : event.title}
                                     </Typography>
                                     <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9.5px' }} noWrap>
                                       {format(startTime, 'h:mm a')} – {format(endTime, 'h:mm a')}
@@ -1153,6 +1248,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                     {course?.code && (
                                       <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '9px' }} noWrap>
                                         {course.code}
+                                      </Typography>
+                                    )}
+                                    {isDueGroup && dueCount > 1 && (
+                                      <Typography variant="caption" color="text.secondary" noWrap>
+                                        +{dueCount - 1} more
                                       </Typography>
                                     )}
                                   </Stack>
