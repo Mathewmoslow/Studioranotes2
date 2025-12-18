@@ -1011,10 +1011,20 @@ export const useScheduleStore = create<ScheduleStore>()(
         const safeBedHour = bedHour <= wakeHour ? Math.min(23, wakeHour + 8) : bedHour;
 
         // Initialize new scheduler with config including user preferences
+        // Derive daily study capacity from user preferences (honor onboarding input)
+        const studyStartHour = parseHourSafe(state.preferences.studyHours?.start?.split(':')[0], 9);
+        const studyEndHour = parseHourSafe(state.preferences.studyHours?.end?.split(':')[0], 21);
+        const studyRangeHours = Math.max(1, studyEndHour - studyStartHour);
+        const preferredDaily = state.preferences.maxDailyStudyHours || state.preferences.hoursPerWeekday || studyRangeHours;
+
         const scheduler = new DynamicScheduler({
-          dailyStudyHours: state.schedulerConfig.dailyStudyHours,
+          dailyStudyHours: {
+            min: 1,
+            max: Math.max(studyRangeHours, preferredDaily),
+            preferred: Math.max(studyRangeHours, preferredDaily),
+          },
           breakDuration: state.schedulerConfig.breakDuration,
-          sessionDuration: state.schedulerConfig.sessionDuration,
+          sessionDuration: state.preferences.sessionDuration || state.schedulerConfig.sessionDuration,
           sleepSchedule: {
             bedtime: safeBedHour,
             wakeTime: wakeHour
