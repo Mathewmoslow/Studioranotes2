@@ -919,7 +919,9 @@ export class DynamicScheduler {
         !isNaN(slot.start.getTime()) && !isNaN(slot.end.getTime()) &&
         isAfter(slot.end, slot.start)
       )
-      // Clamp slots to the current day window to avoid negative gaps
+      // Keep only slots that intersect this day; drop slots entirely outside the window
+      .filter(slot => isAfter(slot.end, dayStart) && isAfter(dayEnd, slot.start))
+      // Clamp overlapping slots to the current day window
       .map(slot => ({
         start: isBefore(slot.start, dayStart) ? dayStart : slot.start,
         end: isAfter(slot.end, dayEnd) ? dayEnd : slot.end
