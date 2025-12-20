@@ -167,7 +167,7 @@ export default function HomePage() {
             <Grid size={{ xs: 12, md: 4 }}>
               <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                  <Schedule color="primary" />
+                  <ScheduleIcon color="primary" />
                   <Typography fontWeight={700}>Deterministic checks</Typography>
                 </Stack>
                 <Typography variant="body2" color="text.secondary">
