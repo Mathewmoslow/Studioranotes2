@@ -19,18 +19,47 @@ const STYLE_REQUIREMENTS: { [key: string]: StyleRequirements } = {
   'editorial-chic': {
     requiredElements: ['h1'], // Only require h1, be lenient
     requiredClasses: [], // Don't require specific classes
-    optionalClasses: ['note-body'],
+    optionalClasses: [
+      'note-body',
+      'container',
+      'definition-box',
+      'info-box',
+      'callout-box',
+      'remember-box',
+      'warning-box',
+      'label',
+      'grid-2',
+      'grid-3',
+      'card',
+      'card-title',
+      'comparison',
+      'comparison-column',
+    ],
   },
   'vibrant-textbook': {
     requiredElements: ['h1'], // Only require h1, be lenient
     requiredClasses: [], // Don't require specific classes
     optionalClasses: [
       'note-body',
-      'clinical-box',
-      'nursing-box',
-      'education-box',
-      'key-point-box',
-      'medication-box',
+      'container',
+      'header-template',
+      'topic-block-template',
+      'topic-header-template',
+      'topic-content-template',
+      'section-theory',
+      'section-details',
+      'section-analysis',
+      'section-methods',
+      'section-critical',
+      'section-procedures',
+      'section-summary',
+      'section-title',
+      'table-template',
+      'formula-box-template',
+      'priority-box-template',
+      'category-grid',
+      'category-card-template',
+      'quick-reference-template',
     ],
   },
 };
@@ -223,37 +252,76 @@ export function extractNoteContent(html: string): {
 export function getStyleCSS(style: 'editorial-chic' | 'vibrant-textbook'): string {
   const styles: { [key: string]: string } = {
     'editorial-chic': `
-    :root { --accent: #111; --bg: #f7f4ef; }
-    body { font-family: 'Playfair Display', Georgia, serif; background: var(--bg); color: #222; line-height: 1.7; }
-    .note-body { max-width: 800px; margin: 0 auto; padding: 2rem; }
-    .note-body h1 { font-size: 2.5rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
-    .note-body h2 { font-size: 1.8rem; color: var(--accent); margin-top: 2rem; }
-    .note-body h3 { font-size: 1.3rem; font-style: italic; }
-    .note-body blockquote { border-left: 4px solid var(--accent); padding-left: 1rem; font-style: italic; }
-    .note-body code { background: #111; color: #f7f4ef; padding: 2px 6px; border-radius: 3px; }
-    .note-body ul, .note-body ol { margin-left: 1.5rem; }
-    .note-body table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-    .note-body th, .note-body td { border: 1px solid #ddd; padding: 0.75rem; text-align: left; }
-    .note-body th { background: var(--accent); color: white; }
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Work+Sans:wght@300;400;500;600&display=swap');
+    :root { --accent: #1e3a8a; --accent-light: #eff6ff; --secondary: #7c2d12; --secondary-light: #fef9f5; --tertiary: #134e4a; --tertiary-light: #f0fdfa; --red: #991b1b; --red-light: #fef2f2; --black: #0a0a0a; --charcoal: #2a2a2a; --gray: #6a6a6a; --white: #fafafa; --line: #e5e5e5; }
+    body { font-family: 'Work Sans', sans-serif; line-height: 1.7; color: var(--charcoal); background: #ffffff; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+    h1, h2, h3, h4 { font-family: 'Libre Baskerville', serif; font-weight: 700; line-height: 1.2; color: var(--black); }
+    h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    h2 { font-size: 2rem; margin: 2.5rem 0 1.5rem 0; padding-bottom: 1rem; padding-top: 1.5rem; border-top: 3px solid var(--black); position: relative; }
+    h2::after { content: ''; position: absolute; top: -3px; left: 0; width: 80px; height: 3px; background: var(--accent); }
+    h3 { font-size: 1.5rem; margin: 2rem 0 1rem 0; color: var(--accent); }
+    h4 { font-size: 1.25rem; margin: 1.5rem 0 0.75rem 0; }
+    .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray); font-weight: 600; margin-bottom: 0.5rem; display: block; }
+    .definition-box { border-left: 4px solid var(--accent); padding: 1.5rem; background: var(--accent-light); margin: 2rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .definition-box .label { margin-bottom: 1rem; color: var(--accent); }
+    .info-box { border-left: 4px solid var(--secondary); padding: 1.5rem; background: var(--secondary-light); margin: 2rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .info-box .label { margin-bottom: 1rem; color: var(--secondary); }
+    .callout-box { border: 2px solid var(--black); padding: 1.5rem; margin: 2rem 0; background: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .callout-box .label { color: var(--black); }
+    .remember-box { background: var(--white); border: 1px solid var(--line); border-left: 4px solid var(--tertiary); padding: 1.5rem; margin: 2rem 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .warning-box { background: var(--red-light); border-left: 6px solid var(--red); padding: 1.5rem; margin: 2rem 0; box-shadow: 0 2px 8px rgba(153, 27, 27, 0.12); border-top: 1px solid var(--red); border-bottom: 1px solid var(--red); }
+    .warning-box .label { color: var(--red); font-weight: 700; }
+    ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.5rem; line-height: 1.7; }
+    table { width: 100%; border-collapse: collapse; margin: 2rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    thead { background-color: var(--black); color: #fff; }
+    th { padding: 1rem 1.25rem; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; }
+    td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
+    tbody tr:hover { background-color: var(--white); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin: 2rem 0; }
+    .card { padding: 1.5rem; background-color: var(--white); border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card-title { font-family: 'Libre Baskerville', serif; font-size: 1.125rem; font-weight: 700; color: var(--black); margin-bottom: 0.75rem; }
+    strong { font-weight: 600; color: var(--black); }
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0; }
+    .comparison-column { padding: 1.5rem; background: var(--white); border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    @media (max-width: 768px) { .grid-2, .grid-3, .comparison { grid-template-columns: 1fr; } h1 { font-size: 2rem; } h2 { font-size: 1.75rem; } }
     `,
     'vibrant-textbook': `
-    :root { --primary: #10b981; --secondary: #6366f1; --bg: #0f172a; --text: #e2e8f0; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-    .note-body { max-width: 900px; margin: 0 auto; padding: 2rem; }
-    .note-body h1 { font-size: 2.2rem; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .note-body h2 { font-size: 1.6rem; color: #a5b4fc; border-bottom: 2px solid #334155; padding-bottom: 0.5rem; }
-    .note-body h3 { font-size: 1.2rem; color: #67e8f9; }
-    .note-body code { background: #1e293b; color: #f472b6; padding: 2px 8px; border-radius: 4px; }
-    .note-body pre { background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; }
-    .note-body blockquote { border-left: 4px solid var(--primary); padding-left: 1rem; background: rgba(16,185,129,0.1); }
-    .note-body table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-    .note-body th { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; padding: 0.75rem; }
-    .note-body td { border: 1px solid #334155; padding: 0.75rem; }
-    .clinical-box { background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    .nursing-box { background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    .education-box { background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    .key-point-box { background: rgba(168,85,247,0.15); border-left: 4px solid #a855f7; padding: 1rem; margin: 1rem 0; }
-    .medication-box { background: rgba(20,184,166,0.15); border: 1px solid #14b8a6; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+    :root { --primary-dark: #2c3e50; --primary-medium: #34495e; --primary-light: #7f8c8d; --accent-blue: #3498db; --accent-blue-dark: #2874a6; --success-green: #27ae60; --warning-yellow: #f39c12; --danger-red: #e74c3c; --info-blue: #3498db; --bg-theory: #e8f8f5; --bg-details: #fef9e7; --bg-analysis: #ebf5fb; --bg-methods: #fdf2e9; --bg-critical: #fadbd8; --bg-procedures: #eafaf1; --bg-summary: #f4ecf7; --bg-neutral: #f7f7f7; }
+    body { font-family: 'EB Garamond', 'Garamond', serif; font-size: 16px; line-height: 1.8; color: #2c3e50; background: #f5f6fa; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; background: #ffffff; box-shadow: 0 0 20px rgba(0,0,0,0.1); padding: 40px; }
+    h1 { font-size: 2.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 1rem; }
+    h2 { font-size: 2rem; font-weight: 600; color: var(--primary-dark); margin: 40px 0 20px; padding: 15px; background: #ecf0f1; border-left: 5px solid var(--accent-blue); }
+    h3 { font-size: 1.5rem; font-weight: 600; color: var(--primary-medium); margin: 30px 0 15px; padding-left: 10px; border-left: 3px solid var(--accent-blue); }
+    h4 { font-size: 1.3rem; font-weight: 600; color: var(--primary-light); margin: 25px 0 10px; }
+    .header-template { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 40px; text-align: center; }
+    .topic-block-template { border: 2px solid #e1e8ed; border-radius: 10px; margin: 30px 0; overflow: hidden; }
+    .topic-header-template { background: var(--accent-blue); color: white; padding: 15px 20px; font-size: 1.4rem; font-weight: 600; }
+    .topic-content-template { padding: 25px; }
+    .section-theory { background: var(--bg-theory); padding: 20px; border-radius: 8px; margin: 15px 0; }
+    .section-details { background: var(--bg-details); padding: 20px; border-radius: 8px; margin: 15px 0; }
+    .section-analysis { background: var(--bg-analysis); padding: 20px; border-radius: 8px; margin: 15px 0; }
+    .section-methods { background: var(--bg-methods); padding: 20px; border-radius: 8px; margin: 15px 0; }
+    .section-critical { background: var(--bg-critical); padding: 20px; border-radius: 8px; margin: 15px 0; border: 2px solid var(--danger-red); }
+    .section-procedures { background: var(--bg-procedures); padding: 20px; border-radius: 8px; margin: 15px 0; }
+    .section-summary { background: var(--bg-summary); padding: 20px; border-radius: 8px; margin: 15px 0; }
+    .section-title { font-size: 1.2rem; font-weight: 600; color: var(--primary-dark); margin: 20px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--accent-blue); }
+    .table-template { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+    .table-template th { background: var(--primary-medium); color: white; padding: 12px; text-align: left; font-weight: 600; }
+    .table-template td { padding: 10px 12px; border: 1px solid #e1e8ed; }
+    .table-template tr:nth-child(even) { background: #f8f9fa; }
+    .formula-box-template { background: var(--bg-neutral); border: 2px dashed #95a5a6; padding: 15px; margin: 20px 0; font-family: 'Source Sans Pro', sans-serif; border-radius: 5px; }
+    .priority-box-template { background: #fff3cd; border: 2px solid var(--warning-yellow); padding: 20px; margin: 20px 0; border-radius: 8px; }
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
+    .category-card-template { border: 1px solid #e1e8ed; border-radius: 8px; padding: 15px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .category-card-template h4 { color: var(--accent-blue); margin-bottom: 10px; font-size: 1.1rem; }
+    .quick-reference-template { background: linear-gradient(135deg, #f5f7fa, #c3cfe2); padding: 25px; border-radius: 10px; margin: 30px 0; }
+    ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.5rem; }
+    @media (max-width: 768px) { .category-grid { grid-template-columns: 1fr; } h1 { font-size: 2rem; } h2 { font-size: 1.6rem; } h3 { font-size: 1.3rem; } }
     `,
   };
 

@@ -35,25 +35,43 @@ function loadStyleExample(style: string): string {
 
 // Style descriptions for the AI
 const STYLE_DESCRIPTIONS: { [key: string]: string } = {
-  'editorial-chic': `Editorial Chic is an elegant, magazine-style format with:
-- Serif typography (Playfair Display)
-- Cream/off-white background (#f7f4ef)
-- Black accent color (#111)
-- Clean borders and elegant spacing
-- Sophisticated, minimal aesthetic
-- NO special colored boxes - use blockquotes for emphasis instead`,
+  'editorial-chic': `Editorial Chic is a sophisticated, magazine-style academic format with:
+- Serif typography (Libre Baskerville for headers, Work Sans for body)
+- Clean white background with subtle shadows
+- Deep blue accent (#1e3a8a), brown secondary (#7c2d12), teal tertiary (#134e4a)
+- Sharp, crisp edges - NO rounded corners
+- Clean 4px left borders on content boxes
 
-  'vibrant-textbook': `Vibrant Textbook is a bold, modern study format with:
-- Sans-serif typography (Inter)
-- Dark blue background (#0f172a)
-- Gradient accents (emerald to indigo)
-- Light text (#e2e8f0)
-- MUST include special colored boxes strategically:
-  - clinical-box (red border): Clinical points and medical information
-  - nursing-box (blue border): Nursing-specific interventions and focus areas
-  - education-box (yellow border): Patient education and teaching points
-  - key-point-box (purple left border): Important concepts to remember
-  - medication-box (teal border): Drug information and nursing considerations`
+REQUIRED HTML BOX CLASSES (use these EXACT class names):
+- <div class="definition-box"><span class="label">KEY CONCEPT</span><p>Content here</p></div> - Blue left border, for definitions and key concepts
+- <div class="info-box"><span class="label">ADDITIONAL INFO</span><p>Content here</p></div> - Brown left border, for secondary information
+- <div class="callout-box"><span class="label">CRITICAL</span><p>Content here</p></div> - Black full border, for must-know information
+- <div class="remember-box"><p><strong>Remember:</strong> Content here</p></div> - Teal left border, for key takeaways
+- <div class="warning-box"><span class="label">WARNING</span><p>Content here</p></div> - Red left border, for critical alerts and common mistakes
+
+Use <span class="label">LABEL TEXT</span> for uppercase category labels within boxes.`,
+
+  'vibrant-textbook': `Vibrant Textbook is a comprehensive academic study format with:
+- Elegant typography (EB Garamond serif body, Source Sans Pro for technical content)
+- Light gray background (#f5f6fa) with white content areas
+- Blue accents (#3498db) with color-coded sections
+- Rounded corners (8px border-radius)
+- Professional headers with gradient backgrounds
+
+REQUIRED COLOR-CODED SECTION CLASSES (use these EXACT class names):
+- <div class="section-theory"><div class="section-title">Theory / Background</div>Content</div> - Light mint green (#e8f8f5) for foundational concepts
+- <div class="section-details"><div class="section-title">Key Details</div>Content</div> - Light yellow (#fef9e7) for specific facts and evidence
+- <div class="section-analysis"><div class="section-title">Analysis</div>Content</div> - Light blue (#ebf5fb) for evaluation and assessment
+- <div class="section-methods"><div class="section-title">Methods / Solutions</div>Content</div> - Light orange (#fdf2e9) for approaches and techniques
+- <div class="section-critical"><div class="section-title">Critical Points</div>Content</div> - Light red (#fadbd8) for warnings and common errors
+- <div class="section-procedures"><div class="section-title">Procedures</div>Content</div> - Light green (#eafaf1) for step-by-step actions
+- <div class="section-summary"><div class="section-title">Summary</div>Content</div> - Light purple (#f4ecf7) for key takeaways
+
+OTHER AVAILABLE COMPONENTS:
+- <div class="topic-block-template"><div class="topic-header-template">Topic Name</div><div class="topic-content-template">...</div></div> - Major topic container
+- <div class="priority-box-template"><h4>Important</h4>...</div> - Yellow warning box for priority info
+- <table class="table-template">...</table> - Styled data tables
+- <div class="category-grid"><div class="category-card-template"><h4>Category</h4>...</div></div> - Card grid layout`
 }
 
 export async function POST(request: NextRequest) {

@@ -1,193 +1,879 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Heart Failure — Studiora Notes</title>
-  <style>
-    :root { --primary: #10b981; --secondary: #6366f1; --bg: #0f172a; --text: #e2e8f0; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-    .note-body { max-width: 900px; margin: 0 auto; padding: 2rem; }
-    .note-body h1 { font-size: 2.2rem; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .note-body h2 { font-size: 1.6rem; color: #a5b4fc; border-bottom: 2px solid #334155; padding-bottom: 0.5rem; }
-    .note-body h3 { font-size: 1.2rem; color: #67e8f9; }
-    .note-body code { background: #1e293b; color: #f472b6; padding: 2px 8px; border-radius: 4px; }
-    .note-body pre { background: #1e293b; padding: 1rem; border-radius: 8px; overflow-x: auto; }
-    .note-body blockquote { border-left: 4px solid var(--primary); padding-left: 1rem; background: rgba(16,185,129,0.1); }
-    .note-body table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-    .note-body th { background: linear-gradient(90deg, var(--primary), var(--secondary)); color: white; padding: 0.75rem; }
-    .note-body td { border: 1px solid #334155; padding: 0.75rem; }
-    .clinical-box { background: rgba(239,68,68,0.15); border: 1px solid #ef4444; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    .nursing-box { background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    .education-box { background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    .key-point-box { background: rgba(168,85,247,0.15); border-left: 4px solid #a855f7; padding: 1rem; margin: 1rem 0; }
-    .medication-box { background: rgba(20,184,166,0.15); border: 1px solid #14b8a6; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibrant Textbook - Academic Style Guide</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+        
+        /* ===========================
+           BASE STYLES - CORE FOUNDATION
+           =========================== */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'EB Garamond', 'Garamond', serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: #f5f6fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        /* ===========================
+           COLOR PALETTE REFERENCE
+           =========================== */
+        
+        :root {
+            /* Primary Colors */
+            --primary-dark: #2c3e50;      /* Headers, main text */
+            --primary-medium: #34495e;     /* Subheadings */
+            --primary-light: #7f8c8d;      /* Secondary text */
+            
+            /* Accent Colors */
+            --accent-blue: #3498db;        /* Links, highlights, borders */
+            --accent-blue-dark: #2874a6;   /* Table headers, emphasis */
+            
+            /* Semantic Colors */
+            --success-green: #27ae60;      /* Positive, success states */
+            --warning-yellow: #f39c12;     /* Caution, important */
+            --danger-red: #e74c3c;         /* Critical, alert */
+            --info-blue: #3498db;          /* Information, notes */
+            
+            /* Background Colors by Content Type */
+            --bg-theory: #e8f8f5;          /* Light mint green - Theory/Background */
+            --bg-details: #fef9e7;         /* Light yellow - Key Details */
+            --bg-analysis: #ebf5fb;        /* Light blue - Analysis/Assessment */
+            --bg-methods: #fdf2e9;         /* Light orange - Methods/Solutions */
+            --bg-critical: #fadbd8;        /* Light red - Critical Points */
+            --bg-procedures: #eafaf1;      /* Light green - Procedures/Steps */
+            --bg-summary: #f4ecf7;         /* Light purple - Summary/Applications */
+            --bg-neutral: #f7f7f7;         /* Light gray */
+        }
+        
+        /* ===========================
+           TYPOGRAPHY HIERARCHY
+           =========================== */
+        
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin: 40px 0 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-left: 5px solid var(--accent-blue);
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-medium);
+            margin: 30px 0 15px;
+            padding-left: 10px;
+            border-left: 3px solid var(--accent-blue);
+        }
+        
+        h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-light);
+            margin: 25px 0 10px;
+        }
+        
+        /* ===========================
+           COMPONENT TEMPLATES
+           =========================== */
+        
+        /* Template 1: Header Section */
+        .header-template {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        /* Template 2: Topic Block */
+        .topic-block-template {
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .topic-header-template {
+            background: var(--accent-blue);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .topic-content-template {
+            padding: 25px;
+        }
+        
+        /* Template 3: Content Sections by Type */
+        .section-theory {
+            background: var(--bg-theory);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .section-details {
+            background: var(--bg-details);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .section-analysis {
+            background: var(--bg-analysis);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .section-methods {
+            background: var(--bg-methods);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .section-critical {
+            background: var(--bg-critical);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px solid var(--danger-red);
+        }
+        
+        .section-procedures {
+            background: var(--bg-procedures);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .section-summary {
+            background: var(--bg-summary);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        /* Template 4: Section Title */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+        
+        /* Template 5: Tables */
+        .table-template {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table-template th {
+            background: var(--primary-medium);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .table-template td {
+            padding: 10px 12px;
+            border: 1px solid #e1e8ed;
+        }
+        
+        .table-template tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        /* Special table variations */
+        .data-table th {
+            background: var(--success-green);
+        }
+        
+        .reference-table th {
+            background: var(--accent-blue-dark);
+        }
+        
+        /* Template 6: Formula/Calculation Box */
+        .formula-box-template {
+            background: var(--bg-neutral);
+            border: 2px dashed #95a5a6;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Source Sans Pro', sans-serif;
+            font-size: 1rem;
+            color: var(--primary-dark);
+            border-radius: 5px;
+        }
+        
+        /* Template 7: Priority/Important Box */
+        .priority-box-template {
+            background: #fff3cd;
+            border: 2px solid var(--warning-yellow);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        /* Template 8: Category-Specific Cards */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .category-card-template {
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .category-card-template h4 {
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        /* Template 9: Quick Reference */
+        .quick-reference-template {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        /* Template 10: Navigation Menu */
+        .nav-menu-template {
+            position: sticky;
+            top: 0;
+            background: var(--primary-dark);
+            padding: 15px 40px;
+            z-index: 100;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-menu-template a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-menu-template a:hover {
+            background: var(--accent-blue);
+        }
+        
+        /* ===========================
+           USAGE EXAMPLES
+           =========================== */
+        
+        .example-box {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f0f8ff;
+        }
+        
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Source Sans Pro', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        /* ===========================
+           RESPONSIVE DESIGN
+           =========================== */
+        
+        @media (max-width: 768px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.6rem; }
+            h3 { font-size: 1.3rem; }
+            
+            .table-template {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* ===========================
+           PRINT STYLES
+           =========================== */
+        
+        @media print {
+            .nav-menu-template {
+                display: none;
+            }
+            
+            .topic-block-template {
+                page-break-inside: avoid;
+            }
+            
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <article class="note-body">
-    <header style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #334155;">
-      <small style="color: #94a3b8;">NURS 301 • December 20, 2024</small>
-    </header>
-    <h1>Heart Failure</h1>
-
-    <h2>Overview</h2>
-    <p>Heart failure (HF) is a complex clinical syndrome resulting from structural or functional impairment of ventricular filling or ejection of blood. It represents the final common pathway of various cardiac diseases and remains a leading cause of morbidity and mortality worldwide.</p>
-
-    <div class="key-point-box">
-      <h4>Key Point</h4>
-      <p>Heart failure is NOT the same as a heart attack. HF is a chronic condition where the heart cannot pump effectively, while MI is acute ischemic injury to heart muscle.</p>
+    <div class="container">
+        <div class="header-template">
+            <h1>Vibrant Textbook</h1>
+            <p style="font-size: 1.2rem; margin-top: 10px;">Academic Study Guide Style Template — Complete Documentation & Usage Guide</p>
+        </div>
+        
+        <nav class="nav-menu-template">
+            <a href="#overview">Overview</a>
+            <a href="#color-system">Color System</a>
+            <a href="#components">Components</a>
+            <a href="#implementation">Implementation</a>
+            <a href="#examples">Examples</a>
+        </nav>
+        
+        <div style="padding: 40px;">
+            <section id="overview">
+                <h2>Template Overview & Philosophy</h2>
+                
+                <div class="priority-box-template">
+                    <h3>Design Principles</h3>
+                    <ul>
+                        <li><strong>Professional Typography:</strong> Garamond serif for body text, Source Sans Pro for technical content</li>
+                        <li><strong>Color-Coded Learning:</strong> Each content type has a designated background color for quick identification</li>
+                        <li><strong>Hierarchical Structure:</strong> Clear visual hierarchy guides the eye through complex information</li>
+                        <li><strong>Topic-Based Organization:</strong> All related information grouped together for comprehensive understanding</li>
+                        <li><strong>Print-Friendly:</strong> Optimized for both screen viewing and physical printing</li>
+                    </ul>
+                </div>
+                
+                <h3>When to Use This Template</h3>
+                <ul>
+                    <li>Creating academic study guides for any discipline</li>
+                    <li>Organizing complex course information</li>
+                    <li>Preparing exam review materials</li>
+                    <li>Developing educational reference resources</li>
+                    <li>Building comprehensive topic summaries</li>
+                </ul>
+            </section>
+            
+            <section id="color-system">
+                <h2>Color System & Semantic Meaning</h2>
+                
+                <div class="example-box">
+                    <h3>Content Type Color Coding</h3>
+                    <p>Each color has a specific meaning to help with information retention and quick scanning:</p>
+                </div>
+                
+                <div class="section-theory">
+                    <div class="section-title">Theory / Background - Light Mint Green (#e8f8f5)</div>
+                    <p><strong>Use for:</strong> Foundational concepts, theoretical frameworks, underlying principles, historical context</p>
+                    <p><strong>Why this color:</strong> Green represents growth and foundational knowledge</p>
+                </div>
+                
+                <div class="section-details">
+                    <div class="section-title">Key Details / Evidence - Light Yellow (#fef9e7)</div>
+                    <p><strong>Use for:</strong> Specific facts, supporting evidence, notable features, observable characteristics</p>
+                    <p><strong>Why this color:</strong> Yellow draws attention to important details</p>
+                </div>
+                
+                <div class="section-analysis">
+                    <div class="section-title">Analysis / Assessment - Light Blue (#ebf5fb)</div>
+                    <p><strong>Use for:</strong> Data interpretation, evaluation criteria, analytical frameworks, measurement standards</p>
+                    <p><strong>Why this color:</strong> Blue suggests clarity and precision</p>
+                </div>
+                
+                <div class="section-methods">
+                    <div class="section-title">Methods / Solutions - Light Orange (#fdf2e9)</div>
+                    <p><strong>Use for:</strong> Approaches, techniques, solutions, formulas, processes</p>
+                    <p><strong>Why this color:</strong> Orange indicates action items requiring careful attention</p>
+                </div>
+                
+                <div class="section-critical">
+                    <div class="section-title">Critical Points / Common Errors - Light Red (#fadbd8)</div>
+                    <p><strong>Use for:</strong> Important warnings, common mistakes, critical thresholds, pitfalls to avoid</p>
+                    <p><strong>Why this color:</strong> Red universally signals caution and immediate attention</p>
+                </div>
+                
+                <div class="section-procedures">
+                    <div class="section-title">Procedures / Steps - Light Green (#eafaf1)</div>
+                    <p><strong>Use for:</strong> Step-by-step processes, action sequences, implementation guidelines, how-to instructions</p>
+                    <p><strong>Why this color:</strong> Green represents forward progress and actionable steps</p>
+                </div>
+                
+                <div class="section-summary">
+                    <div class="section-title">Summary / Applications - Light Purple (#f4ecf7)</div>
+                    <p><strong>Use for:</strong> Key takeaways, real-world applications, review points, practical uses</p>
+                    <p><strong>Why this color:</strong> Purple suggests wisdom and knowledge synthesis</p>
+                </div>
+            </section>
+            
+            <section id="components">
+                <h2>Component Library</h2>
+                
+                <h3>1. Topic Block Structure</h3>
+                <div class="example-box">
+                    <h4>Usage Instructions:</h4>
+                    <p>Use this structure for each major topic or concept. It provides a complete framework with all necessary sections.</p>
+                </div>
+                
+                <div class="code-block">
+&lt;div class="topic-block-template"&gt;
+    &lt;div class="topic-header-template"&gt;Topic Name&lt;/div&gt;
+    &lt;div class="topic-content-template"&gt;
+        
+        &lt;div class="section-theory"&gt;
+            &lt;div class="section-title"&gt;Theory / Background&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="section-details"&gt;
+            &lt;div class="section-title"&gt;Key Details&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="section-analysis"&gt;
+            &lt;div class="section-title"&gt;Analysis&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="section-methods"&gt;
+            &lt;div class="section-title"&gt;Methods / Solutions&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="section-critical"&gt;
+            &lt;div class="section-title"&gt;Critical Points&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="section-procedures"&gt;
+            &lt;div class="section-title"&gt;Procedures / Steps&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+        &lt;div class="section-summary"&gt;
+            &lt;div class="section-title"&gt;Summary / Applications&lt;/div&gt;
+            &lt;!-- Content here --&gt;
+        &lt;/div&gt;
+        
+    &lt;/div&gt;
+&lt;/div&gt;
+                </div>
+                
+                <h3>2. Tables</h3>
+                <div class="example-box">
+                    <h4>Usage Instructions:</h4>
+                    <p>Tables should be used for comparing data, showing ranges, or organizing multi-dimensional information.</p>
+                </div>
+                
+                <table class="table-template">
+                    <thead>
+                        <tr>
+                            <th>Column 1</th>
+                            <th>Column 2</th>
+                            <th>Column 3</th>
+                            <th>Column 4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Data point</td>
+                            <td>Value or range</td>
+                            <td>Significance</td>
+                            <td>Application</td>
+                        </tr>
+                        <tr>
+                            <td>Example data</td>
+                            <td>Standard: 10-20</td>
+                            <td>Indicates relationship</td>
+                            <td>Use case</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>3. Priority/Warning Boxes</h3>
+                <div class="priority-box-template">
+                    <h4>Priority Information</h4>
+                    <p>Use this box style for information that must be memorized or requires special attention. Examples include:</p>
+                    <ul>
+                        <li>Critical formulas</li>
+                        <li>Essential procedures</li>
+                        <li>Must-know values</li>
+                        <li>High-yield exam content</li>
+                    </ul>
+                </div>
+                
+                <h3>4. Formula/Calculation Boxes</h3>
+                <div class="formula-box-template">
+                    <strong>Formula Name:</strong> Descriptive title<br>
+                    <strong>Formula:</strong> Mathematical expression<br>
+                    <strong>Example:</strong> Worked problem with solution<br>
+                    <strong>Application:</strong> When to use this calculation
+                </div>
+                
+                <h3>5. Category-Specific Information Grid</h3>
+                <div class="category-grid">
+                    <div class="category-card-template">
+                        <h4>Category Name</h4>
+                        <p><strong>Key Point 1:</strong> Information</p>
+                        <p><strong>Key Point 2:</strong> Information</p>
+                        <p><strong>Special Considerations:</strong> Notes</p>
+                    </div>
+                    <div class="category-card-template">
+                        <h4>Category Name</h4>
+                        <p><strong>Key Point 1:</strong> Information</p>
+                        <p><strong>Key Point 2:</strong> Information</p>
+                        <p><strong>Special Considerations:</strong> Notes</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="implementation">
+                <h2>Implementation Guide</h2>
+                
+                <div class="quick-reference-template">
+                    <h3>Step-by-Step Setup</h3>
+                    <ol>
+                        <li><strong>Copy the CSS:</strong> Include the entire style block in your HTML head</li>
+                        <li><strong>Import Fonts:</strong> Ensure Google Fonts link is included for Garamond and Source Sans Pro</li>
+                        <li><strong>Structure Content:</strong> Use the container div as your main wrapper</li>
+                        <li><strong>Apply Templates:</strong> Use the component classes for consistent styling</li>
+                        <li><strong>Maintain Hierarchy:</strong> Follow h1 → h2 → h3 → h4 structure</li>
+                    </ol>
+                </div>
+                
+                <h3>Content Organization Best Practices</h3>
+                
+                <div class="section-procedures">
+                    <div class="section-title">Recommended Structure for Each Topic</div>
+                    <ol>
+                        <li><strong>Start with Overview:</strong> Brief introduction to the topic</li>
+                        <li><strong>Follow Natural Flow:</strong>
+                            <ul>
+                                <li>Theory/Background (foundational concepts)</li>
+                                <li>Key Details (specific information)</li>
+                                <li>Analysis (how to evaluate)</li>
+                                <li>Methods/Solutions (approaches to use)</li>
+                                <li>Critical Points (what to watch for)</li>
+                                <li>Procedures (step-by-step actions)</li>
+                                <li>Summary (key takeaways)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Include Tables:</strong> For comparing options, stages, or multiple approaches</li>
+                        <li><strong>Add Formulas:</strong> When calculations are involved</li>
+                        <li><strong>Highlight Priorities:</strong> Use priority boxes for must-know information</li>
+                    </ol>
+                </div>
+                
+                <h3>Typography Guidelines</h3>
+                
+                <table class="table-template">
+                    <thead>
+                        <tr>
+                            <th>Element</th>
+                            <th>Font</th>
+                            <th>Size</th>
+                            <th>When to Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Main Title (h1)</td>
+                            <td>Garamond Bold</td>
+                            <td>2.5rem</td>
+                            <td>Document title only</td>
+                        </tr>
+                        <tr>
+                            <td>Section Headers (h2)</td>
+                            <td>Garamond Semibold</td>
+                            <td>2rem</td>
+                            <td>Major topic divisions</td>
+                        </tr>
+                        <tr>
+                            <td>Subsections (h3)</td>
+                            <td>Garamond Semibold</td>
+                            <td>1.5rem</td>
+                            <td>Concept names, subtopics</td>
+                        </tr>
+                        <tr>
+                            <td>Content Headers (h4)</td>
+                            <td>Garamond Semibold</td>
+                            <td>1.3rem</td>
+                            <td>Minor divisions</td>
+                        </tr>
+                        <tr>
+                            <td>Body Text</td>
+                            <td>Garamond Regular</td>
+                            <td>1rem (16px)</td>
+                            <td>All paragraph content</td>
+                        </tr>
+                        <tr>
+                            <td>Technical Content</td>
+                            <td>Source Sans Pro</td>
+                            <td>1rem</td>
+                            <td>Formulas, calculations</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <section id="examples">
+                <h2>Complete Implementation Examples</h2>
+                
+                <h3>Example 1: Simple Reference Entry</h3>
+                
+                <div class="section-methods">
+                    <div class="section-title">Key Term or Concept</div>
+                    <ul>
+                        <li><strong>Classification:</strong> Category or type</li>
+                        <li><strong>Standard Value:</strong> Typical range or specification</li>
+                        <li><strong>Maximum/Minimum:</strong> Upper or lower limits</li>
+                        <li><strong>Variants:</strong> Different forms or versions</li>
+                        <li><strong>Key Characteristics:</strong> Notable features</li>
+                        <li><strong>Important Considerations:</strong> Things to keep in mind</li>
+                    </ul>
+                </div>
+                
+                <h3>Example 2: Critical Protocol</h3>
+                
+                <div class="section-critical">
+                    <div class="section-title">Emergency/Priority Response</div>
+                    <ol>
+                        <li><strong>Recognize:</strong> Identify the key indicators</li>
+                        <li><strong>Assess:</strong> Evaluate the situation</li>
+                        <li><strong>Prioritize:</strong> Determine order of actions</li>
+                        <li><strong>Execute:</strong> Implement the solution</li>
+                        <li><strong>Monitor:</strong> Track results and adjust</li>
+                        <li><strong>Document:</strong> Record findings and outcomes</li>
+                    </ol>
+                </div>
+                
+                <h3>Example 3: Complete Topic Module</h3>
+                
+                <div class="topic-block-template">
+                    <div class="topic-header-template">Sample Topic: Data Analysis</div>
+                    <div class="topic-content-template">
+                        
+                        <div class="section-theory">
+                            <div class="section-title">Theory / Background</div>
+                            <ul>
+                                <li>Foundational concept explanation</li>
+                                <li>Underlying principles</li>
+                                <li>Historical context or development</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="section-details">
+                            <div class="section-title">Key Details</div>
+                            <table class="table-template">
+                                <thead>
+                                    <tr>
+                                        <th>Level 1</th>
+                                        <th>Level 2</th>
+                                        <th>Level 3</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Basic characteristic</td>
+                                        <td>Intermediate characteristic</td>
+                                        <td>Advanced characteristic</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Standard approach</td>
+                                        <td>Modified approach</td>
+                                        <td>Specialized approach</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="section-methods">
+                            <div class="section-title">Methods / Solutions</div>
+                            <ul>
+                                <li><strong>Basic:</strong> Standard approach with typical parameters</li>
+                                <li><strong>Intermediate:</strong> Modified approach for specific cases</li>
+                                <li><strong>Advanced:</strong> Specialized approach for complex scenarios</li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+            
+            <section id="quick-start">
+                <h2>Quick Start Template</h2>
+                
+                <div class="priority-box-template">
+                    <h3>Copy This Starter Template</h3>
+                    <p>Use this as your base HTML structure for any academic study guide:</p>
+                </div>
+                
+                <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Your Study Guide Title&lt;/title&gt;
+    &lt;style&gt;
+        /* Copy all CSS from this template */
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class="container"&gt;
+        &lt;div class="header-template"&gt;
+            &lt;h1&gt;Your Course Name&lt;/h1&gt;
+            &lt;p&gt;Study Guide Subtitle&lt;/p&gt;
+        &lt;/div&gt;
+        
+        &lt;nav class="nav-menu-template"&gt;
+            &lt;a href="#section1"&gt;Section 1&lt;/a&gt;
+            &lt;a href="#section2"&gt;Section 2&lt;/a&gt;
+        &lt;/nav&gt;
+        
+        &lt;div style="padding: 40px;"&gt;
+            &lt;!-- Your content here using the component templates --&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                </div>
+            </section>
+            
+            <section id="tips">
+                <h2>Pro Tips & Best Practices</h2>
+                
+                <div class="quick-reference-template">
+                    <h3>Do's and Don'ts</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div>
+                            <h4 style="color: var(--success-green);">✓ DO</h4>
+                            <ul>
+                                <li>Maintain consistent color coding throughout</li>
+                                <li>Use tables for comparative information</li>
+                                <li>Group all related content in one section</li>
+                                <li>Include specific values and standards</li>
+                                <li>Highlight critical points in red sections</li>
+                                <li>Use numbered lists for sequential steps</li>
+                                <li>Include normal ranges with data values</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--danger-red);">✗ DON'T</h4>
+                            <ul>
+                                <li>Mix color meanings (e.g., red for non-critical info)</li>
+                                <li>Use more than 4 heading levels</li>
+                                <li>Create walls of text without breaks</li>
+                                <li>Forget to include units for measurements</li>
+                                <li>Use ambiguous language or undefined abbreviations</li>
+                                <li>Omit context-specific considerations</li>
+                                <li>Skip the rationale for procedures</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Customization Options</h3>
+                
+                <div class="section-summary">
+                    <div class="section-title">How to Adapt for Your Discipline</div>
+                    <ul>
+                        <li><strong>Sciences:</strong> Emphasize analysis sections, add hypothesis/results frameworks</li>
+                        <li><strong>Mathematics:</strong> Focus on formula boxes, include worked examples throughout</li>
+                        <li><strong>Humanities:</strong> Expand theory sections, add argument/evidence structures</li>
+                        <li><strong>Business:</strong> Include case study formats, add strategic frameworks</li>
+                        <li><strong>Technical Fields:</strong> Emphasize procedures, add troubleshooting sections</li>
+                    </ul>
+                </div>
+                
+                <h3>Final Checklist</h3>
+                
+                <div class="example-box">
+                    <h4>Before Publishing Your Study Guide</h4>
+                    <ul style="list-style-type: none;">
+                        <li>☐ All topics follow the same structural template</li>
+                        <li>☐ Color coding is consistent and meaningful</li>
+                        <li>☐ Tables have clear headers and units</li>
+                        <li>☐ Methods include context and key considerations</li>
+                        <li>☐ Critical points are clearly marked and prioritized</li>
+                        <li>☐ Navigation menu links to all major sections</li>
+                        <li>☐ Formulas include worked examples</li>
+                        <li>☐ Content is organized from general to specific</li>
+                        <li>☐ Print preview shows proper formatting</li>
+                        <li>☐ Mobile view is readable and functional</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <div class="section-critical" style="margin-top: 50px;">
+                <div class="section-title">Remember: Quality Over Quantity</div>
+                <p><strong>This template is designed to enhance learning through visual organization.</strong></p>
+                <p>The goal is not to include every piece of information, but to present the most important concepts in a way that promotes understanding and retention. Focus on:</p>
+                <ul>
+                    <li>High-yield content for exams</li>
+                    <li>Core concepts you'll encounter frequently</li>
+                    <li>Critical values and threshold points</li>
+                    <li>Methods you'll apply regularly</li>
+                    <li>Evidence-based approaches</li>
+                </ul>
+            </div>
+        </div>
     </div>
-
-    <h2>Key Takeaways</h2>
-    <ul>
-      <li><strong>Definition:</strong> Heart cannot pump enough blood to meet metabolic demands</li>
-      <li><strong>Types:</strong> Left-sided (systolic/diastolic), Right-sided, Biventricular</li>
-      <li><strong>Classifications:</strong> NYHA Class I-IV based on functional limitation</li>
-      <li><strong>Primary Goal:</strong> Improve quality of life and reduce hospitalizations</li>
-    </ul>
-
-    <h2>Pathophysiology</h2>
-    <h3>Left-Sided Heart Failure</h3>
-    <p>The left ventricle fails to effectively pump blood into systemic circulation, leading to:</p>
-    <ol>
-      <li>Decreased cardiac output causing tissue hypoperfusion</li>
-      <li>Backup of blood into pulmonary circulation</li>
-      <li>Pulmonary congestion and edema</li>
-      <li>Activation of compensatory mechanisms (RAAS, SNS)</li>
-    </ol>
-
-    <div class="clinical-box">
-      <h4>Clinical Point</h4>
-      <p><strong>Forward vs Backward Failure:</strong></p>
-      <ul>
-        <li><strong>Forward failure:</strong> Inadequate cardiac output → tissue hypoperfusion, fatigue, weakness</li>
-        <li><strong>Backward failure:</strong> Venous congestion → pulmonary edema (left) or peripheral edema (right)</li>
-      </ul>
-    </div>
-
-    <h3>Right-Sided Heart Failure</h3>
-    <p>Often develops secondary to left-sided failure. The right ventricle cannot adequately empty, causing systemic venous congestion manifesting as:</p>
-    <ul>
-      <li>Peripheral edema (dependent areas)</li>
-      <li>Hepatomegaly and ascites</li>
-      <li>Jugular venous distension</li>
-      <li>Weight gain from fluid retention</li>
-    </ul>
-
-    <h2>Clinical Manifestations</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Left-Sided HF</th>
-          <th>Right-Sided HF</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Dyspnea (exertional, orthopnea, PND)</td>
-          <td>Peripheral edema</td>
-        </tr>
-        <tr>
-          <td>Pulmonary crackles</td>
-          <td>Jugular venous distension</td>
-        </tr>
-        <tr>
-          <td>Cough (dry or frothy)</td>
-          <td>Hepatomegaly</td>
-        </tr>
-        <tr>
-          <td>Fatigue and weakness</td>
-          <td>Ascites</td>
-        </tr>
-        <tr>
-          <td>S3 heart sound (ventricular gallop)</td>
-          <td>Weight gain</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>Nursing Interventions</h2>
-
-    <div class="nursing-box">
-      <h4>Nursing Focus: Assessment Priorities</h4>
-      <ul>
-        <li><strong>Daily weights:</strong> Same time, same scale, same clothing</li>
-        <li><strong>I&O:</strong> Strict monitoring, report imbalances</li>
-        <li><strong>Lung sounds:</strong> Assess q4h for crackles</li>
-        <li><strong>Edema:</strong> Pitting scale 1-4+, measure abdominal girth</li>
-        <li><strong>Vitals:</strong> Include SpO2, orthostatic BP if applicable</li>
-      </ul>
-    </div>
-
-    <h3>Key Interventions</h3>
-    <ol>
-      <li><strong>Position:</strong> High Fowler's to reduce venous return and improve breathing</li>
-      <li><strong>Oxygen:</strong> Maintain SpO2 > 94% as ordered</li>
-      <li><strong>Fluid restriction:</strong> Typically 1.5-2L/day</li>
-      <li><strong>Sodium restriction:</strong> < 2g/day</li>
-      <li><strong>Activity:</strong> Balance rest with progressive activity</li>
-    </ol>
-
-    <h2>Medications</h2>
-
-    <div class="medication-box">
-      <h4>Medication: ACE Inhibitors (Lisinopril, Enalapril)</h4>
-      <p><strong>Mechanism:</strong> Block conversion of angiotensin I to angiotensin II, reducing afterload and preventing cardiac remodeling</p>
-      <p><strong>Nursing Considerations:</strong></p>
-      <ul>
-        <li>Monitor for first-dose hypotension</li>
-        <li>Check potassium levels (risk of hyperkalemia)</li>
-        <li>Assess for dry cough (common side effect)</li>
-        <li>Hold if SBP < 90 mmHg</li>
-      </ul>
-    </div>
-
-    <div class="medication-box">
-      <h4>Medication: Loop Diuretics (Furosemide)</h4>
-      <p><strong>Mechanism:</strong> Block sodium and chloride reabsorption in the loop of Henle, promoting diuresis</p>
-      <p><strong>Nursing Considerations:</strong></p>
-      <ul>
-        <li>Monitor daily weights and I&O</li>
-        <li>Check potassium (risk of hypokalemia)</li>
-        <li>Administer in morning to prevent nocturia</li>
-        <li>Monitor for ototoxicity with high doses</li>
-      </ul>
-    </div>
-
-    <h2>Patient Education</h2>
-
-    <div class="education-box">
-      <h4>Patient Education: Self-Monitoring at Home</h4>
-      <ul>
-        <li><strong>Daily weights:</strong> Weigh every morning after voiding, before eating. Report gain of > 2 lbs in 24 hours or > 5 lbs in a week</li>
-        <li><strong>Sodium intake:</strong> Read nutrition labels, avoid processed foods, don't add salt at the table</li>
-        <li><strong>Fluid intake:</strong> Follow prescribed restriction, use smaller cups, suck on ice chips</li>
-        <li><strong>Activity:</strong> Stay as active as tolerated, rest when tired, elevate legs when sitting</li>
-        <li><strong>Medications:</strong> Take as prescribed, never stop suddenly, know side effects to report</li>
-      </ul>
-    </div>
-
-    <h2>Practice Questions</h2>
-    <p><strong>1. A patient with heart failure reports waking up at night gasping for air. This symptom is known as:</strong></p>
-    <p>A) Orthopnea<br>
-    B) Paroxysmal nocturnal dyspnea<br>
-    C) Cheyne-Stokes respirations<br>
-    D) Sleep apnea</p>
-
-    <div class="key-point-box">
-      <p><strong>Answer: B.</strong> Paroxysmal nocturnal dyspnea (PND) is sudden awakening with severe shortness of breath, typically occurring 2-3 hours after falling asleep. This happens because fluid redistributes to the lungs when lying flat.</p>
-    </div>
-
-    <p><strong>2. Which finding indicates worsening heart failure?</strong></p>
-    <p>A) Weight loss of 1 lb<br>
-    B) Weight gain of 3 lbs overnight<br>
-    C) Increased urine output<br>
-    D) Decreased BNP levels</p>
-
-    <div class="key-point-box">
-      <p><strong>Answer: B.</strong> Rapid weight gain (> 2-3 lbs in 24-48 hours) indicates fluid retention and worsening heart failure. This is why daily weights are critical for monitoring.</p>
-    </div>
-  </article>
 </body>
 </html>

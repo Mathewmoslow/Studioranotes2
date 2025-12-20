@@ -1,130 +1,884 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Heart Failure — Studiora Notes</title>
-  <style>
-    :root { --accent: #111; --bg: #f7f4ef; }
-    body { font-family: 'Playfair Display', Georgia, serif; background: var(--bg); color: #222; line-height: 1.7; }
-    .note-body { max-width: 800px; margin: 0 auto; padding: 2rem; }
-    .note-body h1 { font-size: 2.5rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; }
-    .note-body h2 { font-size: 1.8rem; color: var(--accent); margin-top: 2rem; }
-    .note-body h3 { font-size: 1.3rem; font-style: italic; }
-    .note-body blockquote { border-left: 4px solid var(--accent); padding-left: 1rem; font-style: italic; }
-    .note-body code { background: #111; color: #f7f4ef; padding: 2px 6px; border-radius: 3px; }
-    .note-body ul, .note-body ol { margin-left: 1.5rem; }
-    .note-body table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-    .note-body th, .note-body td { border: 1px solid #ddd; padding: 0.75rem; text-align: left; }
-    .note-body th { background: var(--accent); color: white; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editorial Chic - Academic Style Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent: #1e3a8a;
+            --accent-light: #eff6ff;
+            --secondary: #7c2d12;
+            --secondary-light: #fef9f5;
+            --tertiary: #134e4a;
+            --tertiary-light: #f0fdfa;
+            --red: #991b1b;
+            --red-light: #fef2f2;
+            --black: #0a0a0a;
+            --charcoal: #2a2a2a;
+            --gray: #6a6a6a;
+            --white: #fafafa;
+            --line: #e5e5e5;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            line-height: 1.7;
+            color: var(--charcoal);
+            background: #ffffff;
+            -webkit-font-smoothing: antialiased;
+            padding: 3rem 2rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-family: 'Libre Baskerville', serif;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--black);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            letter-spacing: -0.02em;
+            margin: 4rem 0 2rem 0;
+            padding-bottom: 1rem;
+            padding-top: 2rem;
+            border-top: 3px solid var(--black);
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background: var(--accent);
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            margin: 3rem 0 1.5rem 0;
+            color: var(--accent);
+        }
+
+        h4 {
+            font-size: 1.25rem;
+            margin: 2rem 0 1rem 0;
+            color: var(--black);
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--gray);
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gray);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        /* Cover Page */
+        .cover {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-bottom: 4px solid var(--black);
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .cover::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 120px;
+            height: 4px;
+            background: var(--accent);
+        }
+
+        .cover-title {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Stats */
+        .cover-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat {
+            border-left: 4px solid var(--accent);
+            padding-left: 1.5rem;
+        }
+
+        .stat-number {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--black);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray);
+        }
+
+        /* Content Blocks */
+        .definition-box {
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            background: var(--accent-light);
+            margin: 2rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .definition-box .label {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .info-box {
+            border-left: 4px solid var(--secondary);
+            padding: 1.5rem;
+            background: var(--secondary-light);
+            margin: 2rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .info-box .label {
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+
+        .callout-box {
+            border: 2px solid var(--black);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        .callout-box .label {
+            color: var(--black);
+        }
+
+        .remember-box {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--tertiary);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .warning-box {
+            background: var(--red-light);
+            border-left: 6px solid var(--red);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(153, 27, 27, 0.12);
+            border-top: 1px solid var(--red);
+            border-bottom: 1px solid var(--red);
+        }
+
+        .warning-box .label {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .warning-box strong {
+            color: var(--red);
+        }
+
+        /* Lists */
+        ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            line-height: 1.7;
+        }
+
+        ul ul {
+            margin-top: 0.5rem;
+            margin-left: 1.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.9375rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+        }
+
+        thead {
+            background-color: var(--black);
+            color: #fff;
+        }
+
+        th {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        tbody tr:hover {
+            background-color: var(--white);
+        }
+
+        /* Grid Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            padding: 1.5rem;
+            background-color: var(--white);
+            border: 1px solid var(--line);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Strong text */
+        strong {
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        /* Module Divider */
+        .module-header {
+            border-top: 3px solid var(--line);
+            border-bottom: 3px solid var(--line);
+            padding: 1rem 0;
+            margin: 4rem 0 3rem 0;
+            text-align: center;
+        }
+
+        .module-label {
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        /* Comparison Layout */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .comparison-column {
+            padding: 1.5rem;
+            background: var(--white);
+            border: 1px solid var(--line);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .comparison-column h3 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            body {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Utility */
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 2rem; }
+    </style>
 </head>
 <body>
-  <article class="note-body">
-    <header style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid currentColor; opacity: 0.6;">
-      <small>NURS 301 • December 20, 2024</small>
-    </header>
-    <h1>Heart Failure</h1>
+    <div class="container">
+        <!-- Cover Page -->
+        <div class="cover">
+            <span class="label">ACADEMIC STYLE GUIDE</span>
+            <h1 class="cover-title">Editorial Chic</h1>
+            <p class="subtitle">A Sophisticated Formatting System for Study Materials, Reports, and Academic Documents</p>
+            
+            <div class="cover-stats">
+                <div class="stat">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Box Types</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">2</span>
+                    <span class="stat-label">Font Families</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">∞</span>
+                    <span class="stat-label">Applications</span>
+                </div>
+            </div>
+        </div>
 
-    <h2>Overview</h2>
-    <p>Heart failure (HF) is a complex clinical syndrome resulting from structural or functional impairment of ventricular filling or ejection of blood. It represents the final common pathway of various cardiac diseases and remains a leading cause of morbidity and mortality worldwide.</p>
+        <!-- Content Sections -->
+        <span class="label">FOUNDATION</span>
+        <h2>Document Formatting Standards</h2>
+        
+        <p>This guide demonstrates the professional formatting style used in high-quality study materials and educational documents across all academic disciplines. The formatting emphasizes clarity, elegance, and visual hierarchy to enhance learning and retention through sophisticated, chic design principles.</p>
 
-    <h2>Key Takeaways</h2>
-    <ul>
-      <li><strong>Definition:</strong> Heart cannot pump enough blood to meet metabolic demands</li>
-      <li><strong>Types:</strong> Left-sided (systolic/diastolic), Right-sided, Biventricular</li>
-      <li><strong>Classifications:</strong> NYHA Class I-IV based on functional limitation</li>
-      <li><strong>Primary Goal:</strong> Improve quality of life and reduce hospitalizations</li>
-    </ul>
+        <div class="definition-box">
+            <span class="label">CORE PHILOSOPHY</span>
+            <p><strong>Clean, Crisp, and Professional:</strong> All formatting choices prioritize readability and sophistication. No rounded corners, no excessive decoration—just elegant, timeless design that puts content first while maintaining visual interest through strategic use of typography, color, and white space.</p>
+        </div>
 
-    <h2>Pathophysiology</h2>
-    <h3>Left-Sided Heart Failure</h3>
-    <p>The left ventricle fails to effectively pump blood into systemic circulation, leading to:</p>
-    <ol>
-      <li>Decreased cardiac output causing tissue hypoperfusion</li>
-      <li>Backup of blood into pulmonary circulation</li>
-      <li>Pulmonary congestion and edema</li>
-      <li>Activation of compensatory mechanisms (RAAS, SNS)</li>
-    </ol>
+        <span class="label">TYPOGRAPHY</span>
+        <h2>Header Hierarchy</h2>
+        
+        <h3>Primary Headers (H2)</h3>
+        <p>Large serif headers with a top border and accent line. These mark major section breaks and create visual rhythm throughout the document.</p>
 
-    <blockquote>
-      "Forward failure" refers to inadequate cardiac output, while "backward failure" describes venous congestion from blood backing up behind the failing ventricle.
-    </blockquote>
+        <div class="definition-box">
+            <span class="label">PRIMARY SECTION EXAMPLE</span>
+            <h4>Major Topic Area</h4>
+            <p>Primary headers use <strong>Libre Baskerville</strong> at 2.5rem (40px) with a 3px black top border. A colored accent line (80px wide) overlays the left portion of the border, creating an elegant detail that reinforces your brand colors.</p>
+            <ul>
+                <li><strong>Font:</strong> Libre Baskerville, 700 weight</li>
+                <li><strong>Top border:</strong> 3px solid black</li>
+                <li><strong>Accent:</strong> 80px colored line overlay</li>
+                <li><strong>Spacing:</strong> 4rem top, 2rem bottom</li>
+            </ul>
+        </div>
 
-    <h3>Right-Sided Heart Failure</h3>
-    <p>Often develops secondary to left-sided failure. The right ventricle cannot adequately empty, causing systemic venous congestion manifesting as:</p>
-    <ul>
-      <li>Peripheral edema (dependent areas)</li>
-      <li>Hepatomegaly and ascites</li>
-      <li>Jugular venous distension</li>
-      <li>Weight gain from fluid retention</li>
-    </ul>
+        <h3>Secondary Headers (H3)</h3>
+        <p>Smaller serif headers in accent color for subsections within major topics.</p>
 
-    <h2>Clinical Manifestations</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Left-Sided HF</th>
-          <th>Right-Sided HF</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Dyspnea (exertional, orthopnea, PND)</td>
-          <td>Peripheral edema</td>
-        </tr>
-        <tr>
-          <td>Pulmonary crackles</td>
-          <td>Jugular venous distension</td>
-        </tr>
-        <tr>
-          <td>Cough (dry or frothy)</td>
-          <td>Hepatomegaly</td>
-        </tr>
-        <tr>
-          <td>Fatigue and weakness</td>
-          <td>Ascites</td>
-        </tr>
-        <tr>
-          <td>S3 heart sound (ventricular gallop)</td>
-          <td>Weight gain</td>
-        </tr>
-      </tbody>
-    </table>
+        <span class="label">CONTENT BLOCKS</span>
+        <h2>Information Box Types</h2>
 
-    <h2>Nursing Interventions</h2>
-    <h3>Assessment Priorities</h3>
-    <ul>
-      <li>Daily weights (same time, same scale, same clothing)</li>
-      <li>Intake and output monitoring</li>
-      <li>Lung sounds assessment q4h</li>
-      <li>Peripheral edema assessment (pitting scale 1-4+)</li>
-      <li>Vital signs with oxygen saturation</li>
-    </ul>
+        <p>Different box types communicate different information hierarchies. Each uses a bold 4px left border and subtle background tint—no rounded corners, just clean lines.</p>
 
-    <h3>Key Interventions</h3>
-    <ol>
-      <li><strong>Position:</strong> High Fowler's to reduce venous return and improve breathing</li>
-      <li><strong>Oxygen:</strong> Maintain SpO2 > 94% as ordered</li>
-      <li><strong>Fluid restriction:</strong> Typically 1.5-2L/day</li>
-      <li><strong>Sodium restriction:</strong> < 2g/day</li>
-      <li><strong>Activity:</strong> Balance rest with progressive activity</li>
-    </ol>
+        <h3>Definition Box (Blue)</h3>
+        <div class="definition-box">
+            <span class="label">STANDARD INFORMATION</span>
+            <p><strong>Primary information box</strong> for definitions, key concepts, and foundational knowledge.</p>
+            <ul>
+                <li><strong>Border:</strong> 4px solid left border in accent blue (#1e3a8a)</li>
+                <li><strong>Background:</strong> Very light blue tint (#eff6ff)</li>
+                <li><strong>Shadow:</strong> Minimal (0 2px 4px rgba(0,0,0,0.06))</li>
+                <li><strong>Use case:</strong> Definitions, standard information, key concepts</li>
+            </ul>
+        </div>
 
-    <h2>Practice Questions</h2>
-    <p><strong>1. A patient with heart failure reports waking up at night gasping for air. This symptom is known as:</strong></p>
-    <p>A) Orthopnea<br>
-    B) Paroxysmal nocturnal dyspnea<br>
-    C) Cheyne-Stokes respirations<br>
-    D) Sleep apnea</p>
-    <p><em>Answer: B. Paroxysmal nocturnal dyspnea (PND) is sudden awakening with severe shortness of breath, typically occurring 2-3 hours after falling asleep.</em></p>
+        <h3>Information Box (Brown/Warm)</h3>
+        <div class="info-box">
+            <span class="label">SECONDARY INFORMATION</span>
+            <p><strong>Secondary information box</strong> for related details, context, or supporting content.</p>
+            <ul>
+                <li><strong>Border:</strong> 4px solid left border in warm brown (#7c2d12)</li>
+                <li><strong>Background:</strong> Very light warm tint (#fef9f5)</li>
+                <li><strong>Shadow:</strong> Minimal (0 2px 4px rgba(0,0,0,0.06))</li>
+                <li><strong>Use case:</strong> Related information, examples, context</li>
+            </ul>
+        </div>
 
-    <p><strong>2. Which finding indicates worsening heart failure?</strong></p>
-    <p>A) Weight loss of 1 lb<br>
-    B) Weight gain of 3 lbs overnight<br>
-    C) Increased urine output<br>
-    D) Decreased BNP levels</p>
-    <p><em>Answer: B. Rapid weight gain (> 2-3 lbs in 24-48 hours) indicates fluid retention and worsening heart failure.</em></p>
-  </article>
+        <h3>Callout Box (Black Border)</h3>
+        <div class="callout-box">
+            <span class="label">CRITICAL CONCEPT</span>
+            <p><strong>High-emphasis callout</strong> with full black border for the most important information.</p>
+            <ul>
+                <li><strong>Border:</strong> 2px solid black on all sides</li>
+                <li><strong>Background:</strong> Pure white (#ffffff)</li>
+                <li><strong>Shadow:</strong> Minimal (0 2px 4px rgba(0,0,0,0.06))</li>
+                <li><strong>Use case:</strong> Critical concepts, essential information, must-know content</li>
+            </ul>
+        </div>
+
+        <h3>Remember Box (Teal/Green)</h3>
+        <div class="remember-box">
+            <p><strong>Subtle reminder box</strong> for key takeaways, memory aids, or important notes. Uses a teal/green accent for "remember this" content without being visually overwhelming.</p>
+        </div>
+
+        <h3>Warning / Critical Alert Box (Red)</h3>
+        <div class="warning-box">
+            <span class="label">CRITICAL ALERT</span>
+            <p><strong>Critical alerts demand attention.</strong> This box uses deep red borders (6px on left, 1px top/bottom) and red-tinted background to immediately signal important warnings, common errors, or information requiring urgent attention. Strong visual hierarchy ensures these cannot be missed.</p>
+            <ul>
+                <li><strong>Border:</strong> 6px left + 1px top/bottom in deep red (#991b1b)</li>
+                <li><strong>Background:</strong> Light red tint (#fef2f2)</li>
+                <li><strong>Shadow:</strong> More prominent (0 2px 8px) for extra emphasis</li>
+                <li><strong>Use case:</strong> Common mistakes, critical warnings, pitfalls to avoid</li>
+            </ul>
+        </div>
+
+        <span class="label">TABLES & DATA</span>
+        <h2>Table Formatting</h2>
+
+        <p>Tables feature black headers with white text, clean lines, and subtle hover effects for enhanced readability.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Element</th>
+                    <th>Specification</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Header Background</strong></td>
+                    <td>Black (#0a0a0a) with white text</td>
+                    <td>Strong visual anchor and hierarchy</td>
+                </tr>
+                <tr>
+                    <td><strong>Row Separators</strong></td>
+                    <td>1px light gray bottom border</td>
+                    <td>Clear data separation</td>
+                </tr>
+                <tr>
+                    <td><strong>Hover State</strong></td>
+                    <td>Off-white background (#fafafa)</td>
+                    <td>Improved scannability</td>
+                </tr>
+                <tr>
+                    <td><strong>Cell Padding</strong></td>
+                    <td>1rem vertical, 1.25rem horizontal</td>
+                    <td>Comfortable spacing</td>
+                </tr>
+                <tr>
+                    <td><strong>Shadow</strong></td>
+                    <td>0 2px 4px rgba(0,0,0,0.06)</td>
+                    <td>Subtle elevation</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <span class="label">LAYOUT</span>
+        <h2>Grid Layouts</h2>
+
+        <h3>Two-Column Comparison</h3>
+        <p>Perfect for side-by-side comparisons or related content:</p>
+
+        <div class="comparison">
+            <div class="comparison-column">
+                <h3>Option A</h3>
+                <ul>
+                    <li><strong>Characteristic:</strong> Description</li>
+                    <li>Key feature one</li>
+                    <li>Key feature two</li>
+                    <li>Additional detail</li>
+                    <li>Final consideration</li>
+                </ul>
+            </div>
+            <div class="comparison-column">
+                <h3>Option B</h3>
+                <ul>
+                    <li><strong>Characteristic:</strong> Description</li>
+                    <li>Key feature one</li>
+                    <li>Key feature two</li>
+                    <li>Additional detail</li>
+                    <li>Final consideration</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Three-Column Cards</h3>
+        <p>Effective for displaying three related categories or concepts:</p>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-title">Category One</div>
+                <ul>
+                    <li>Key point A</li>
+                    <li>Key point B</li>
+                    <li>Key point C</li>
+                    <li>Key point D</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-title">Category Two</div>
+                <ul>
+                    <li>Key point A</li>
+                    <li>Key point B</li>
+                    <li>Key point C</li>
+                    <li>Key point D</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-title">Category Three</div>
+                <ul>
+                    <li>Key point A</li>
+                    <li>Key point B</li>
+                    <li>Key point C</li>
+                    <li>Key point D</li>
+                </ul>
+            </div>
+        </div>
+
+        <span class="label">DESIGN SYSTEM</span>
+        <h2>Typography Guidelines</h2>
+
+        <div class="definition-box">
+            <span class="label">FONT FAMILIES</span>
+            <h4>Two Typefaces, Maximum Impact</h4>
+            <ul>
+                <li><strong>Libre Baskerville (Serif):</strong> Headers and display text—elegant, authoritative, timeless</li>
+                <li><strong>Work Sans (Sans-serif):</strong> Body text and labels—clean, highly readable, modern</li>
+            </ul>
+            <p class="mt-2">This pairing creates sophisticated contrast between authoritative headers and approachable body content.</p>
+        </div>
+
+        <h3>Size Hierarchy</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Element</th>
+                    <th>Font</th>
+                    <th>Size</th>
+                    <th>Weight</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Cover Title (H1)</strong></td>
+                    <td>Libre Baskerville</td>
+                    <td>4rem (64px)</td>
+                    <td>700</td>
+                </tr>
+                <tr>
+                    <td><strong>Section Headers (H2)</strong></td>
+                    <td>Libre Baskerville</td>
+                    <td>2.5rem (40px)</td>
+                    <td>700</td>
+                </tr>
+                <tr>
+                    <td><strong>Subsection Headers (H3)</strong></td>
+                    <td>Libre Baskerville</td>
+                    <td>1.75rem (28px)</td>
+                    <td>700</td>
+                </tr>
+                <tr>
+                    <td><strong>Small Headers (H4)</strong></td>
+                    <td>Libre Baskerville</td>
+                    <td>1.25rem (20px)</td>
+                    <td>700</td>
+                </tr>
+                <tr>
+                    <td><strong>Body Text</strong></td>
+                    <td>Work Sans</td>
+                    <td>1rem (16px)</td>
+                    <td>400</td>
+                </tr>
+                <tr>
+                    <td><strong>Labels</strong></td>
+                    <td>Work Sans</td>
+                    <td>0.75rem (12px)</td>
+                    <td>600, uppercase, tracked</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <span class="label">COLORS</span>
+        <h2>Color Palette</h2>
+
+        <p>A sophisticated, restrained palette emphasizing deep jewel tones and neutrals.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Color Name</th>
+                    <th>Hex Value</th>
+                    <th>Usage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Accent Blue</strong></td>
+                    <td>#1e3a8a</td>
+                    <td>Primary headers, borders, definition boxes</td>
+                </tr>
+                <tr>
+                    <td><strong>Accent Blue Light</strong></td>
+                    <td>#eff6ff</td>
+                    <td>Definition box backgrounds</td>
+                </tr>
+                <tr>
+                    <td><strong>Secondary Brown</strong></td>
+                    <td>#7c2d12</td>
+                    <td>Info box borders, alternate accent</td>
+                </tr>
+                <tr>
+                    <td><strong>Secondary Brown Light</strong></td>
+                    <td>#fef9f5</td>
+                    <td>Info box backgrounds</td>
+                </tr>
+                <tr>
+                    <td><strong>Tertiary Teal</strong></td>
+                    <td>#134e4a</td>
+                    <td>Remember boxes, subtle emphasis</td>
+                </tr>
+                <tr>
+                    <td><strong>Red</strong></td>
+                    <td>#991b1b</td>
+                    <td>Warning boxes, critical alerts</td>
+                </tr>
+                <tr>
+                    <td><strong>Red Light</strong></td>
+                    <td>#fef2f2</td>
+                    <td>Warning box backgrounds</td>
+                </tr>
+                <tr>
+                    <td><strong>Black</strong></td>
+                    <td>#0a0a0a</td>
+                    <td>Headers, callout boxes, emphasis</td>
+                </tr>
+                <tr>
+                    <td><strong>Charcoal</strong></td>
+                    <td>#2a2a2a</td>
+                    <td>Body text</td>
+                </tr>
+                <tr>
+                    <td><strong>Gray</strong></td>
+                    <td>#6a6a6a</td>
+                    <td>Labels, secondary text</td>
+                </tr>
+                <tr>
+                    <td><strong>Off-White</strong></td>
+                    <td>#fafafa</td>
+                    <td>Card backgrounds, subtle fills</td>
+                </tr>
+                <tr>
+                    <td><strong>Line Gray</strong></td>
+                    <td>#e5e5e5</td>
+                    <td>Borders, dividers</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="remember-box mt-3">
+            <strong>Design Philosophy:</strong> Use color sparingly and strategically. The restrained palette creates sophistication—not every element needs color. White space and typography do most of the visual work.
+        </div>
+
+        <div class="module-header">
+            <span class="module-label">PRACTICAL APPLICATION</span>
+        </div>
+
+        <span class="label">INTEGRATION</span>
+        <h2>Putting It All Together</h2>
+
+        <p>Here's how these elements work together in a real document section, demonstrating the sophisticated, chic aesthetic:</p>
+
+        <h3>Example: Topic Overview</h3>
+
+        <div class="definition-box">
+            <span class="label">KEY TERMS</span>
+            <p><strong>Primary Concept:</strong> Core definition or explanation<br>
+            <strong>Secondary Concept:</strong> Related definition or explanation</p>
+        </div>
+
+        <h4>Comparison Overview</h4>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Feature A</th>
+                    <th>Feature B</th>
+                    <th>Feature C</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Type 1</strong></td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                </tr>
+                <tr>
+                    <td><strong>Type 2</strong></td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                </tr>
+                <tr>
+                    <td><strong>Type 3</strong></td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                </tr>
+                <tr>
+                    <td><strong>Type 4</strong></td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                    <td>Description or value</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="warning-box">
+            <span class="label">COMMON MISTAKES TO AVOID</span>
+            <ul>
+                <li><strong>Error type one:</strong> Brief explanation of what to avoid</li>
+                <li><strong>Error type two:</strong> Brief explanation of what to avoid</li>
+                <li><strong>Error type three:</strong> Brief explanation of what to avoid</li>
+                <li><strong>Error type four:</strong> Brief explanation of what to avoid</li>
+            </ul>
+        </div>
+
+        <div class="remember-box mt-3">
+            <strong>Key Insight:</strong> A memorable takeaway or practical tip that helps reinforce the main concept. Focus on actionable guidance that students can apply immediately.
+        </div>
+
+        <span class="label">SUMMARY</span>
+        <h2>Key Design Principles</h2>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-title">Clean Lines</div>
+                <p>No rounded corners. Sharp, crisp edges create a sophisticated, professional appearance that ages well.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Restrained Color</div>
+                <p>Deep jewel tones used sparingly. Let typography and white space do the heavy lifting.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Elegant Typography</div>
+                <p>Serif headers paired with clean sans-serif body. Two fonts maximum for cohesion.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Bold Borders</div>
+                <p>4px left borders create emphasis without overwhelming. Strategic use draws the eye.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Minimal Shadows</div>
+                <p>Subtle elevation (0 2px 4px) provides depth without gimmicks or excess decoration.</p>
+            </div>
+            <div class="card">
+                <div class="card-title">Generous Spacing</div>
+                <p>White space is a design element. Don't fear emptiness—it creates breathing room and focus.</p>
+            </div>
+        </div>
+
+        <h3>When to Use Each Box Type</h3>
+
+        <div class="comparison mt-4">
+            <div class="comparison-column">
+                <h3>Information Hierarchy</h3>
+                <ul>
+                    <li><strong>Definition box (blue):</strong> Primary concepts, definitions, key information</li>
+                    <li><strong>Info box (brown):</strong> Secondary details, context, related information</li>
+                    <li><strong>Callout box (black border):</strong> Critical must-know information</li>
+                    <li><strong>Remember box (teal):</strong> Key takeaways, memory aids</li>
+                    <li><strong>Warning box (red):</strong> Common mistakes, critical warnings, pitfalls to avoid</li>
+                </ul>
+            </div>
+            <div class="comparison-column">
+                <h3>Design Consistency</h3>
+                <ul>
+                    <li><strong>Use the same box types:</strong> Throughout your document for similar content</li>
+                    <li><strong>Maintain color associations:</strong> Once blue = definitions, keep it that way</li>
+                    <li><strong>Red means caution:</strong> Reserve red warning boxes for true warnings only</li>
+                    <li><strong>Limit box variety:</strong> Don't use all five types on one page</li>
+                    <li><strong>Balance emphasis:</strong> If everything is highlighted, nothing stands out</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="callout-box mt-4">
+            <span class="label">FINAL THOUGHTS</span>
+            <p><strong>Sophistication Through Restraint:</strong> Chic design isn't about adding more—it's about thoughtful curation. Every element serves a purpose. Every color choice is intentional. The result is timeless elegance that puts your content front and center while maintaining visual interest through:</p>
+            <ul>
+                <li>Strategic use of typography hierarchy</li>
+                <li>Restrained, sophisticated color palette</li>
+                <li>Clean, crisp lines with no unnecessary decoration</li>
+                <li>Generous white space that gives content room to breathe</li>
+                <li>Consistent patterns that create visual rhythm</li>
+                <li>Professional details like subtle shadows and border accents</li>
+            </ul>
+        </div>
+
+        <div class="remember-box mt-3">
+            <strong>Remember:</strong> The goal is elegant professionalism—documents that communicate authority and care through design. When in doubt, simplify. When tempted to add decoration, step back. Less is more, and quality always trumps quantity. Your content deserves presentation that matches its substance.
+        </div>
+
+    </div>
 </body>
 </html>

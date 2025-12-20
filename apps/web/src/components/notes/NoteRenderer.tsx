@@ -160,7 +160,7 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
       <Box
         className="note-content"
         sx={{
-          '& .note-body': {
+          '& .note-body, & .container': {
             maxWidth: '100%',
             padding: 0,
           },
@@ -210,40 +210,197 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
               p: 0,
             }
           },
-          // Medical box styles for vibrant-textbook
-          '& .clinical-box': {
-            bgcolor: 'rgba(239,68,68,0.1)',
-            border: '1px solid #ef4444',
-            borderRadius: 2,
+          // Editorial Chic box styles
+          '& .definition-box': {
+            borderLeft: '4px solid #1e3a8a',
             p: 2,
+            bgcolor: '#eff6ff',
+            my: 2,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+          },
+          '& .info-box': {
+            borderLeft: '4px solid #7c2d12',
+            p: 2,
+            bgcolor: '#fef9f5',
+            my: 2,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+          },
+          '& .callout-box': {
+            border: '2px solid #0a0a0a',
+            p: 2,
+            bgcolor: '#ffffff',
+            my: 2,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+          },
+          '& .remember-box': {
+            borderLeft: '4px solid #134e4a',
+            border: '1px solid #e5e5e5',
+            p: 2,
+            bgcolor: '#fafafa',
             my: 2,
           },
-          '& .nursing-box': {
-            bgcolor: 'rgba(59,130,246,0.1)',
-            border: '1px solid #3b82f6',
-            borderRadius: 2,
+          '& .warning-box': {
+            borderLeft: '6px solid #991b1b',
+            borderTop: '1px solid #991b1b',
+            borderBottom: '1px solid #991b1b',
             p: 2,
+            bgcolor: '#fef2f2',
             my: 2,
           },
-          '& .education-box': {
-            bgcolor: 'rgba(245,158,11,0.1)',
-            border: '1px solid #f59e0b',
+          '& .label': {
+            fontSize: '0.75rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.15em',
+            color: '#6a6a6a',
+            fontWeight: 600,
+            mb: 0.5,
+            display: 'block',
+          },
+          // Vibrant Textbook section styles
+          '& .section-theory': {
+            bgcolor: '#e8f8f5',
+            p: 2.5,
             borderRadius: 2,
-            p: 2,
             my: 2,
           },
-          '& .key-point-box': {
-            bgcolor: 'rgba(168,85,247,0.1)',
-            borderLeft: '4px solid #a855f7',
-            p: 2,
+          '& .section-details': {
+            bgcolor: '#fef9e7',
+            p: 2.5,
+            borderRadius: 2,
             my: 2,
           },
-          '& .medication-box': {
-            bgcolor: 'rgba(20,184,166,0.1)',
-            border: '1px solid #14b8a6',
+          '& .section-analysis': {
+            bgcolor: '#ebf5fb',
+            p: 2.5,
+            borderRadius: 2,
+            my: 2,
+          },
+          '& .section-methods': {
+            bgcolor: '#fdf2e9',
+            p: 2.5,
+            borderRadius: 2,
+            my: 2,
+          },
+          '& .section-critical': {
+            bgcolor: '#fadbd8',
+            p: 2.5,
+            borderRadius: 2,
+            my: 2,
+            border: '2px solid #e74c3c',
+          },
+          '& .section-procedures': {
+            bgcolor: '#eafaf1',
+            p: 2.5,
+            borderRadius: 2,
+            my: 2,
+          },
+          '& .section-summary': {
+            bgcolor: '#f4ecf7',
+            p: 2.5,
+            borderRadius: 2,
+            my: 2,
+          },
+          '& .section-title': {
+            fontSize: '1.2rem',
+            fontWeight: 600,
+            color: '#2c3e50',
+            mb: 1,
+            pb: 0.5,
+            borderBottom: '2px solid #3498db',
+          },
+          '& .topic-block-template': {
+            border: '2px solid #e1e8ed',
+            borderRadius: 2,
+            my: 3,
+            overflow: 'hidden',
+          },
+          '& .topic-header-template': {
+            bgcolor: '#3498db',
+            color: 'white',
+            p: 2,
+            fontSize: '1.4rem',
+            fontWeight: 600,
+          },
+          '& .topic-content-template': {
+            p: 3,
+          },
+          '& .priority-box-template': {
+            bgcolor: '#fff3cd',
+            border: '2px solid #f39c12',
+            p: 2.5,
+            my: 2,
+            borderRadius: 2,
+          },
+          '& .category-grid': {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: 2,
+            my: 2,
+          },
+          '& .category-card-template': {
+            border: '1px solid #e1e8ed',
             borderRadius: 2,
             p: 2,
+            bgcolor: 'white',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+          },
+          '& .quick-reference-template': {
+            background: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)',
+            p: 3,
+            borderRadius: 2,
+            my: 3,
+          },
+          '& .table-template': {
+            width: '100%',
+            borderCollapse: 'collapse',
             my: 2,
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+            borderRadius: 2,
+            overflow: 'hidden',
+            '& th': {
+              bgcolor: '#34495e',
+              color: 'white',
+              p: 1.5,
+              textAlign: 'left',
+              fontWeight: 600,
+            },
+            '& td': {
+              p: 1.25,
+              border: '1px solid #e1e8ed',
+            },
+            '& tr:nth-of-type(even)': {
+              bgcolor: '#f8f9fa',
+            },
+          },
+          // Grid layouts for Editorial Chic
+          '& .grid-2': {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 2,
+            my: 2,
+          },
+          '& .grid-3': {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 1.5,
+            my: 2,
+          },
+          '& .card': {
+            p: 2,
+            bgcolor: '#fafafa',
+            border: '1px solid #e5e5e5',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+          },
+          '& .comparison': {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 2,
+            my: 2,
+          },
+          '& .comparison-column': {
+            p: 2,
+            bgcolor: '#fafafa',
+            border: '1px solid #e5e5e5',
           },
         }}
         dangerouslySetInnerHTML={{ __html: contentWithoutCodeBlocks }}
