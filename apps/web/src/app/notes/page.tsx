@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import {
   Box,
@@ -19,7 +19,11 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material'
 import {
   Search,
@@ -36,8 +40,8 @@ import {
   CalendarMonth,
   LocalOffer
 } from '@mui/icons-material'
-import { useUnifiedStore } from '@/stores/useUnifiedStore'
-import NoteGenerationModal from '@/components/notes/NoteGenerationModal'
+import { useScheduleStore } from '@/stores/useScheduleStore'
+import GenerateNoteModal from '@/components/GenerateNoteModal'
 
 // Inline EmptyState component
 const EmptyState = ({ icon, title, description, action }: {
@@ -67,26 +71,39 @@ import { format } from 'date-fns'
 
 export default function NotesPage() {
   const { data: session } = useSession()
-  const {
-    notes,
-    courses,
-    setGeneratingNote,
-    setNoteGenerationProgress,
-    addNote,
-    updateNote,
-    deleteNote
-  } = useUnifiedStore()
+  const { courses } = useScheduleStore()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLElement | null>(null)
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [selectedCourse, setSelectedCourse] = useState(null)
   const [noteModalOpen, setNoteModalOpen] = useState(false)
+  const [savedNotes, setSavedNotes] = useState<any[]>([])
+  const [selectedNote, setSelectedNote] = useState<any | null>(null)
+
+  useEffect(() => {
+    const notes = localStorage.getItem('generated-notes')
+    if (notes) {
+      const parsed = JSON.parse(notes)
+      const list = Object.entries(parsed).map(([id, note]: any) => ({ id, ...note }))
+      setSavedNotes(list)
+    }
+  }, [])
+
+  const persistNotes = (next: any[]) => {
+    const asObject = next.reduce((acc: any, note: any) => {
+      acc[note.id] = { ...note }
+      delete acc[note.id].id
+      return acc
+    }, {})
+    localStorage.setItem('generated-notes', JSON.stringify(asObject))
+    setSavedNotes(next)
+  }
 
   // Filter notes based on search and filters
-  const filteredNotes = notes.filter(note => {
-    const matchesSearch = note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          note.content.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredNotes = savedNotes.filter(note => {
+    const matchesSearch = (note.topic || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (note.content || '').toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCourse = !selectedCourse || note.courseId === selectedCourse
     const matchesFilter = selectedFilter === 'all' ||
                           (selectedFilter === 'starred' && note.starred) ||
@@ -97,16 +114,19 @@ export default function NotesPage() {
   })
 
   const handleToggleStar = (noteId: string, currentStarred: boolean) => {
-    updateNote(noteId, { starred: !currentStarred })
+    const next = savedNotes.map(n => n.id === noteId ? { ...n, starred: !currentStarred } : n)
+    persistNotes(next)
   }
 
   const handleToggleArchive = (noteId: string, currentArchived: boolean) => {
-    updateNote(noteId, { archived: !currentArchived })
+    const next = savedNotes.map(n => n.id === noteId ? { ...n, archived: !currentArchived } : n)
+    persistNotes(next)
   }
 
   const handleDeleteNote = (noteId: string) => {
     if (confirm('Are you sure you want to delete this note?')) {
-      deleteNote(noteId)
+      const next = savedNotes.filter(n => n.id !== noteId)
+      persistNotes(next)
     }
   }
 
@@ -183,17 +203,17 @@ export default function NotesPage() {
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
           <Chip
             icon={<Description />}
-            label={`${notes.length} Total Notes`}
+            label={`${savedNotes.length} Total Notes`}
             color="primary"
           />
           <Chip
             icon={<Star />}
-            label={`${notes.filter(n => n.starred).length} Starred`}
+            label={`${savedNotes.filter(n => n.starred).length} Starred`}
             color="secondary"
           />
           <Chip
             icon={<AutoAwesome />}
-            label={`${notes.filter(n => n.aiGenerated).length} AI Generated`}
+            label={`${savedNotes.filter(n => n.aiGenerated).length} AI Generated`}
           />
         </Stack>
       </Box>
@@ -252,7 +272,7 @@ export default function NotesPage() {
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="h6" fontWeight={600}>
-                        {note.title}
+                        {note.topic || note.title || 'Untitled note'}
                       </Typography>
                       <IconButton
                         size="small"
@@ -262,21 +282,19 @@ export default function NotesPage() {
                       </IconButton>
                     </Box>
 
-                    {note.summary && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          mb: 2,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {note.summary}
-                      </Typography>
-                    )}
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        mb: 2,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      {(note.summary || note.customPrompt || note.sourceText || '').slice(0, 220) || 'Generated note'}
+                    </Typography>
 
                     {/* Metadata */}
                     <Stack spacing={1}>
@@ -292,14 +310,14 @@ export default function NotesPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <CalendarMonth fontSize="small" color="action" />
                         <Typography variant="caption" color="text.secondary">
-                          {format(new Date(note.createdAt), 'MMM d, yyyy')}
+                          {format(new Date(note.timestamp || note.createdAt || Date.now()), 'MMM d, yyyy')}
                         </Typography>
                       </Box>
 
-                      {note.tags.length > 0 && (
+                      {(note.tags || []).length > 0 && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                           <LocalOffer fontSize="small" color="action" />
-                          {note.tags.slice(0, 2).map(tag => (
+                          {(note.tags || []).slice(0, 2).map(tag => (
                             <Chip
                               key={tag}
                               label={tag}
@@ -307,9 +325,9 @@ export default function NotesPage() {
                               sx={{ height: 20 }}
                             />
                           ))}
-                          {note.tags.length > 2 && (
+                          {(note.tags || []).length > 2 && (
                             <Typography variant="caption" color="text.secondary">
-                              +{note.tags.length - 2} more
+                              +{(note.tags || []).length - 2} more
                             </Typography>
                           )}
                         </Box>
@@ -318,7 +336,7 @@ export default function NotesPage() {
 
                     {/* Actions */}
                     <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                      <Button size="small" fullWidth>
+                      <Button size="small" fullWidth onClick={() => setSelectedNote(note)}>
                         View
                       </Button>
                       <IconButton
@@ -356,10 +374,52 @@ export default function NotesPage() {
       </Fab>
 
       {/* Note Generation Modal */}
-      <NoteGenerationModal
+      <GenerateNoteModal
         open={noteModalOpen}
         onClose={() => setNoteModalOpen(false)}
       />
+
+      {/* View Note Dialog */}
+      {selectedNote && (
+        <Dialog
+          open={Boolean(selectedNote)}
+          onClose={() => setSelectedNote(null)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h6">
+                {selectedNote.topic || selectedNote.title || 'Note'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {selectedNote.courseName || courses.find(c => c.id === selectedNote.courseId)?.name || ''}
+              </Typography>
+            </Box>
+            {selectedNote.courseId && (
+              <Button
+                href={`/courses/${selectedNote.courseId}`}
+                variant="outlined"
+                size="small"
+              >
+                Open course
+              </Button>
+            )}
+          </DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                '& .note-body': { fontSize: '0.95rem' },
+                '& .note-body p': { marginBottom: '10px' },
+              }}
+              dangerouslySetInnerHTML={{ __html: selectedNote.content }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setSelectedNote(null)}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Container>
   )
 }

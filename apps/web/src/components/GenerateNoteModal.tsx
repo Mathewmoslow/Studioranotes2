@@ -43,6 +43,7 @@ export default function GenerateNoteModal({
   const [loading, setLoading] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
   const [formData, setFormData] = useState({
+    courseId: preSelectedCourse?.id || '',
     courseName: preSelectedCourse?.name || '',
     topic: '',
     sourceText: '',
@@ -53,14 +54,24 @@ export default function GenerateNoteModal({
   })
 
   const handleGenerate = async () => {
+    if (!preSelectedCourse && !formData.courseId) {
+      alert('Please choose a course for this note.')
+      return
+    }
+
     setLoading(true)
     try {
+      const selectedCourse =
+        preSelectedCourse ||
+        courses.find((c: any) => c.id === formData.courseId || c.name === formData.courseName)
+
       const response = await fetch('/api/notes/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          courseId: preSelectedCourse?.id,
+          courseId: selectedCourse?.id,
+          courseName: selectedCourse?.name || formData.courseName,
         }),
       })
 
@@ -74,7 +85,8 @@ export default function GenerateNoteModal({
           ...formData,
           content: data.content,
           timestamp: new Date().toISOString(),
-          courseId: preSelectedCourse?.id,
+          courseId: selectedCourse?.id,
+          courseName: selectedCourse?.name || formData.courseName,
         }
         localStorage.setItem('generated-notes', JSON.stringify(existingNotes))
 
@@ -123,10 +135,32 @@ export default function GenerateNoteModal({
 
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 2 }}>
-          {preSelectedCourse && (
+          {preSelectedCourse ? (
             <Alert severity="info" icon={<School />}>
               Generating note for: <strong>{preSelectedCourse.name}</strong>
             </Alert>
+          ) : (
+            <FormControl fullWidth required>
+              <InputLabel>Course</InputLabel>
+              <Select
+                value={formData.courseId}
+                onChange={(e) => {
+                  const selected = courses.find((c: any) => c.id === e.target.value)
+                  setFormData({
+                    ...formData,
+                    courseId: e.target.value as string,
+                    courseName: selected?.name || '',
+                  })
+                }}
+                label="Course"
+              >
+                {courses.map((course: any) => (
+                  <MenuItem key={course.id} value={course.id}>
+                    {course.code ? `${course.code} — ${course.name}` : course.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           )}
 
           <TextField
