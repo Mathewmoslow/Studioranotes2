@@ -80,9 +80,10 @@ export default function DashboardLayout({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          backdropFilter: 'blur(8px)',
-          backgroundColor: alpha(theme.palette.background.paper, 0.9),
-          borderBottom: `1px solid ${theme.palette.divider}`,
+          backdropFilter: 'blur(10px)',
+          background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
+          borderBottom: `1px solid ${alpha('#fff', 0.18)}`,
+          color: '#fff',
         }}
       >
         <Toolbar>
@@ -91,7 +92,7 @@ export default function DashboardLayout({
             aria-label="toggle drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, color: 'text.primary' }}
+            sx={{ mr: 2, color: '#fff' }}
           >
             <MenuIcon />
           </IconButton>
@@ -102,29 +103,29 @@ export default function DashboardLayout({
             component="div"
             sx={{
               flexGrow: 1,
-              color: 'text.primary',
+              color: '#fff',
               fontWeight: 600,
               display: { xs: 'none', sm: 'block' }
             }}
           >
-            Study Dashboard
+            Studiora.io Dashboard
           </Typography>
 
           <Stack direction="row" spacing={1} alignItems="center">
             <Tooltip title="Search">
-              <IconButton sx={{ color: 'text.secondary' }}>
+              <IconButton sx={{ color: 'rgba(255,255,255,0.85)' }}>
                 <SearchIcon />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="Toggle theme">
-              <IconButton onClick={onThemeToggle} sx={{ color: 'text.secondary' }}>
+              <IconButton onClick={onThemeToggle} sx={{ color: 'rgba(255,255,255,0.85)' }}>
                 {isDarkMode ? <LightMode /> : <DarkMode />}
               </IconButton>
             </Tooltip>
 
             <Tooltip title="Notifications">
-              <IconButton sx={{ color: 'text.secondary' }}>
+              <IconButton sx={{ color: 'rgba(255,255,255,0.85)' }}>
                 <Badge badgeContent={notifications} color="error">
                   <NotificationsIcon />
                 </Badge>

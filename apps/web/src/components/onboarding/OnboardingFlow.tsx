@@ -1890,37 +1890,60 @@ const importCanvasCourses = async () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+    <>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
+      <Box
+        sx={{
+          background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
+          color: '#fff',
+          py: 5,
+          mb: 4,
+          textAlign: 'center',
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography variant="h4" fontWeight={800} gutterBottom>
+            Welcome to Studiora.io
+          </Typography>
+          <Typography sx={{ opacity: 0.9 }}>
+            Connect your courses, set preferences, and let deterministic scheduling + AI notes keep you aligned.
+          </Typography>
+        </Container>
+      </Box>
+      <Container maxWidth="md" sx={{ pb: 6 }}>
+        <Paper sx={{ p: 4, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-        {getStepContent(activeStep)}
+          {getStepContent(activeStep)}
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-          <Button
-            disabled={activeStep === 0 || activeStep === steps.length - 1}
-            onClick={handleBack}
-          >
-            Back
-          </Button>
-
-          {activeStep < steps.length - 1 && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
             <Button
-              variant="contained"
-              onClick={handleNext}
-              disabled={importingCourses}
+              disabled={activeStep === 0 || activeStep === steps.length - 1}
+              onClick={handleBack}
+              variant="outlined"
             >
-              {activeStep === steps.length - 2 ? 'Finish Setup' : 'Next'}
+              Back
             </Button>
-          )}
-        </Box>
-      </Paper>
+
+            {activeStep < steps.length - 1 && (
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={importingCourses}
+              >
+                {activeStep === steps.length - 2 ? 'Finish Setup' : 'Next'}
+              </Button>
+            )}
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
 
       {/* Reconcile Tasks Modal */}
       <ReconcileTasksModal
@@ -2039,6 +2062,6 @@ const importCanvasCourses = async () => {
           <Button variant="contained" onClick={handleSaveMeetingSchedule}>Save & Continue</Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </>
   )
 }

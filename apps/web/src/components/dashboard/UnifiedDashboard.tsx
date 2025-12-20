@@ -109,51 +109,62 @@ export default function UnifiedDashboard() {
         sx={{
           p: 4,
           mb: 4,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.9)} 0%, ${alpha(theme.palette.secondary.main, 0.9)} 100%)`,
+          background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
           color: 'white',
           borderRadius: 3,
+          boxShadow: '0 12px 40px rgba(0,0,0,0.08)',
         }}
       >
         <Grid container spacing={3} alignItems="center">
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
-              Welcome back! Let's make today productive
-            </Typography>
-            <Typography variant="body1" sx={{ mb: 3, opacity: 0.95 }}>
-              You have {stats.upcomingTasks} tasks due this week. Your next study block starts in 2 hours.
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="contained"
-                startIcon={<AutoAwesome />}
-                sx={{
-                  bgcolor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { bgcolor: 'grey.100' }
-                }}
-              >
-                Generate Notes
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<Add />}
-                sx={{
-                  color: 'white',
-                  borderColor: 'white',
-                  '&:hover': { bgcolor: alpha('#fff', 0.1) }
-                }}
-              >
-                Add Task
-              </Button>
+            <Stack spacing={1}>
+              <Typography variant="h4" fontWeight={800}>
+                Plan less. Learn more.
+              </Typography>
+              <Typography variant="body1" sx={{ opacity: 0.92 }}>
+                {stats.upcomingTasks} tasks due this week. Next study block in 2 hours. Deterministic scheduling and AI notes keep you aligned without noise.
+              </Typography>
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" alignItems="center">
+                <Chip icon={<Schedule />} label="Deterministic schedule" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
+                <Chip icon={<Description />} label="AI notes" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
+                <Chip icon={<School />} label="Canvas sync" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
+              </Stack>
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="contained"
+                  startIcon={<AutoAwesome />}
+                  sx={{
+                    bgcolor: '#0f172a',
+                    color: '#fff',
+                    '&:hover': { bgcolor: '#0b1221' }
+                  }}
+                >
+                  Generate Notes
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<Add />}
+                  sx={{
+                    color: '#fff',
+                    borderColor: 'rgba(255,255,255,0.6)',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+                  }}
+                >
+                  Add Task
+                </Button>
+              </Stack>
             </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="h2" fontWeight={700}>
+            <Box sx={{ textAlign: 'center', bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2 }}>
+              <Typography variant="h2" fontWeight={800}>
                 {stats.completionRate}%
               </Typography>
-              <Typography variant="subtitle1">
-                Weekly Completion Rate
+              <Typography variant="subtitle1" sx={{ opacity: 0.9 }}>
+                Weekly completion
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                {stats.activeCourses} active courses • {stats.studyHours}h scheduled
               </Typography>
             </Box>
           </Grid>
@@ -161,7 +172,7 @@ export default function UnifiedDashboard() {
       </Paper>
 
       {/* Tabs for different views */}
-      <Paper sx={{ mb: 3 }}>
+      <Paper sx={{ mb: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
         <Tabs value={currentTab} onChange={(_, v) => setCurrentTab(v)}>
           <Tab icon={<DashboardIcon />} label="Overview" />
           <Tab icon={<CalendarMonth />} label="Schedule" />

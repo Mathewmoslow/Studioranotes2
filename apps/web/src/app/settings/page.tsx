@@ -49,9 +49,23 @@ export default function SettingsPage() {
     monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: false, sunday: false
   });
   const [allowWeekend, setAllowWeekend] = useState(Boolean(prefs.allowWeekendStudy));
+  const [weekendHours, setWeekendHours] = useState(prefs.hoursPerWeekend || 5);
+  const [weekdayHours, setWeekdayHours] = useState(prefs.hoursPerWeekday || 3);
   const [preferredTimes, setPreferredTimes] = useState<any>(
     prefs.preferredStudyTimes || { morning: true, afternoon: true, evening: false, earlyMorning: false, night: false }
   );
+  const [useAutoEstimation, setUseAutoEstimation] = useState(prefs.useAutoEstimation ?? false);
+  const [defaultDurations, setDefaultDurations] = useState({
+    assignment: prefs.defaultHoursPerType?.assignment || 3,
+    exam: prefs.defaultHoursPerType?.exam || 8,
+    project: prefs.defaultHoursPerType?.project || 10,
+    reading: prefs.defaultHoursPerType?.reading || 2,
+    quiz: prefs.defaultHoursPerType?.quiz || 2,
+    lab: prefs.defaultHoursPerType?.lab || 4,
+    homework: prefs.defaultHoursPerType?.homework || 2,
+    video: prefs.defaultHoursPerType?.video || 1.5,
+    prep: prefs.defaultHoursPerType?.prep || 1.5,
+  });
 
   const toggleDay = (key: typeof dayKeys[number]) => {
     const next = { ...studyDays, [key]: !studyDays[key] };
@@ -71,9 +85,15 @@ export default function SettingsPage() {
       studyHours: { start: studyStart, end: studyEnd },
       maxDailyStudyHours: Number(maxDaily),
       sessionDuration: Number(sessionDuration),
+      hoursPerWeekend: Number(weekendHours),
+      hoursPerWeekday: Number(weekdayHours),
       studyDays,
       allowWeekendStudy: allowWeekend,
       preferredStudyTimes: preferredTimes,
+      useAutoEstimation,
+      defaultHoursPerType: {
+        ...defaultDurations,
+      },
     });
     updateSchedulerConfig({
       breakDuration: { short: Number(shortBreak), long: Number(longBreak) },
@@ -144,6 +164,26 @@ export default function SettingsPage() {
                 label="Allow weekend study"
               />
             </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                label="Weekday target hours"
+                type="number"
+                fullWidth
+                value={weekdayHours}
+                onChange={(e) => setWeekdayHours(e.target.value)}
+                inputProps={{ min: 1, max: 12 }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                label="Weekend target hours"
+                type="number"
+                fullWidth
+                value={weekendHours}
+                onChange={(e) => setWeekendHours(e.target.value)}
+                inputProps={{ min: 1, max: 12 }}
+              />
+            </Grid>
           </Grid>
           <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
             {dayKeys.map((key) => (
@@ -207,6 +247,30 @@ export default function SettingsPage() {
               />
             ))}
           </Stack>
+        </Paper>
+
+        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Typography variant="h6" fontWeight={700}>Task duration defaults</Typography>
+            <FormControlLabel
+              control={<Checkbox checked={useAutoEstimation} onChange={(e) => setUseAutoEstimation(e.target.checked)} />}
+              label="Enable auto-estimation"
+            />
+          </Stack>
+          <Grid container spacing={2}>
+            {Object.entries(defaultDurations).map(([key, value]) => (
+              <Grid item xs={12} sm={6} md={4} key={key}>
+                <TextField
+                  label={`${key.charAt(0).toUpperCase()}${key.slice(1)} (hrs)`}
+                  type="number"
+                  fullWidth
+                  value={value}
+                  onChange={(e) => setDefaultDurations({ ...defaultDurations, [key]: Number(e.target.value) })}
+                  inputProps={{ min: 0.5, max: 12, step: 0.5 }}
+                />
+              </Grid>
+            ))}
+          </Grid>
         </Paper>
       </Stack>
       </Container>
