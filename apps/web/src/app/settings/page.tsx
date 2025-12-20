@@ -15,6 +15,7 @@ import {
   Chip,
 } from '@mui/material';
 import { useScheduleStore } from '@/stores/useScheduleStore';
+import { useRouter } from 'next/navigation';
 
 const studyTimeChips = [
   { key: 'earlyMorning', label: 'Early Morning' },
@@ -36,6 +37,7 @@ const dayLabels: Record<typeof dayKeys[number], string> = {
 };
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { preferences, updatePreferences, updateSchedulerConfig } = useScheduleStore();
   const prefs = useMemo(() => preferences || {}, [preferences]);
 
@@ -98,6 +100,9 @@ export default function SettingsPage() {
     updateSchedulerConfig({
       breakDuration: { short: Number(shortBreak), long: Number(longBreak) },
     });
+
+    // Navigate back to dashboard after saving
+    router.push('/');
   };
 
   return (
