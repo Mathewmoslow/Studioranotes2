@@ -28,57 +28,197 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;')
 }
 
-// Section definitions for note generation
+// Section definitions for note generation - GENERIC for any subject
 const SECTION_DESCRIPTIONS: { [key: string]: string } = {
-  overview: '## Overview\nProvide a brief introduction and context for the topic',
-  keyTakeaways: '## Key Takeaways\nHighlight the most important points to remember',
-  mainConcepts: '## Main Concepts\nExplore the core ideas, theories, and frameworks',
-  pathophysiology: `## Pathophysiology
-For EACH disease/condition, provide detailed pathophysiology:
-- Core disease mechanism
-- Cells/tissues affected
-- Biochemical mediators
-- Compensatory responses
-- Long-term effects`,
-  clinicalManifestations: '## Clinical Manifestations\nDescribe signs, symptoms, and assessment findings',
-  diagnostics: '## Diagnostic Studies\nReview relevant tests, labs, and imaging with normal/abnormal values',
-  nursingInterventions: '## Nursing Interventions\nDetail nursing care priorities and management strategies',
-  medications: '## Medications & Pharmacology\nCover drugs, mechanisms, dosing, and nursing considerations',
-  clinicalApplications: '## Clinical Applications\nConnect theory to practice with examples',
-  complications: '## Complications & Risk Factors\nIdentify potential problems and at-risk populations',
-  patientEducation: '## Patient Education\nOutline teaching points and discharge planning',
-  keyTerms: '## Key Terms & Definitions\nDefine important vocabulary',
-  mnemonics: '## Memory Aids & Mnemonics\nProvide memory devices and learning tricks',
+  overview: `## Overview
+Provide a comprehensive introduction and context for the topic:
+- What is this topic and why is it important?
+- Historical background or development
+- Current relevance and applications
+- How this connects to the broader subject area`,
+
+  keyTakeaways: `## Key Takeaways
+Highlight the 5-10 most critical points that students MUST remember:
+- Use clear, concise bullet points
+- Focus on exam-worthy content
+- Include both facts and concepts
+- Prioritize information by importance`,
+
+  mainConcepts: `## Main Concepts
+Provide detailed exploration of ALL core ideas, theories, and frameworks:
+- Define each concept thoroughly with multiple paragraphs
+- Explain the underlying principles and mechanisms
+- Show how concepts relate to each other
+- Include real-world examples for each concept
+- Compare and contrast similar concepts
+- Address common misconceptions`,
+
+  theoreticalFramework: `## Theoretical Framework / Underlying Processes
+For EACH major concept or process, provide detailed explanation:
+- Core mechanism or principle - explain step-by-step
+- Key components involved (systems, elements, factors)
+- Contributing factors and variables
+- Compensatory mechanisms or feedback loops
+- Long-term implications and outcomes
+- Visual representation where helpful`,
+
+  practicalApplications: `## Practical Applications
+Describe real-world applications, signs, and observable outcomes:
+- Concrete examples of the concept in action
+- How to identify or recognize the concept
+- Assessment methods or evaluation criteria
+- Expected vs. unexpected outcomes
+- Variations and edge cases`,
+
+  analysis: `## Analysis & Evaluation
+Review analytical methods, tests, and evaluation criteria:
+- Methods for analysis with step-by-step procedures
+- Expected results and benchmarks
+- Normal vs. abnormal ranges where applicable
+- Interpretation guidelines
+- Common errors in analysis`,
+
+  actionSteps: `## Action Steps / Interventions
+Detail specific actions, procedures, and management strategies:
+- Prioritized list of interventions
+- Step-by-step procedures with rationale
+- Monitoring and follow-up actions
+- Decision-making frameworks
+- When to escalate or seek additional resources`,
+
+  formulas: `## Formulas, Calculations & Technical Details
+Cover key formulas, calculations, and technical specifications:
+- Essential formulas with explanations
+- Step-by-step calculation examples
+- Common variations and applications
+- Important values and constants to memorize
+- Practical tips for calculations`,
+
+  examples: `## Detailed Examples
+Connect theory to practice with comprehensive examples:
+- 3-5 detailed worked examples
+- Show complete problem-solving process
+- Include common variations
+- Highlight where students often make mistakes
+- Provide practice scenarios`,
+
+  complications: `## Complications, Challenges & Risk Factors
+Identify potential problems and at-risk scenarios:
+- Common complications and their causes
+- Risk factors and warning signs
+- Prevention strategies
+- Intervention when problems arise
+- Long-term considerations`,
+
+  teaching: `## Teaching Points & Study Tips
+Outline key points for learning and retention:
+- Must-know facts organized by priority
+- Common exam topics
+- Memory techniques for difficult content
+- Study strategies specific to this topic`,
+
+  keyTerms: `## Key Terms & Definitions
+Define ALL important vocabulary with:
+- Clear, concise definitions
+- Etymology where helpful
+- Related terms and distinctions
+- Examples of usage`,
+
+  mnemonics: `## Memory Aids & Mnemonics
+Provide effective memory devices:
+- Acronyms with full breakdown
+- Visual memory techniques
+- Association methods
+- Songs or rhymes if applicable
+- Include the reasoning behind each aid`,
+
   conceptMap: `## Concept Maps
 Create concept maps as JSON code blocks with this structure:
 \`\`\`json
 {
   "central": "Main concept name",
-  "pathophysiology": ["Key mechanism 1", "Key mechanism 2"],
+  "keyProcesses": ["Process 1", "Process 2"],
   "riskFactors": ["Risk 1", "Risk 2"],
   "causes": ["Cause 1", "Cause 2"],
-  "signsSymptoms": ["Symptom 1", "Symptom 2"],
-  "diagnostics": ["Test 1: normal → abnormal", "Test 2"],
+  "indicators": ["Indicator 1", "Indicator 2"],
+  "analysis": ["Method 1: expected result", "Method 2"],
   "complications": ["Complication 1", "Complication 2"],
-  "nursingInterventions": ["Intervention 1", "Intervention 2"],
-  "medications": ["Medication 1", "Medication 2"],
-  "treatments": ["Treatment 1", "Treatment 2"],
-  "patientEducation": ["Teaching 1", "Teaching 2"]
+  "interventions": ["Intervention 1", "Intervention 2"],
+  "formulas": ["Formula 1", "Formula 2"],
+  "solutions": ["Solution 1", "Solution 2"],
+  "keyPoints": ["Key point 1", "Key point 2"]
 }
 \`\`\``,
-  checkYourself: '## Check Yourself\nInclude self-assessment questions',
-  practiceQuestions: '## Practice Questions\nGenerate 5-8 practice questions with answers and rationales',
-  caseStudy: '## Case Study\nCreate a clinical scenario with patient data and discussion questions',
-  clinicalPearls: '## Clinical Pearls\nShare high-yield tips and insights',
-  redFlags: '## Red Flags\nHighlight critical warning signs',
-  culturalConsiderations: '## Cultural Considerations\nAddress diverse patient populations',
-  ethicalLegal: '## Ethical & Legal Considerations\nDiscuss relevant ethical and legal aspects'
+
+  selfAssessment: `## Check Yourself
+Include 5-10 self-assessment questions:
+- Mix of recall and application questions
+- Include answers at the end
+- Vary difficulty levels
+- Focus on commonly tested content`,
+
+  practiceQuestions: `## Practice Questions
+Generate 8-12 exam-style questions with DETAILED rationales:
+
+For each question include:
+1. Question stem (realistic scenario or direct question)
+2. 4 answer choices (A, B, C, D)
+3. Correct answer clearly marked
+4. Detailed rationale explaining:
+   - Why the correct answer is right
+   - Why EACH incorrect answer is wrong
+   - Key concept being tested
+   - Related information to remember`,
+
+  caseStudy: `## Case Study / Scenario Analysis
+Create a comprehensive real-world scenario:
+
+Include:
+- Detailed background/context (demographic info, setting, relevant history)
+- Key data and observations
+- Timeline of events
+- Critical thinking questions:
+  1. Analysis questions (What is happening? Why?)
+  2. Priority questions (What should be addressed first?)
+  3. Intervention questions (What actions should be taken?)
+  4. Evaluation questions (How do we know if interventions worked?)
+- Complete answer key with rationales`,
+
+  expertTips: `## Expert Tips & High-Yield Insights
+Share high-yield tips and insights:
+- "Pearls" that experts know
+- Common exam traps to avoid
+- Real-world vs. textbook differences
+- Time-saving shortcuts (where appropriate)
+- Industry best practices`,
+
+  warningsSigns: `## Warning Signs & Critical Alerts
+Highlight critical warning signs:
+- Red flags that require immediate attention
+- Common mistakes and how to avoid them
+- Safety considerations
+- When to seek help or escalate`,
+
+  diverseContexts: `## Diverse Contexts & Considerations
+Address variations across different contexts:
+- Cultural considerations
+- Environmental factors
+- Different populations or settings
+- Accessibility considerations`,
+
+  ethicalLegal: `## Ethical & Legal Considerations
+Discuss relevant ethical and legal aspects:
+- Key regulations or guidelines
+- Ethical principles that apply
+- Professional standards
+- Common ethical dilemmas
+- Decision-making frameworks`
 }
 
 // Default sections for each style
 const DEFAULT_SECTIONS_BY_STYLE: { [key: string]: string[] } = {
-  'editorial-chic': ['overview', 'keyTakeaways', 'mainConcepts', 'practiceQuestions'],
-  'vibrant-textbook': ['overview', 'mainConcepts', 'pathophysiology', 'clinicalManifestations', 'nursingInterventions', 'practiceQuestions'],
+  'editorial-chic': ['overview', 'keyTakeaways', 'mainConcepts', 'examples', 'practiceQuestions'],
+  'vibrant-textbook': ['overview', 'mainConcepts', 'theoreticalFramework', 'practicalApplications', 'actionSteps', 'practiceQuestions', 'caseStudy'],
   'simple-editable': ['overview', 'keyTakeaways', 'mainConcepts']
 }
 
@@ -220,56 +360,289 @@ export async function POST(request: NextRequest) {
     const stylePrompts: { [key: string]: string } = {
       'editorial-chic': `Create elegant, magazine-style notes using the Editorial Chic style guide.
 
-REQUIRED: Use these EXACT HTML box classes strategically:
-- <div class="definition-box"><span class="label">KEY CONCEPT</span><p>...</p></div> - For definitions, key concepts (blue left border)
-- <div class="info-box"><span class="label">ADDITIONAL INFO</span><p>...</p></div> - For secondary info, context (brown left border)
-- <div class="callout-box"><span class="label">CRITICAL</span><p>...</p></div> - For must-know information (black border)
-- <div class="remember-box"><p><strong>Remember:</strong> ...</p></div> - For key takeaways (teal left border)
-- <div class="warning-box"><span class="label">WARNING</span><p>...</p></div> - For common mistakes, critical alerts (red border)
+## REQUIRED HTML Box Classes (USE STRATEGICALLY THROUGHOUT):
+
+### Concept Boxes (use for key definitions, theories, frameworks):
+<div class="definition-box">
+  <span class="label">KEY CONCEPT</span>
+  <p><strong>Term:</strong> Definition here...</p>
+</div>
+
+### Information Boxes (use for supporting details, context, examples):
+<div class="info-box">
+  <span class="label">ADDITIONAL INFO</span>
+  <p>Supporting information here...</p>
+</div>
+
+### Critical Boxes (use for must-know, exam-essential information):
+<div class="callout-box">
+  <span class="label">CRITICAL</span>
+  <p>Essential information that must be remembered...</p>
+</div>
+
+### Remember Boxes (use for takeaways, summaries):
+<div class="remember-box">
+  <p><strong>Remember:</strong> Key point to memorize...</p>
+</div>
+
+### Warning Boxes (use for common mistakes, pitfalls, errors):
+<div class="warning-box">
+  <span class="label">⚠️ WARNING</span>
+  <p>Common mistake or critical alert...</p>
+</div>
+
+### Expert Tips (use for high-yield insights):
+<div class="clinical-pearl">
+  <h4>Expert Tip</h4>
+  <p>High-yield insight here...</p>
+</div>
+
+### Comparison Tables:
+<div class="comparison">
+  <div class="comparison-column">
+    <h4>Option A</h4>
+    <ul><li>Point 1</li><li>Point 2</li></ul>
+  </div>
+  <div class="comparison-column">
+    <h4>Option B</h4>
+    <ul><li>Point 1</li><li>Point 2</li></ul>
+  </div>
+</div>
+
+### Card Grids (use for organizing related items):
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">Card Title</div>
+    <p>Card content...</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Card Title</div>
+    <p>Card content...</p>
+  </div>
+</div>
 
 Use <span class="label">LABEL TEXT</span> for uppercase category labels.
-Use serif typography feel. Focus on clarity, visual hierarchy, and sophisticated design.`,
-      'vibrant-textbook': `Create comprehensive study notes using the Vibrant Textbook style guide with color-coded sections.
+Focus on clarity, visual hierarchy, and sophisticated design.
+Include tables, grids, and visual organization throughout.`,
 
-REQUIRED: Use these EXACT HTML section classes for color-coded organization:
-- <div class="section-theory"><div class="section-title">Theory / Background</div>...</div> - Light mint green for foundational concepts
-- <div class="section-details"><div class="section-title">Key Details</div>...</div> - Light yellow for specific facts, evidence
-- <div class="section-analysis"><div class="section-title">Analysis</div>...</div> - Light blue for evaluation, assessment
-- <div class="section-methods"><div class="section-title">Methods / Solutions</div>...</div> - Light orange for approaches, techniques
-- <div class="section-critical"><div class="section-title">Critical Points</div>...</div> - Light red for warnings, common errors
-- <div class="section-procedures"><div class="section-title">Procedures</div>...</div> - Light green for step-by-step actions
-- <div class="section-summary"><div class="section-title">Summary</div>...</div> - Light purple for key takeaways
+      'vibrant-textbook': `Create COMPREHENSIVE study notes using the Vibrant Textbook style guide with color-coded sections.
 
-Other available components:
-- <div class="topic-block-template"><div class="topic-header-template">Topic Name</div><div class="topic-content-template">...</div></div> - For major topic containers
-- <div class="priority-box-template"><h4>Important</h4>...</div> - Yellow box for priority information
-- <table class="table-template">...</table> - For data tables
-- <div class="category-grid"><div class="category-card-template"><h4>Category</h4>...</div></div> - For card layouts`,
-      'simple-editable': 'Create clean, simple notes that are easy to edit. Use basic markdown formatting. Keep it minimal and functional.'
+## REQUIRED: Color-Coded Section Boxes (USE ALL RELEVANT ONES):
+
+### Theory Section (mint green - for foundational concepts):
+<div class="section-theory">
+  <div class="section-title">Theoretical Background</div>
+  <p>Foundational concepts and underlying principles...</p>
+</div>
+
+### Details Section (yellow - for specific facts, evidence):
+<div class="section-details">
+  <div class="section-title">Key Details</div>
+  <ul><li>Specific fact 1</li><li>Specific fact 2</li></ul>
+</div>
+
+### Analysis Section (blue - for evaluation, assessment):
+<div class="section-analysis">
+  <div class="section-title">Analysis & Evaluation</div>
+  <p>How to analyze, assess, evaluate...</p>
+</div>
+
+### Methods Section (orange - for approaches, techniques, solutions):
+<div class="section-methods">
+  <div class="section-title">Methods & Solutions</div>
+  <ol><li>Step 1</li><li>Step 2</li></ol>
+</div>
+
+### Critical Section (red border - for warnings, errors):
+<div class="section-critical">
+  <div class="section-title">⚠️ Critical Points</div>
+  <p>Common mistakes, warnings, red flags...</p>
+</div>
+
+### Procedures Section (green - for step-by-step actions):
+<div class="section-procedures">
+  <div class="section-title">Step-by-Step Procedures</div>
+  <ol><li>First, do this...</li><li>Then, do this...</li></ol>
+</div>
+
+### Summary Section (purple - for key takeaways):
+<div class="section-summary">
+  <div class="section-title">Summary</div>
+  <ul><li>Key takeaway 1</li><li>Key takeaway 2</li></ul>
+</div>
+
+## Additional Components:
+
+### Topic Blocks (for major sections):
+<div class="topic-block-template">
+  <div class="topic-header-template">Major Topic Name</div>
+  <div class="topic-content-template">
+    Content here...
+  </div>
+</div>
+
+### Priority Box (yellow highlight for important info):
+<div class="priority-box-template">
+  <h4>⭐ Important</h4>
+  <p>Priority information here...</p>
+</div>
+
+### Quick Reference (gradient background for reference tables):
+<div class="quick-reference-template">
+  <h4>Quick Reference</h4>
+  <table class="table-template">
+    <thead><tr><th>Item</th><th>Value</th><th>Notes</th></tr></thead>
+    <tbody><tr><td>Example</td><td>123</td><td>Normal range</td></tr></tbody>
+  </table>
+</div>
+
+### Category Cards (for organizing related items):
+<div class="category-grid">
+  <div class="category-card-template">
+    <h4>Category 1</h4>
+    <ul><li>Item 1</li><li>Item 2</li></ul>
+  </div>
+  <div class="category-card-template">
+    <h4>Category 2</h4>
+    <ul><li>Item 1</li><li>Item 2</li></ul>
+  </div>
+</div>
+
+### Data Tables:
+<table class="table-template">
+  <thead><tr><th>Column 1</th><th>Column 2</th><th>Column 3</th></tr></thead>
+  <tbody>
+    <tr><td>Data</td><td>Data</td><td>Data</td></tr>
+  </tbody>
+</table>
+
+Use these components liberally throughout to create visually rich, organized notes.
+Every section should have visual elements - not just plain text.`,
+
+      'simple-editable': `Create clean, simple notes that are easy to edit.
+
+Use basic markdown formatting:
+- ## for main headings
+- ### for subheadings
+- **bold** for emphasis
+- - for bullet lists
+- 1. for numbered lists
+- > for quotes or important notes
+- \`code\` for technical terms
+- Tables where appropriate using | syntax
+
+Keep formatting minimal and functional. Focus on clear content organization.
+This format is designed to be edited by users after generation.`
     }
 
-    // System prompt
-    const systemPrompt = `You are an expert note generator for students.
+    // System prompt - COMPREHENSIVE NotesAI-level prompt
+    const systemPrompt = `You are an expert academic note generator creating COMPREHENSIVE, EXAM-READY study materials for students. Your notes should be so thorough that they could serve as a student's ONLY study resource for the topic.
 
-## Style: ${selectedStyle}
+## OUTPUT STYLE: ${selectedStyle}
 ${stylePrompts[selectedStyle] || stylePrompts['editorial-chic']}
 
-## Sections to Include:
+## SECTIONS TO INCLUDE:
 ${includedSections}
 
-## Guidelines:
-- Use markdown format (headings, lists, bold, code blocks)
-- Be specific and detailed - no generic statements
-- Include examples and applications
-- For concept maps, output as JSON code blocks
-- Focus on helping students understand and retain information
+---
 
-## Context
-Date: ${dayjs().format('MMMM D, YYYY')}
-Course: ${course || courseName || 'General'}
-${module ? `Module: ${module}` : ''}`
+## CRITICAL REQUIREMENTS FOR CONTENT DEPTH:
 
-    // Call OpenAI
+### 1. EXHAUSTIVE COVERAGE
+- Cover EVERY aspect of the topic - leave nothing out
+- For each concept, explain: What it is, Why it matters, How it works, When it applies
+- Include historical context, current applications, and future trends where relevant
+- Address variations, exceptions, and edge cases
+
+### 2. MULTI-PARAGRAPH EXPLANATIONS
+- Each major concept requires 3-5 detailed paragraphs minimum
+- Explain underlying mechanisms step-by-step
+- Include cause-and-effect relationships
+- Connect concepts to real-world applications
+- Address common misconceptions directly
+
+### 3. SPECIFIC, CONCRETE EXAMPLES
+- Provide 2-3 detailed examples for every major concept
+- Include realistic scenarios with specific details
+- Show complete problem-solving processes
+- Demonstrate application of concepts
+
+### 4. NUMERICAL DATA & SPECIFICS
+- Include all relevant values, ranges, measurements, and statistics
+- Provide normal vs. abnormal benchmarks where applicable
+- Include formulas with worked examples
+- Reference specific standards, guidelines, or criteria
+
+### 5. COMPREHENSIVE COMPARISONS
+- Create comparison tables for related concepts
+- Use "vs" analysis for commonly confused topics
+- Highlight key differentiating factors
+- Include pros/cons or advantages/disadvantages
+
+### 6. STEP-BY-STEP PROCEDURES
+- Number all procedural steps clearly
+- Include rationale for each step
+- Note common errors at each step
+- Provide decision points and alternative paths
+
+### 7. CRITICAL THINKING & REASONING
+- Explain WHY, not just WHAT
+- Include cause-effect chains
+- Address "what if" scenarios
+- Explain decision-making frameworks
+
+### 8. PRACTICE QUESTIONS (if section included)
+For EACH practice question:
+- Write realistic, scenario-based stems
+- Provide 4 answer choices (A, B, C, D)
+- Mark the correct answer clearly
+- Provide DETAILED rationale explaining:
+  * Why the correct answer is right (with specific reasoning)
+  * Why EACH wrong answer is incorrect (specific to each option)
+  * The key concept being tested
+  * Related facts to remember
+
+### 9. MEMORY AIDS & MNEMONICS
+- Create memorable acronyms with full explanations
+- Include visual memory techniques
+- Explain the reasoning behind each mnemonic
+- Make them relevant and easy to remember
+
+### 10. CASE STUDIES / SCENARIOS (if section included)
+Create COMPREHENSIVE scenarios including:
+- Detailed background (age, context, relevant history)
+- Specific data points and observations
+- Timeline of events
+- Multiple analysis questions with complete answers
+- Decision-making exercises
+- Follow-up and outcome discussion
+
+---
+
+## VISUAL ORGANIZATION REQUIREMENTS:
+- Use the HTML box classes provided for your style LIBERALLY
+- Every major section should have visual elements (boxes, tables, grids)
+- Break up long text with organized components
+- Use tables for any comparative or multi-item data
+- Create visual hierarchy with proper heading levels
+
+## FORMAT:
+- Use markdown format with HTML box classes as specified above
+- Use ## for main sections, ### for subsections, #### for minor headings
+- Use **bold** for key terms on first mention
+- Use bullet lists for 3+ related items
+- Use numbered lists for sequences or procedures
+- For concept maps, output as JSON code blocks with the specified structure
+
+## CONTEXT:
+- Date: ${dayjs().format('MMMM D, YYYY')}
+- Course: ${course || courseName || 'General'}
+${module ? `- Module: ${module}` : ''}
+
+## FINAL INSTRUCTION:
+Generate notes that are SIGNIFICANTLY more detailed and comprehensive than typical study materials. A student should be able to read these notes and feel fully prepared for any exam on this topic. Do not summarize or abbreviate - EXPAND and ELABORATE on every point.`
+
+    // Call OpenAI - No max_tokens limit for comprehensive content (like NotesAI)
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       messages: [
@@ -277,12 +650,33 @@ ${module ? `Module: ${module}` : ''}`
         {
           role: 'user',
           content: sourceContent
-            ? `Generate study notes on "${noteTitle}" based on this source material:\n\n${sourceContent}`
-            : `Generate comprehensive study notes on the topic: "${noteTitle}"`
+            ? `Generate COMPREHENSIVE, EXAM-READY study notes on "${noteTitle}" based on this source material.
+
+SOURCE MATERIAL:
+${sourceContent}
+
+REQUIREMENTS:
+- Cover ALL aspects of the topic exhaustively
+- Be extremely thorough - this should be the DEFINITIVE study resource
+- Include detailed explanations, examples, and applications
+- Use the visual formatting components specified in the system prompt
+- Generate practice questions if that section is included
+- Create case studies/scenarios if that section is included`
+            : `Generate COMPREHENSIVE, EXAM-READY study notes on the topic: "${noteTitle}"
+
+REQUIREMENTS:
+- Cover ALL aspects of this topic exhaustively
+- Be extremely thorough - this should be the DEFINITIVE study resource
+- Include theoretical foundations, practical applications, and real-world examples
+- Address common misconceptions and frequently tested concepts
+- Use the visual formatting components specified in the system prompt
+- Generate practice questions if that section is included
+- Create case studies/scenarios if that section is included
+- Include all relevant data, formulas, and specific values`
         }
       ],
-      temperature: 0.3,
-      max_tokens: 4000
+      temperature: 0.2 // Lower temperature for more consistent, thorough output (like NotesAI)
+      // No max_tokens - allow full comprehensive output
     })
 
     const markdownContent = completion.choices[0]?.message?.content || ''

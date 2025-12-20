@@ -770,8 +770,8 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
             },
           },
 
-          // Clinical Pearl / Key Point Box
-          '& .clinical-pearl': {
+          // Expert Tip / Key Point Box (alias: clinical-pearl for backward compatibility)
+          '& .clinical-pearl, & .expert-tip': {
             background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
             borderRadius: 2,
             p: 3,
@@ -792,8 +792,8 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
             },
           },
 
-          // Nursing Intervention Box
-          '& .nursing-intervention': {
+          // Action Step / Process Box (alias: nursing-intervention for backward compatibility)
+          '& .nursing-intervention, & .action-step-box, & .process-box': {
             bgcolor: '#f0fdf4',
             borderRadius: 2,
             p: 3,
@@ -808,13 +808,13 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
               alignItems: 'center',
               gap: 1,
               '&::before': {
-                content: '"🩺"',
+                content: '"📋"',
               },
             },
           },
 
-          // Medication Box
-          '& .medication-box': {
+          // Formula / Technical Box (alias: medication-box for backward compatibility)
+          '& .medication-box, & .formula-box, & .technical-box': {
             bgcolor: '#faf5ff',
             borderRadius: 2,
             p: 3,
@@ -825,6 +825,42 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
               fontSize: '1.1rem',
               fontWeight: 600,
               mb: 1.5,
+            },
+          },
+
+          // Concept Box (key theories, definitions)
+          '& .concept-box': {
+            bgcolor: '#eff6ff',
+            borderRadius: 2,
+            p: 3,
+            my: 3,
+            borderLeft: '4px solid #3b82f6',
+            '& h4': {
+              color: '#1e40af',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              mb: 1.5,
+            },
+          },
+
+          // Example Box (worked examples, applications)
+          '& .example-box': {
+            bgcolor: '#fefce8',
+            borderRadius: 2,
+            p: 3,
+            my: 3,
+            border: '1px solid #fde047',
+            '& h4': {
+              color: '#854d0e',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              mb: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              '&::before': {
+                content: '"💡"',
+              },
             },
           },
           '& .med-name': {

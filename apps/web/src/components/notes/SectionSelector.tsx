@@ -15,32 +15,32 @@ import {
 } from '@mui/material';
 import { ExpandMore, CheckCircle } from '@mui/icons-material';
 
-// Section definitions matching NotesAI's approach
+// Section definitions - GENERIC for any subject (not medical-specific)
 const SECTION_CATEGORIES = {
   core: {
     label: 'Core Content',
     sections: [
-      { id: 'overview', label: 'Overview', description: 'Introduction and key concepts' },
+      { id: 'overview', label: 'Overview', description: 'Introduction and context' },
       { id: 'keyTakeaways', label: 'Key Takeaways', description: 'Main learning points' },
       { id: 'mainConcepts', label: 'Main Concepts', description: 'Detailed concept explanations' },
-      { id: 'pathophysiology', label: 'Pathophysiology', description: 'Disease mechanisms and processes' },
+      { id: 'theoreticalFramework', label: 'Underlying Processes', description: 'Core mechanisms and principles' },
     ],
   },
-  clinical: {
-    label: 'Clinical',
+  application: {
+    label: 'Application',
     sections: [
-      { id: 'clinicalManifestations', label: 'Clinical Manifestations', description: 'Signs and symptoms' },
-      { id: 'diagnostics', label: 'Diagnostics', description: 'Tests and diagnostic criteria' },
-      { id: 'nursingInterventions', label: 'Nursing Interventions', description: 'Care actions and rationales' },
-      { id: 'medications', label: 'Medications', description: 'Drug information and dosing' },
+      { id: 'practicalApplications', label: 'Practical Applications', description: 'Real-world usage and examples' },
+      { id: 'analysis', label: 'Analysis & Evaluation', description: 'Methods for analysis and assessment' },
+      { id: 'actionSteps', label: 'Action Steps', description: 'Procedures and interventions' },
+      { id: 'formulas', label: 'Formulas & Calculations', description: 'Technical details and computations' },
     ],
   },
-  patient: {
-    label: 'Patient Care',
+  examples: {
+    label: 'Examples & Applications',
     sections: [
-      { id: 'clinicalApplications', label: 'Clinical Applications', description: 'Real-world scenarios' },
-      { id: 'complications', label: 'Complications', description: 'Potential adverse outcomes' },
-      { id: 'patientEducation', label: 'Patient Education', description: 'Teaching points for patients' },
+      { id: 'examples', label: 'Detailed Examples', description: 'Worked problems and scenarios' },
+      { id: 'complications', label: 'Challenges & Pitfalls', description: 'Common problems and risks' },
+      { id: 'teaching', label: 'Study Tips', description: 'Learning strategies and priorities' },
     ],
   },
   study: {
@@ -48,24 +48,24 @@ const SECTION_CATEGORIES = {
     sections: [
       { id: 'keyTerms', label: 'Key Terms', description: 'Vocabulary and definitions' },
       { id: 'mnemonics', label: 'Mnemonics', description: 'Memory aids and tricks' },
-      { id: 'conceptMap', label: 'Concept Map', description: 'Visual relationship diagram (JSON)' },
+      { id: 'conceptMap', label: 'Concept Map', description: 'Visual relationship diagram' },
     ],
   },
   practice: {
-    label: 'Practice',
+    label: 'Practice & Assessment',
     sections: [
-      { id: 'checkYourself', label: 'Check Yourself', description: 'Self-assessment questions' },
-      { id: 'practiceQuestions', label: 'Practice Questions', description: 'NCLEX-style questions' },
-      { id: 'caseStudy', label: 'Case Study', description: 'Clinical scenario analysis' },
+      { id: 'selfAssessment', label: 'Self-Assessment', description: 'Quick check questions' },
+      { id: 'practiceQuestions', label: 'Practice Questions', description: 'Exam-style questions with rationales' },
+      { id: 'caseStudy', label: 'Case Study / Scenario', description: 'Real-world scenario analysis' },
     ],
   },
   additional: {
-    label: 'Additional',
+    label: 'Additional Topics',
     sections: [
-      { id: 'clinicalPearls', label: 'Clinical Pearls', description: 'Expert tips and insights' },
-      { id: 'redFlags', label: 'Red Flags', description: 'Warning signs to watch for' },
-      { id: 'culturalConsiderations', label: 'Cultural Considerations', description: 'Diversity and inclusion' },
-      { id: 'ethicalLegal', label: 'Ethical/Legal', description: 'Ethical and legal considerations' },
+      { id: 'expertTips', label: 'Expert Tips', description: 'High-yield insights and pearls' },
+      { id: 'warningsSigns', label: 'Warning Signs', description: 'Critical alerts and red flags' },
+      { id: 'diverseContexts', label: 'Diverse Contexts', description: 'Variations across settings' },
+      { id: 'ethicalLegal', label: 'Ethical & Legal', description: 'Ethical and legal considerations' },
     ],
   },
 };
@@ -75,9 +75,9 @@ const DEFAULT_SECTIONS = [
   'overview',
   'keyTakeaways',
   'mainConcepts',
-  'pathophysiology',
-  'clinicalManifestations',
-  'nursingInterventions',
+  'theoreticalFramework',
+  'practicalApplications',
+  'actionSteps',
   'practiceQuestions',
 ];
 

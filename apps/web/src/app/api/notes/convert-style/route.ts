@@ -167,15 +167,15 @@ const STYLE_DESCRIPTIONS: { [key: string]: string } = {
   </tbody>
 </table>
 
-### 7. LAB VALUES GRID (For laboratory/clinical values)
+### 7. DATA VALUES GRID (For key values, ranges, measurements)
 <div class="lab-grid">
   <div class="lab-value critical">
-    <div class="lab-name">TEST NAME</div>
+    <div class="lab-name">METRIC NAME</div>
     <div class="lab-result">Critical: <7.0</div>
-    <div class="lab-normal">Normal: 9.0-10.5 mg/dL</div>
+    <div class="lab-normal">Normal: 9.0-10.5 units</div>
   </div>
   <div class="lab-value">
-    <div class="lab-name">TEST NAME</div>
+    <div class="lab-name">METRIC NAME</div>
     <div class="lab-result">Key Value</div>
     <div class="lab-normal">Normal: X-Y units</div>
   </div>
@@ -193,46 +193,46 @@ const STYLE_DESCRIPTIONS: { [key: string]: string } = {
   </li>
 </ol>
 
-### 9. CASE STUDIES (Include 1-2 per document)
+### 9. CASE STUDIES / SCENARIOS (Include 1-2 per document)
 <div class="case-study">
   <div class="case-study-header">
     <div>
       <div class="label">CASE STUDY 1</div>
-      <h3>Case Title / Patient Scenario</h3>
+      <h3>Scenario Title</h3>
     </div>
     <div>
       <span class="label">CRITICAL THINKING</span>
     </div>
   </div>
 
-  <p><strong>Patient:</strong> Name, age, presenting situation.</p>
-  <p><strong>Chief Complaint:</strong> "Patient's own words about symptoms"</p>
+  <p><strong>Background:</strong> Describe the situation and context.</p>
+  <p><strong>Problem Statement:</strong> What needs to be addressed or solved?</p>
 
   <div class="vitals-grid">
     <div class="vital">
-      <div class="vital-label">BP</div>
-      <div class="vital-value">120/80</div>
+      <div class="vital-label">METRIC 1</div>
+      <div class="vital-value">Value</div>
     </div>
     <div class="vital">
-      <div class="vital-label">HR</div>
-      <div class="vital-value">72</div>
+      <div class="vital-label">METRIC 2</div>
+      <div class="vital-value">Value</div>
     </div>
     <div class="vital abnormal">
-      <div class="vital-label">ABNORMAL VALUE</div>
+      <div class="vital-label">ABNORMAL</div>
       <div class="vital-value">Critical</div>
     </div>
   </div>
 
-  <h4>Assessment Findings:</h4>
+  <h4>Key Observations:</h4>
   <ul>
-    <li>Finding 1</li>
-    <li>Finding 2</li>
+    <li>Observation 1</li>
+    <li>Observation 2</li>
   </ul>
 
   <h4>Critical Thinking Questions:</h4>
   <ol>
-    <li>Question about priority intervention?</li>
-    <li>Question about expected findings?</li>
+    <li>Question about priority action?</li>
+    <li>Question about expected outcomes?</li>
   </ol>
 
   <div class="warning-box">
@@ -254,10 +254,10 @@ const STYLE_DESCRIPTIONS: { [key: string]: string } = {
   </div>
 </div>
 
-### 11. PRACTICE QUESTIONS (Include 3-5 NCLEX-style)
+### 11. PRACTICE QUESTIONS (Include 3-5 exam-style)
 <div class="question-box">
   <div class="question-number">Question 1</div>
-  <p>The nurse is caring for a patient who... Which action should the nurse take first?</p>
+  <p>In this scenario, [describe situation]... Which approach is most appropriate?</p>
   <ul class="answer-choices">
     <li>A. First option</li>
     <li class="correct">B. Correct answer (mark with class="correct")</li>
@@ -273,11 +273,11 @@ const STYLE_DESCRIPTIONS: { [key: string]: string } = {
 1. ALWAYS start with a cover page with statistics
 2. Use definition-box for EVERY key term/concept
 3. Include at least ONE comparison section
-4. Include at least ONE table with clinical data
-5. Include at least ONE case study with vitals grid
+4. Include at least ONE table with relevant data
+5. Include at least ONE case study/scenario
 6. Include at least ONE mnemonic if applicable
 7. Include 3-5 practice questions with rationales
-8. Use warning-box for all critical/safety information
+8. Use warning-box for all critical/important alerts
 9. End with a "Key Takeaways" section using callout-box
 10. Use topic-grid for organizing multiple related concepts`,
 
@@ -312,7 +312,7 @@ Color-coded backgrounds for sections
 
 <div class="section-theory">
   <div class="section-title">Background / Theory / Definitions</div>
-  <p>Foundational concepts, pathophysiology, underlying principles.</p>
+  <p>Foundational concepts, underlying principles, core mechanisms.</p>
   <ul>
     <li>Key theoretical point</li>
     <li>Important definition</li>
@@ -320,28 +320,28 @@ Color-coded backgrounds for sections
 </div>
 
 <div class="section-details">
-  <div class="section-title">Key Details / Clinical Findings</div>
+  <div class="section-title">Key Details / Observations</div>
   <ul>
-    <li><strong>Sign/Symptom:</strong> Description</li>
-    <li><strong>Finding:</strong> What to look for</li>
+    <li><strong>Key Point:</strong> Description</li>
+    <li><strong>Observation:</strong> What to look for</li>
   </ul>
 </div>
 
 <div class="section-analysis">
-  <div class="section-title">Analysis / Assessment / Diagnosis</div>
-  <p>How to evaluate, interpret data, diagnostic criteria.</p>
+  <div class="section-title">Analysis / Assessment / Evaluation</div>
+  <p>How to evaluate, interpret data, assessment criteria.</p>
   <ul>
-    <li>Assessment technique</li>
-    <li>Diagnostic criteria</li>
+    <li>Evaluation technique</li>
+    <li>Assessment criteria</li>
   </ul>
 </div>
 
 <div class="section-methods">
-  <div class="section-title">Methods / Interventions / Treatment</div>
+  <div class="section-title">Methods / Solutions / Approaches</div>
   <ol>
-    <li><strong>First intervention:</strong> Details</li>
-    <li><strong>Second intervention:</strong> Details</li>
-    <li><strong>Third intervention:</strong> Details</li>
+    <li><strong>First step:</strong> Details</li>
+    <li><strong>Second step:</strong> Details</li>
+    <li><strong>Third step:</strong> Details</li>
   </ol>
 </div>
 
@@ -407,7 +407,7 @@ Color-coded backgrounds for sections
       <th>Category</th>
       <th>Details</th>
       <th>Values</th>
-      <th>Nursing Considerations</th>
+      <th>Key Considerations</th>
     </tr>
   </thead>
   <tbody>
@@ -458,30 +458,30 @@ Color-coded backgrounds for sections
   </tbody>
 </table>
 
-### 9. CASE STUDY FORMAT
+### 9. CASE STUDY / SCENARIO FORMAT
 <div class="topic-block-template">
-  <div class="topic-header-template">📋 Case Study: Patient Scenario</div>
+  <div class="topic-header-template">📋 Case Study: Real-World Scenario</div>
   <div class="topic-content-template">
     <div class="section-theory">
-      <div class="section-title">Patient Presentation</div>
-      <p><strong>Patient:</strong> Name, age, situation</p>
-      <p><strong>Chief Complaint:</strong> "Patient's words"</p>
+      <div class="section-title">Scenario Background</div>
+      <p><strong>Context:</strong> Describe the situation</p>
+      <p><strong>Problem Statement:</strong> What needs to be addressed?</p>
     </div>
 
     <div class="section-details">
-      <div class="section-title">Assessment Data</div>
+      <div class="section-title">Key Data</div>
       <ul>
-        <li><strong>Vital Signs:</strong> BP, HR, RR, Temp, SpO2</li>
-        <li><strong>Lab Values:</strong> Relevant results</li>
-        <li><strong>Physical Findings:</strong> Key observations</li>
+        <li><strong>Key Metrics:</strong> Relevant values</li>
+        <li><strong>Observations:</strong> What was found</li>
+        <li><strong>Additional Info:</strong> Supporting details</li>
       </ul>
     </div>
 
     <div class="section-analysis">
       <div class="section-title">Critical Thinking Questions</div>
       <ol>
-        <li>What is the priority nursing intervention?</li>
-        <li>What findings support your assessment?</li>
+        <li>What is the priority action?</li>
+        <li>What data supports your conclusion?</li>
       </ol>
     </div>
 
@@ -498,7 +498,7 @@ Color-coded backgrounds for sections
 ### 10. PRACTICE QUESTIONS
 <div class="priority-box-template">
   <h4>📝 Practice Question</h4>
-  <p><strong>Question:</strong> A nurse is caring for a patient who... Which action is most appropriate?</p>
+  <p><strong>Question:</strong> In this scenario, [describe context]... Which action is most appropriate?</p>
   <ol type="A">
     <li>First option</li>
     <li>Second option</li>
@@ -513,11 +513,11 @@ Color-coded backgrounds for sections
 1. ALWAYS start with header-template (white text!)
 2. Wrap EVERY major topic in topic-block-template
 3. Use AT LEAST 5-6 different colored sections per topic
-4. Include section-critical for ALL safety/warning content
+4. Include section-critical for ALL warnings/important alerts
 5. Include at least ONE comparison table
-6. Include at least ONE case study
+6. Include at least ONE case study/scenario
 7. Include 2-3 practice questions with rationales
-8. Use priority-box-template for high-yield content
+8. Use priority-box-template for high-yield/exam content
 9. Use category-grid when listing 3+ related items
 10. End each topic with section-summary`
 }
@@ -636,15 +636,15 @@ ${extracted.sections.map(s => `- ${s.heading}`).join('\n')}
 
 Generate the complete styled HTML document now. Output ONLY the HTML, nothing else.`
 
-    // Call OpenAI with maximum tokens for comprehensive output
+    // Call OpenAI - lower temperature for consistent styling
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.5,
-      max_tokens: 16000 // Maximum for rich, comprehensive output
+      temperature: 0.3 // Lower temperature for consistent, high-quality formatting
+      // No max_tokens - allow full comprehensive output
     })
 
     let styledHtml = completion.choices[0]?.message?.content || ''
