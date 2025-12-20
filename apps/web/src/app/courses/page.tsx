@@ -212,6 +212,21 @@ export default function CoursesPage() {
     }
   }
 
+  const dueSoonByCourse = useMemo(() => {
+    const now = new Date()
+    const weekOut = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    return tasks
+      .filter(t => t.status !== 'completed')
+      .filter(t => {
+        const due = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate)
+        return due >= now && due <= weekOut
+      })
+      .reduce<Record<string, number>>((acc, task) => {
+        acc[task.courseId] = (acc[task.courseId] || 0) + 1
+        return acc
+      }, {})
+  }, [tasks])
+
   // Filter courses by status
   const filteredCourses = statusFilter === 'ALL'
     ? courses
@@ -228,21 +243,6 @@ export default function CoursesPage() {
       </Container>
     )
   }
-
-  const dueSoonByCourse = useMemo(() => {
-    const now = new Date()
-    const weekOut = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-    return tasks
-      .filter(t => t.status !== 'completed')
-      .filter(t => {
-        const due = t.dueDate instanceof Date ? t.dueDate : new Date(t.dueDate)
-        return due >= now && due <= weekOut
-      })
-      .reduce<Record<string, number>>((acc, task) => {
-        acc[task.courseId] = (acc[task.courseId] || 0) + 1
-        return acc
-      }, {})
-  }, [tasks])
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
