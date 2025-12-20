@@ -17,14 +17,15 @@ export interface StyleRequirements {
 
 const STYLE_REQUIREMENTS: { [key: string]: StyleRequirements } = {
   'editorial-chic': {
-    requiredElements: ['article.note-body', 'h1', 'h2'],
-    requiredClasses: ['note-body'],
-    optionalClasses: [],
+    requiredElements: ['h1'], // Only require h1, be lenient
+    requiredClasses: [], // Don't require specific classes
+    optionalClasses: ['note-body'],
   },
   'vibrant-textbook': {
-    requiredElements: ['article.note-body', 'h1', 'h2'],
-    requiredClasses: ['note-body'],
+    requiredElements: ['h1'], // Only require h1, be lenient
+    requiredClasses: [], // Don't require specific classes
     optionalClasses: [
+      'note-body',
       'clinical-box',
       'nursing-box',
       'education-box',
@@ -158,13 +159,13 @@ export function validateStyledNote(
     }
   }
 
-  // Check malformed tags
+  // Check malformed tags - as warnings, not errors (AI output can be imperfect)
   const malformedErrors = checkMalformedTags(html);
-  result.errors.push(...malformedErrors);
+  result.warnings.push(...malformedErrors);
 
-  // Check structure
+  // Check structure - as warnings only
   const structureCheck = checkStructure(html);
-  result.errors.push(...structureCheck.errors);
+  result.warnings.push(...structureCheck.errors);
   result.warnings.push(...structureCheck.warnings);
 
   // For vibrant-textbook, check if any special boxes are used
