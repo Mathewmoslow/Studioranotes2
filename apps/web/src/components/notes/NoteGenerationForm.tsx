@@ -87,6 +87,8 @@ export default function NoteGenerationForm({
     }
   };
 
+  const [loadingMessage, setLoadingMessage] = useState('');
+
   const handleGenerate = async () => {
     // Validation
     if (!preSelectedCourse && !formData.courseId) {
@@ -102,10 +104,15 @@ export default function NoteGenerationForm({
     setError(null);
     setSuccess(false);
 
+    const isStyledFormat = formData.noteStyle !== 'simple-editable';
+
     try {
       const selectedCourse =
         preSelectedCourse ||
         courses.find((c: any) => c.id === formData.courseId);
+
+      // STEP 1: Always generate simple/editable version first
+      setLoadingMessage(isStyledFormat ? 'Step 1/2: Generating content...' : 'Generating notes...');
 
       const response = await fetch('/api/notes/generate', {
         method: 'POST',
@@ -116,7 +123,7 @@ export default function NoteGenerationForm({
           courseName: selectedCourse?.name || formData.courseName,
           source: formData.sourceText,
           sections: formData.sections,
-          noteStyle: formData.noteStyle,
+          noteStyle: 'simple-editable', // Always generate simple first
         }),
       });
 
@@ -126,34 +133,83 @@ export default function NoteGenerationForm({
       }
 
       const data = await response.json();
+      const simpleContent = data.html || data.content;
 
-      // Create note object
-      const noteId = `note-${Date.now()}`;
-      const newNote = {
-        id: noteId,
-        title: formData.title,
-        topic: formData.title,
-        content: data.html || data.content,
-        markdown: data.markdown,
-        courseId: selectedCourse?.id || formData.courseId,
-        courseName: selectedCourse?.name || formData.courseName,
-        noteStyle: formData.noteStyle,
-        sections: formData.sections,
-        timestamp: new Date().toISOString(),
-        editable: formData.noteStyle === 'simple-editable',
-        aiGenerated: true,
-      };
+      // If user wants simple/editable, we're done
+      if (!isStyledFormat) {
+        const noteId = `note-${Date.now()}`;
+        const newNote = {
+          id: noteId,
+          title: formData.title,
+          topic: formData.title,
+          content: simpleContent,
+          markdown: data.markdown,
+          courseId: selectedCourse?.id || formData.courseId,
+          courseName: selectedCourse?.name || formData.courseName,
+          noteStyle: 'simple-editable',
+          sections: formData.sections,
+          timestamp: new Date().toISOString(),
+          editable: true,
+          aiGenerated: true,
+        };
 
-      // Save to localStorage
-      const existingNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
-      existingNotes[noteId] = newNote;
-      localStorage.setItem('generated-notes', JSON.stringify(existingNotes));
+        // Save to localStorage
+        const existingNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+        existingNotes[noteId] = newNote;
+        localStorage.setItem('generated-notes', JSON.stringify(existingNotes));
 
-      setSuccess(true);
+        setSuccess(true);
+        if (onNoteGenerated) {
+          onNoteGenerated(newNote);
+        }
+      } else {
+        // STEP 2: Convert simple content to styled format
+        setLoadingMessage('Step 2/2: Applying style formatting...');
 
-      // Callback with new note (no page reload!)
-      if (onNoteGenerated) {
-        onNoteGenerated(newNote);
+        const convertResponse = await fetch('/api/notes/convert-style', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            noteId: `temp-${Date.now()}`,
+            content: simpleContent,
+            targetStyle: formData.noteStyle,
+            title: formData.title,
+            course: selectedCourse?.name || formData.courseName,
+          }),
+        });
+
+        if (!convertResponse.ok) {
+          const errorData = await convertResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to apply style formatting');
+        }
+
+        const convertData = await convertResponse.json();
+
+        // Create the styled note
+        const noteId = `note-${Date.now()}`;
+        const styledNote = {
+          id: noteId,
+          title: formData.title,
+          topic: formData.title,
+          content: convertData.html,
+          courseId: selectedCourse?.id || formData.courseId,
+          courseName: selectedCourse?.name || formData.courseName,
+          noteStyle: formData.noteStyle,
+          sections: formData.sections,
+          timestamp: new Date().toISOString(),
+          editable: false,
+          aiGenerated: true,
+        };
+
+        // Save to localStorage
+        const existingNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+        existingNotes[noteId] = styledNote;
+        localStorage.setItem('generated-notes', JSON.stringify(existingNotes));
+
+        setSuccess(true);
+        if (onNoteGenerated) {
+          onNoteGenerated(styledNote);
+        }
       }
 
       // Reset form after success
@@ -168,6 +224,7 @@ export default function NoteGenerationForm({
       setError(err instanceof Error ? err.message : 'Failed to generate note. Please try again.');
     } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -321,7 +378,7 @@ export default function NoteGenerationForm({
 
       {loading && (
         <Typography variant="body2" color="text.secondary" textAlign="center">
-          Creating your personalized notes with AI...
+          {loadingMessage || 'Creating your personalized notes with AI...'}
         </Typography>
       )}
     </Stack>
