@@ -513,7 +513,7 @@ export default function CourseDetailPage() {
                           </ListItemIcon>
                           <ListItemText
                             primary={task.title}
-                            secondary={`Due: ${format(task.dueDate, 'MMM d, yyyy')}`}
+                            secondary={task.due ? `Due: ${format(task.due, 'MMM d, yyyy')}` : ''}
                           />
                           <Chip
                             label={task.type}
