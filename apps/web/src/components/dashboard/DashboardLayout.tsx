@@ -12,22 +12,16 @@ import {
   useMediaQuery,
   Container,
   Avatar,
-  Badge,
   Tooltip,
-  alpha,
   Stack,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
-  Notifications as NotificationsIcon,
   AccountCircle,
-  Search as SearchIcon,
   DarkMode,
   LightMode,
 } from '@mui/icons-material'
 import DashboardSidebar from './DashboardSidebar'
-import DashboardWidgets from './DashboardWidgets'
-import QuickActions from './QuickActions'
 
 const DRAWER_WIDTH = 280
 const DRAWER_WIDTH_COLLAPSED = 72
@@ -48,7 +42,6 @@ export default function DashboardLayout({
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'))
   const [mobileOpen, setMobileOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [notifications, setNotifications] = useState(3)
 
   useEffect(() => {
     if (isTablet) {
@@ -80,10 +73,10 @@ export default function DashboardLayout({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          backdropFilter: 'blur(10px)',
-          background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
-          borderBottom: `1px solid ${alpha('#fff', 0.18)}`,
-          color: '#fff',
+          bgcolor: 'background.paper',
+          borderBottom: `1px solid`,
+          borderColor: 'divider',
+          color: 'text.primary',
         }}
       >
         <Toolbar>
@@ -92,7 +85,7 @@ export default function DashboardLayout({
             aria-label="toggle drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, color: '#fff' }}
+            sx={{ mr: 2 }}
           >
             <MenuIcon />
           </IconButton>
@@ -103,37 +96,22 @@ export default function DashboardLayout({
             component="div"
             sx={{
               flexGrow: 1,
-              color: '#fff',
               fontWeight: 600,
               display: { xs: 'none', sm: 'block' }
             }}
           >
-            Studiora.io Dashboard
+            Studiora
           </Typography>
 
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Tooltip title="Search">
-              <IconButton sx={{ color: 'rgba(255,255,255,0.85)' }}>
-                <SearchIcon />
-              </IconButton>
-            </Tooltip>
-
+          <Stack direction="row" spacing={0.5} alignItems="center">
             <Tooltip title="Toggle theme">
-              <IconButton onClick={onThemeToggle} sx={{ color: 'rgba(255,255,255,0.85)' }}>
+              <IconButton onClick={onThemeToggle} color="inherit">
                 {isDarkMode ? <LightMode /> : <DarkMode />}
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Notifications">
-              <IconButton sx={{ color: 'rgba(255,255,255,0.85)' }}>
-                <Badge badgeContent={notifications} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-
             <Tooltip title="Profile">
-              <IconButton sx={{ ml: 1 }}>
+              <IconButton>
                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
                   <AccountCircle />
                 </Avatar>
@@ -192,8 +170,7 @@ export default function DashboardLayout({
         }}
       >
         <Container maxWidth="xl" sx={{ px: { xs: 0, sm: 2 } }}>
-          <QuickActions />
-          {children || <DashboardWidgets />}
+          {children}
         </Container>
       </Box>
     </Box>
