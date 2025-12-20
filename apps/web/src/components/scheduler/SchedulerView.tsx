@@ -20,6 +20,8 @@ import {
   ListItem,
   ListItemText,
   Chip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -32,6 +34,7 @@ import { format, startOfWeek, addDays, addMinutes, isSameDay, startOfMonth, endO
 import EventModalMUI from './EventModalMUI';
 import { clinicalFilter } from '../../lib/clinicalFilter';
 import { determineBlockCategory } from '../../lib/blockVisuals';
+import { useTouchDrag, useDeviceDetection, getCalendarConfig } from '../../hooks/useTouchDrag';
 
 type ViewType = 'week' | 'day' | 'month';
 
@@ -298,8 +301,15 @@ const resolveVisualKindForTask = (taskType?: string, isHardDeadline = false): Vi
 };
 
 const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
+  // Device detection for responsive design
+  const theme = useTheme();
+  const device = useDeviceDetection();
+  const calendarConfig = getCalendarConfig(device);
+  const isMobileView = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTabletView = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewType, setViewType] = useState<ViewType>('week');
+  const [viewType, setViewType] = useState<ViewType>(device.isMobile ? 'day' : 'week');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedTimeBlock, setSelectedTimeBlock] = useState<any>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
@@ -310,6 +320,37 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const cleanupRan = useRef(false);
   const [dueModal, setDueModal] = useState<{ open: boolean; items: any[]; date?: Date }>({ open: false, items: [] });
   const [health, setHealth] = useState<{ openaiEnabled: boolean; fixtureEnabled: boolean; mockExtraction: boolean } | null>(null);
+
+  // Touch drag support
+  const touchDrag = useTouchDrag({
+    onDragStart: (item) => setDraggedItem(item),
+    onDragEnd: (dropTarget) => {
+      if (draggedItem && dropTarget) {
+        const newStartTime = new Date(dropTarget.date);
+        newStartTime.setHours(dropTarget.hour, 0, 0, 0);
+        const originalStart = ensureDate(draggedItem.startTime);
+        const originalEnd = ensureDate(draggedItem.endTime);
+        const duration = originalEnd.getTime() - originalStart.getTime();
+        const newEndTime = new Date(newStartTime.getTime() + duration);
+
+        if (draggedItem.type === 'event') {
+          updateEvent(draggedItem.id, { startTime: newStartTime, endTime: newEndTime });
+        } else {
+          updateTimeBlock(draggedItem.id, { startTime: newStartTime, endTime: newEndTime });
+        }
+      }
+      setDraggedItem(null);
+      setDragOverDate(null);
+      setDragOverHour(null);
+    },
+  });
+
+  // Update view type when device changes
+  useEffect(() => {
+    if (device.isMobile && viewType === 'week') {
+      setViewType('day');
+    }
+  }, [device.isMobile, viewType]);
 
   const {
     preferences,
@@ -327,12 +368,14 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   } = useScheduleStore();
 
   // Responsive scaling for tighter/mobile views
-  const minBlockHeight = compact ? Math.max(44, MIN_BLOCK_HEIGHT - 6) : MIN_BLOCK_HEIGHT;
-  const bandWidth = compact ? BAND_WIDTH - 2 : BAND_WIDTH;
-  const cardRadius = compact ? CARD_RADIUS * 0.75 : CARD_RADIUS;
-  const cardPadding = compact ? 0.32 : 0.4;
-  const cardGap = compact ? 0.32 : 0.4;
-  const cardShadow = CARD_SHADOW;
+  const effectiveHourHeight = calendarConfig.hourHeight;
+  const minBlockHeight = calendarConfig.minBlockHeight;
+  const bandWidth = calendarConfig.bandWidth;
+  const cardRadius = calendarConfig.cardRadius;
+  const cardPadding = isMobileView ? 0.25 : (compact ? 0.32 : 0.4);
+  const cardGap = isMobileView ? 0.25 : (compact ? 0.32 : 0.4);
+  const cardShadow = isMobileView ? 'none' : CARD_SHADOW;
+  const fontSize = calendarConfig.fontSize;
   const activePaletteColors = useMemo(() => {
     const palette = COURSE_PALETTES.find(p => p.id === preferences?.themePaletteId);
     return palette?.colors || COURSE_PALETTES[0].colors;
@@ -871,17 +914,39 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   
   const WeekDayView = () => {
     const days = getDaysToDisplay();
-    
+
     return (
-      <Paper elevation={0} sx={{ p: 1, border: '1px solid', borderColor: 'divider', overflow: 'auto', maxHeight: '80vh' }}>
-        <Box sx={{ display: 'flex' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 0.5, sm: 1 },
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'auto',
+          maxHeight: { xs: 'calc(100vh - 200px)', sm: '80vh' },
+          WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
+        }}
+      >
+        <Box sx={{ display: 'flex', minWidth: isMobileView ? 'auto' : 600 }}>
           {/* Time Column */}
-          <Box sx={{ width: '80px', flexShrink: 0 }}>
-            <Box sx={{ height: 40 }} /> {/* Spacer for day headers */}
+          <Box sx={{ width: { xs: 50, sm: 80 }, flexShrink: 0 }}>
+            <Box sx={{ height: { xs: 36, sm: 40 } }} /> {/* Spacer for day headers */}
             {hours.map(hour => (
-              <Box key={hour} sx={{ height: HOUR_HEIGHT, display: 'flex', alignItems: 'center', pr: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  {format(new Date().setHours(hour, 0), 'h a')}
+              <Box
+                key={hour}
+                sx={{
+                  height: effectiveHourHeight,
+                  display: 'flex',
+                  alignItems: 'center',
+                  pr: { xs: 0.5, sm: 1 }
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                >
+                  {format(new Date().setHours(hour, 0), isMobileView ? 'ha' : 'h a')}
                 </Typography>
               </Box>
             ))}
@@ -1025,7 +1090,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         <Box 
                           key={hour} 
                           sx={{ 
-                            height: HOUR_HEIGHT, 
+                            height: effectiveHourHeight,
                             borderBottom: '1px solid', 
                             borderColor: 'divider',
                             backgroundColor: dragOverDate && isSameDay(dragOverDate, day) && dragOverHour === hour + 5 
@@ -1066,7 +1131,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       const visualKind = resolveVisualKindForEvent(event);
                       const visual = safeDeriveVisual('week-event', visualKind, baseColor, event);
                       const bandLabel = getBandLabelForEvent(event);
-                      const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
+                      const cardHeight = Math.max(minBlockHeight, duration * effectiveHourHeight - 4);
                       const column = positionData?.column || 0;
                       const totalColumns = positionData?.totalColumns || 1;
                       const width = `calc(${100 / totalColumns}% - 4px)`;
@@ -1116,7 +1181,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               <Card
                                 sx={{
                                   position: 'absolute',
-                                  top: `${(startHour - hoursRange.start) * HOUR_HEIGHT}px`,
+                                  top: `${(startHour - hoursRange.start) * effectiveHourHeight}px`,
                                   height: 70,
                                   width: 70,
                                   left: leftPosition,
@@ -1158,7 +1223,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               onDragEnd={handleDragEnd}
                               sx={{
                                 position: 'absolute',
-                                top: `${(startHour - hoursRange.start) * HOUR_HEIGHT}px`,
+                                top: `${(startHour - hoursRange.start) * effectiveHourHeight}px`,
                                 height: `${cardHeight}px`,
                                 left: leftPosition,
                                 width,
@@ -1296,7 +1361,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                         taskType: task?.type,
                         course,
                       });
-                      const cardHeight = Math.max(minBlockHeight, duration * HOUR_HEIGHT - 4);
+                      const cardHeight = Math.max(minBlockHeight, duration * effectiveHourHeight - 4);
                       const blockLabel = getDoSubcategory(task);
                       const bandLabel = visualKind === 'DUE'
                         ? 'DUE'
@@ -1349,7 +1414,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                             onDragEnd={handleDragEnd}
                             sx={{
                               position: 'absolute',
-                              top: `${(startHour - hoursRange.start) * HOUR_HEIGHT}px`,
+                              top: `${(startHour - hoursRange.start) * effectiveHourHeight}px`,
                               height: `${cardHeight}px`,
                               left: leftPosition,
                               width,
@@ -1653,33 +1718,77 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-      <Container maxWidth="xl" sx={{ py: 1 }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, gap: 2 }}>
-          <Typography variant="h4" fontWeight={600} color="text.primary">
+      <Container maxWidth="xl" sx={{ py: { xs: 0.5, sm: 1 }, px: { xs: 1, sm: 2, md: 3 } }}>
+        {/* Header - Mobile-responsive */}
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          mb: 1.5,
+          gap: { xs: 1, sm: 2 }
+        }}>
+          <Typography
+            variant={isMobileView ? 'h5' : 'h4'}
+            fontWeight={600}
+            color="text.primary"
+          >
             Schedule
           </Typography>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-            <Button variant="contained" size="small" onClick={handleGenerateSchedule}>
-              Generate
-            </Button>
-            <Button variant="outlined" size="small" color="warning" onClick={handleClearHistorical}>
-              Remove past courses
-            </Button>
-            <ButtonGroup variant="outlined" size="small">
+
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: 1
+          }}>
+            {/* Action buttons */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                justifyContent: { xs: 'space-between', sm: 'flex-start' },
+                '& .MuiButton-root': {
+                  flex: { xs: 1, sm: 'none' },
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' }
+                }
+              }}
+            >
+              <Button variant="contained" size="small" onClick={handleGenerateSchedule}>
+                Generate
+              </Button>
+              {!isMobileView && (
+                <Button variant="outlined" size="small" color="warning" onClick={handleClearHistorical}>
+                  Remove past
+                </Button>
+              )}
+            </Stack>
+
+            {/* View toggle buttons */}
+            <ButtonGroup
+              variant="outlined"
+              size="small"
+              sx={{
+                '& .MuiButton-root': {
+                  minWidth: { xs: 48, sm: 64 },
+                  fontSize: { xs: '0.7rem', sm: '0.8125rem' }
+                }
+              }}
+            >
               <Button
                 variant={viewType === 'day' ? 'contained' : 'outlined'}
                 onClick={() => setViewType('day')}
               >
                 Day
               </Button>
-              <Button
-                variant={viewType === 'week' ? 'contained' : 'outlined'}
-                onClick={() => setViewType('week')}
-              >
-                Week
-              </Button>
+              {!isMobileView && (
+                <Button
+                  variant={viewType === 'week' ? 'contained' : 'outlined'}
+                  onClick={() => setViewType('week')}
+                >
+                  Week
+                </Button>
+              )}
               <Button
                 variant={viewType === 'month' ? 'contained' : 'outlined'}
                 onClick={() => setViewType('month')}
@@ -1687,15 +1796,13 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 Month
               </Button>
             </ButtonGroup>
-            {health && (
+
+            {/* Health indicators - hidden on mobile */}
+            {health && !isMobileView && (
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <Chip size="small" label="OpenAI" color={health.openaiEnabled ? 'success' : 'error'} />
                 <Chip size="small" label="Fixture" color={health.fixtureEnabled ? 'success' : 'error'} />
-                <Chip
-                  size="small"
-                  label="Mock"
-                  color={health.mockExtraction ? 'error' : 'success'}
-                />
+                <Chip size="small" label="Mock" color={health.mockExtraction ? 'error' : 'success'} />
               </Stack>
             )}
           </Box>

@@ -67,135 +67,135 @@ export default function HomePage() {
   // Landing page for unauthenticated users
   if (status === 'unauthenticated') {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
+      <Box sx={{ minHeight: '100vh', bgcolor: '#f9fafb' }}>
+        {/* Hero Section */}
         <Box
           sx={{
-            background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 60%, #111827 100%)',
+            background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
             color: '#fff',
-            pt: 6,
-            pb: 4,
+            pt: 8,
+            pb: 8,
           }}
         >
           <Container maxWidth="lg">
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-              <Avatar sx={{ bgcolor: 'white', width: 52, height: 52 }}>
-                <Image src="/studiora-logo.png" alt="Studiora logo" width={36} height={36} />
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
+              <Avatar sx={{ bgcolor: 'white', width: 44, height: 44 }}>
+                <Image src="/studiora-logo.png" alt="Studiora logo" width={28} height={28} />
               </Avatar>
-              <Box>
-                <Typography variant="h5" fontWeight={800}>Studiora.io</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9 }}>The calmer, clearer academic cockpit.</Typography>
-              </Box>
+              <Typography variant="h6" fontWeight={700}>Studiora</Typography>
             </Stack>
 
-            <Grid container spacing={4} alignItems="center">
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography variant="h2" fontWeight={800} sx={{ fontSize: { xs: '2.5rem', md: '3.25rem' }, mb: 2 }}>
-                  Plan less. Learn more.
+            <Grid container spacing={6} alignItems="center">
+              <Grid size={{ xs: 12, md: 7 }}>
+                <Typography variant="h3" fontWeight={800} sx={{ mb: 2 }}>
+                  AI-powered study notes.<br />Smart scheduling.
                 </Typography>
-                <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.88)', mb: 3, maxWidth: 520 }}>
-                  Studiora.io blends deterministic scheduling with AI notes so your courses, due dates, and study blocks stay aligned without noise.
+                <Typography variant="body1" sx={{ opacity: 0.9, mb: 4, maxWidth: 480 }}>
+                  Generate comprehensive study notes with AI and keep your courses, assignments, and schedule organized in one place.
                 </Typography>
-                <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap' }}>
-                  <Chip icon={<ScheduleIcon />} label="Deterministic scheduler" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
-                  <Chip icon={<Description />} label="AI notes" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
-                  <Chip icon={<School />} label="Canvas sync" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
-                </Stack>
                 <Button
                   variant="contained"
                   size="large"
                   startIcon={<Google />}
                   onClick={() => signIn('google')}
                   sx={{
-                    bgcolor: '#111827',
-                    color: '#fff',
+                    bgcolor: 'white',
+                    color: '#1e3a5f',
                     px: 4,
                     py: 1.5,
-                    fontWeight: 700,
-                    '&:hover': { bgcolor: '#0f172a' },
+                    fontWeight: 600,
+                    '&:hover': { bgcolor: '#f1f5f9' },
                   }}
                 >
                   Sign in with Google
                 </Button>
-                <Typography variant="body2" sx={{ mt: 1.5, color: 'rgba(255,255,255,0.8)' }}>
-                  No credit card • Built for students • Fast onboarding
-                </Typography>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Paper elevation={4} sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.96)', borderRadius: 3 }}>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DashboardIcon color="primary" />
-                      <Typography variant="subtitle1" fontWeight={700}>Schedule + Notes in one place</Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Deterministic fixtures for system checks, AI summaries for each course, and automatic Canvas imports keep your calendar and notes synced.
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Card variant="outlined">
-                          <CardContent>
-                            <CalendarToday color="primary" sx={{ mb: 1 }} />
-                            <Typography fontWeight={700}>Deterministic scheduling</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              One-click 2026 fixture to validate the entire scheduling flow.
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Card variant="outlined">
-                          <CardContent>
-                            <Description color="secondary" sx={{ mb: 1 }} />
-                            <Typography fontWeight={700}>AI Notes</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Generate concise course notes and study guides instantly.
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  </Stack>
-                </Paper>
+              <Grid size={{ xs: 12, md: 5 }}>
+                <Stack spacing={2}>
+                  <Box sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <AutoAwesome />
+                      <Box>
+                        <Typography fontWeight={600}>AI Note Generation</Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                          Create detailed study notes from any topic
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                  <Box sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <ScheduleIcon />
+                      <Box>
+                        <Typography fontWeight={600}>Schedule Management</Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                          Track assignments and due dates
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                  <Box sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <School />
+                      <Box>
+                        <Typography fontWeight={600}>Canvas Integration</Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                          Import courses and assignments automatically
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Stack>
               </Grid>
             </Grid>
           </Container>
         </Box>
 
-        <Container maxWidth="lg" sx={{ py: 6 }}>
+        {/* Features Section */}
+        <Container maxWidth="lg" sx={{ py: 8 }}>
+          <Typography variant="h5" fontWeight={700} textAlign="center" sx={{ mb: 4 }}>
+            Everything you need to study smarter
+          </Typography>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                  <ScheduleIcon color="primary" />
-                  <Typography fontWeight={700}>Deterministic checks</Typography>
-                </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  Run the 2026 fixture, see chips turn green, and confirm 88/88 tasks are scheduled.
-                </Typography>
-              </Paper>
+              <Card>
+                <CardContent>
+                  <Description color="primary" sx={{ mb: 2 }} />
+                  <Typography variant="h6" fontWeight={600} gutterBottom>
+                    Smart Notes
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Generate comprehensive study notes with AI. Multiple styles and formats available.
+                  </Typography>
+                </CardContent>
+              </Card>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                  <TrendingUp color="secondary" />
-                  <Typography fontWeight={700}>Progress at a glance</Typography>
-                </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  Calm, high-contrast blocks with minimal noise so you can spot what matters now.
-                </Typography>
-              </Paper>
+              <Card>
+                <CardContent>
+                  <CalendarToday color="primary" sx={{ mb: 2 }} />
+                  <Typography variant="h6" fontWeight={600} gutterBottom>
+                    Task Tracking
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Keep track of assignments, exams, and due dates. Never miss a deadline.
+                  </Typography>
+                </CardContent>
+              </Card>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                  <AutoAwesome color="info" />
-                  <Typography fontWeight={700}>Notes + Scheduling</Typography>
-                </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  Pair every scheduled block with the right notes and prep tasks, automatically.
-                </Typography>
-              </Paper>
+              <Card>
+                <CardContent>
+                  <CloudUpload color="primary" sx={{ mb: 2 }} />
+                  <Typography variant="h6" fontWeight={600} gutterBottom>
+                    Canvas Sync
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Connect to Canvas LMS and import your courses and assignments automatically.
+                  </Typography>
+                </CardContent>
+              </Card>
             </Grid>
           </Grid>
         </Container>

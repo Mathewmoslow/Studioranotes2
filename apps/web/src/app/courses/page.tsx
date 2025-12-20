@@ -22,7 +22,9 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  MenuItem
+  MenuItem,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import {
   Add,
@@ -65,11 +67,15 @@ const EmptyState = ({ icon, title, description, action }) => (
 export default function CoursesPage() {
   const { data: session } = useSession()
   const router = useRouter()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'))
+
   const { courses, tasks, addCourse, updateCourse, deleteCourse } = useScheduleStore()
   const { currentTerm, selectedSystem, getAvailableTerms } = useAcademicTermStore()
   const { termName } = useTermDisplay()
   const availableTerms = getAvailableTerms()
-  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dayLabels = isMobile ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const meetingTypes: Array<{ value: 'lecture' | 'lab' | 'clinical' | 'tutorial' | 'seminar'; label: string }> = [
     { value: 'lecture', label: 'Lecture' },
     { value: 'lab', label: 'Lab' },
@@ -245,42 +251,44 @@ export default function CoursesPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" fontWeight={700} gutterBottom>
-          Courses & Scheduling
+    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1, sm: 2, md: 3 } }}>
+      {/* Header - Mobile responsive */}
+      <Box sx={{ mb: { xs: 2, sm: 4 }, pb: { xs: 2, sm: 3 }, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} gutterBottom>
+          Courses
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          Review courses, see what’s urgent this week, and add meeting times so the scheduler can block your calendar.
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-          <Chip
-            icon={<School />}
-            label={`${filteredCourses.length} Courses`}
-            color="primary"
-          />
-          <Chip
-            icon={<Assignment />}
-            label={`${totalCredits} Credit Hours`}
-            color="secondary"
-          />
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          flexWrap="wrap"
+          useFlexGap
+        >
+          <Stack direction="row" spacing={1}>
+            <Chip
+              icon={<School />}
+              label={`${filteredCourses.length} Courses`}
+              size="small"
+              variant="outlined"
+            />
+            <Chip
+              label={`${totalCredits} Credits`}
+              size="small"
+              variant="outlined"
+            />
+          </Stack>
           <TextField
             select
             size="small"
-            label="Status Filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            sx={{ minWidth: 150 }}
-            InputProps={{
-              startAdornment: <FilterList sx={{ mr: 1, fontSize: 20 }} />
-            }}
+            sx={{ minWidth: { xs: '100%', sm: 130 } }}
           >
-            <MenuItem value="ACTIVE">Active Only</MenuItem>
+            <MenuItem value="ACTIVE">Active</MenuItem>
             <MenuItem value="COMPLETED">Completed</MenuItem>
             <MenuItem value="ARCHIVED">Archived</MenuItem>
             <MenuItem value="UPCOMING">Upcoming</MenuItem>
-            <MenuItem value="ALL">All Courses</MenuItem>
+            <MenuItem value="ALL">All</MenuItem>
           </TextField>
         </Stack>
       </Box>
@@ -310,38 +318,35 @@ export default function CoursesPage() {
               <Card
                 sx={{
                   height: '100%',
-                  borderTop: `4px solid ${course.color}`,
-                  '&:hover': {
-                    boxShadow: 3
-                  }
+                  borderLeft: `3px solid ${course.color}`,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: 'action.hover' }
                 }}
+                onClick={() => router.push(`/courses/${course.id}`)}
               >
                 <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="h6" fontWeight={600}>
-                      {course.code}
-                    </Typography>
-                    <IconButton size="small">
-                      <MoreVert />
-                    </IconButton>
-                  </Box>
-
-                  <Typography variant="body1" gutterBottom>
-                    {course.name}
+                  <Typography variant="h6" fontWeight={600} gutterBottom>
+                    {course.code || course.name}
                   </Typography>
 
-                  {course.instructor && (
+                  {course.code && (
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Instructor: {course.instructor}
+                      {course.name}
                     </Typography>
                   )}
 
-                  <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap">
+                  {course.instructor && (
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {course.instructor}
+                    </Typography>
+                  )}
+
+                  <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
                     <Chip
                       size="small"
-                      icon={getStatusIcon(course.status || 'ACTIVE')}
                       label={course.status || 'ACTIVE'}
                       color={getStatusColor(course.status || 'ACTIVE')}
+                      variant="outlined"
                     />
                     {dueSoonByCourse[course.id] && (
                       <Chip
@@ -350,83 +355,28 @@ export default function CoursesPage() {
                         label={`${dueSoonByCourse[course.id]} due soon`}
                       />
                     )}
-                    {course.semester && (
-                      <Chip
-                        size="small"
-                        icon={<CalendarMonth />}
-                        label={`${course.semester}${course.year ? ` ${course.year}` : ''}`}
-                      />
-                    )}
                     {course.creditHours && (
                       <Chip
                         size="small"
-                        icon={<Schedule />}
                         label={`${course.creditHours} credits`}
+                        variant="outlined"
                       />
                     )}
                   </Stack>
-
-                  {course.progress > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="caption">Progress</Typography>
-                        <Typography variant="caption">{course.progress}%</Typography>
-                      </Box>
-                      <LinearProgress variant="determinate" value={course.progress} />
-                    </Box>
-                  )}
                 </CardContent>
 
-                <CardActions sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                <CardActions onClick={(e) => e.stopPropagation()}>
                   <Button
                     size="small"
-                    onClick={() => router.push(`/courses/${course.id}`)}
-                  >
-                    View
-                  </Button>
-                  <Button
-                    size="small"
-                    color={Array.isArray(course.schedule) && course.schedule.length > 0 ? 'primary' : 'warning'}
-                    onClick={() => handleEdit(course)}
-                  >
-                    {Array.isArray(course.schedule) && course.schedule.length > 0 ? 'Edit Meeting Times' : 'Add Meeting Times'}
-                  </Button>
-                  <Button
-                    size="small"
+                    startIcon={<Edit />}
                     onClick={() => handleEdit(course)}
                   >
                     Edit
                   </Button>
-                  {(course.status || 'ACTIVE') === 'ACTIVE' && (
-                    <Button
-                      size="small"
-                      color="info"
-                      onClick={() => handleStatusChange(course.id, 'COMPLETED')}
-                    >
-                      Complete
-                    </Button>
-                  )}
-                  {(course.status || 'ACTIVE') !== 'ARCHIVED' && (
-                    <Button
-                      size="small"
-                      color="warning"
-                      onClick={() => handleStatusChange(course.id, 'ARCHIVED')}
-                    >
-                      Archive
-                    </Button>
-                  )}
-                  {(course.status || 'ACTIVE') === 'ARCHIVED' && (
-                    <Button
-                      size="small"
-                      color="success"
-                      onClick={() => handleStatusChange(course.id, 'ACTIVE')}
-                    >
-                      Reactivate
-                    </Button>
-                  )}
                   <Button
                     size="small"
                     color="error"
+                    startIcon={<Delete />}
                     onClick={() => handleDelete(course.id)}
                   >
                     Delete
