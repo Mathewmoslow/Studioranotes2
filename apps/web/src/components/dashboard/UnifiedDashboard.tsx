@@ -31,6 +31,7 @@ import {
   Assignment,
   Quiz,
   MenuBook,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material'
 import { format, startOfWeek, addDays } from 'date-fns'
 
@@ -125,7 +126,7 @@ export default function UnifiedDashboard() {
                 {stats.upcomingTasks} tasks due this week. Next study block in 2 hours. Deterministic scheduling and AI notes keep you aligned without noise.
               </Typography>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" alignItems="center">
-                <Chip icon={<Schedule />} label="Deterministic schedule" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
+                <Chip icon={<ScheduleIcon />} label="Deterministic schedule" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
                 <Chip icon={<Description />} label="AI notes" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
                 <Chip icon={<School />} label="Canvas sync" sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: '#fff' }} />
               </Stack>

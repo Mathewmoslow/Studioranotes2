@@ -20,7 +20,7 @@ import {
 import {
   Dashboard as DashboardIcon,
   School,
-  Schedule,
+  Schedule as ScheduleIcon,
   Description,
   AutoAwesome,
   TrendingUp,
@@ -96,7 +96,7 @@ export default function HomePage() {
                   Studiora.io blends deterministic scheduling with AI notes so your courses, due dates, and study blocks stay aligned without noise.
                 </Typography>
                 <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap' }}>
-                  <Chip icon={<Schedule />} label="Deterministic scheduler" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
+                  <Chip icon={<ScheduleIcon />} label="Deterministic scheduler" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
                   <Chip icon={<Description />} label="AI notes" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
                   <Chip icon={<School />} label="Canvas sync" sx={{ bgcolor: 'rgba(255,255,255,0.16)', color: '#fff' }} />
                 </Stack>
