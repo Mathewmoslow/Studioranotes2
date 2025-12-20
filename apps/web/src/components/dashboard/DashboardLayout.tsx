@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   Box,
   Drawer,
@@ -14,34 +15,48 @@ import {
   Avatar,
   Tooltip,
   Stack,
+  Breadcrumbs,
+  Link,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
   AccountCircle,
-  DarkMode,
-  LightMode,
+  ArrowBack,
+  Home,
 } from '@mui/icons-material'
 import DashboardSidebar from './DashboardSidebar'
 
 const DRAWER_WIDTH = 280
 const DRAWER_WIDTH_COLLAPSED = 72
 
+// Route to breadcrumb mapping
+const ROUTE_NAMES: { [key: string]: string } = {
+  '/': 'Dashboard',
+  '/courses': 'Courses',
+  '/notes': 'Notes',
+  '/schedule': 'Schedule',
+  '/settings': 'Settings',
+}
+
 interface DashboardLayoutProps {
   children?: React.ReactNode
-  onThemeToggle?: () => void
-  isDarkMode?: boolean
 }
 
 export default function DashboardLayout({
   children,
-  onThemeToggle,
-  isDarkMode = false
 }: DashboardLayoutProps) {
   const theme = useTheme()
+  const router = useRouter()
+  const pathname = usePathname()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'))
   const [mobileOpen, setMobileOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  // Parse pathname for breadcrumbs
+  const pathSegments = pathname.split('/').filter(Boolean)
+  const isHome = pathname === '/'
+  const canGoBack = !isHome
 
   useEffect(() => {
     if (isTablet) {
@@ -85,11 +100,78 @@ export default function DashboardLayout({
             aria-label="toggle drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
+            sx={{ mr: 1 }}
           >
             <MenuIcon />
           </IconButton>
 
+          {/* Back button - shows on non-home pages */}
+          {canGoBack && (
+            <Tooltip title="Go back">
+              <IconButton
+                color="inherit"
+                onClick={() => router.back()}
+                sx={{ mr: 1 }}
+              >
+                <ArrowBack />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            sx={{
+              flexGrow: 1,
+              '& .MuiBreadcrumbs-separator': { mx: 0.5 },
+              display: { xs: 'none', sm: 'flex' }
+            }}
+          >
+            <Link
+              component="button"
+              underline="hover"
+              color={isHome ? 'text.primary' : 'inherit'}
+              onClick={() => router.push('/')}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                fontWeight: isHome ? 600 : 400,
+                cursor: 'pointer',
+                border: 'none',
+                background: 'none',
+                fontSize: 'inherit',
+              }}
+            >
+              <Home sx={{ mr: 0.5, fontSize: 18 }} />
+              Dashboard
+            </Link>
+            {pathSegments.map((segment, index) => {
+              const path = '/' + pathSegments.slice(0, index + 1).join('/')
+              const isLast = index === pathSegments.length - 1
+              const name = ROUTE_NAMES[path] || segment.charAt(0).toUpperCase() + segment.slice(1)
+
+              return (
+                <Link
+                  key={path}
+                  component="button"
+                  underline={isLast ? 'none' : 'hover'}
+                  color={isLast ? 'text.primary' : 'inherit'}
+                  onClick={() => !isLast && router.push(path)}
+                  sx={{
+                    fontWeight: isLast ? 600 : 400,
+                    cursor: isLast ? 'default' : 'pointer',
+                    border: 'none',
+                    background: 'none',
+                    fontSize: 'inherit',
+                  }}
+                >
+                  {name}
+                </Link>
+              )
+            })}
+          </Breadcrumbs>
+
+          {/* Mobile title */}
           <Typography
             variant="h6"
             noWrap
@@ -97,27 +179,19 @@ export default function DashboardLayout({
             sx={{
               flexGrow: 1,
               fontWeight: 600,
-              display: { xs: 'none', sm: 'block' }
+              display: { xs: 'block', sm: 'none' }
             }}
           >
-            Studiora
+            {ROUTE_NAMES[pathname] || 'Studiora'}
           </Typography>
 
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <Tooltip title="Toggle theme">
-              <IconButton onClick={onThemeToggle} color="inherit">
-                {isDarkMode ? <LightMode /> : <DarkMode />}
-              </IconButton>
-            </Tooltip>
-
-            <Tooltip title="Profile">
-              <IconButton>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                  <AccountCircle />
-                </Avatar>
-              </IconButton>
-            </Tooltip>
-          </Stack>
+          <Tooltip title="Profile">
+            <IconButton>
+              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                <AccountCircle />
+              </Avatar>
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
