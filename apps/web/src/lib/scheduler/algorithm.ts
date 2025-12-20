@@ -609,8 +609,47 @@ export class DynamicScheduler {
   }
 
   private generateBreaks(studyBlocks: StudyBlock[]): StudyBlock[] {
-    // Don't create explicit break blocks - just leave natural gaps between sessions
-    return []
+    const sorted = [...studyBlocks].sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+    const breaks: StudyBlock[] = []
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = sorted[i]
+      const next = sorted[i + 1]
+
+      // Only consider breaks on the same day
+      if (!isSameDay(current.startTime, next.startTime)) continue
+
+      const gapMinutes = (next.startTime.getTime() - current.endTime.getTime()) / 60000
+      if (!Number.isFinite(gapMinutes) || gapMinutes <= 0) continue
+
+      // Decide break length: longer after longer sessions or two back-to-back blocks
+      const currentDuration = (current.endTime.getTime() - current.startTime.getTime()) / 60000
+      const needsLongBreak = currentDuration >= 75 || gapMinutes >= this.config.breakDuration.long + 5
+      const breakDuration = Math.min(
+        gapMinutes - 5, // leave a tiny buffer before next block
+        needsLongBreak ? this.config.breakDuration.long : this.config.breakDuration.short
+      )
+
+      if (breakDuration <= 10) continue // skip tiny breaks
+
+      const start = current.endTime
+      const end = addMinutes(start, breakDuration)
+      if (!isAfter(end, start) || !isBefore(end, next.startTime)) continue
+
+      breaks.push({
+        id: `break-${current.id}-${i}`,
+        taskId: `break-${current.taskId || 'gap'}-${i}`,
+        taskTitle: 'Break',
+        taskType: 'break',
+        startTime: start,
+        endTime: end,
+        energyRequired: 10,
+        isOptimal: true,
+        confidence: 100
+      })
+    }
+
+    return breaks
   }
 
   public generateSchedule(
@@ -943,14 +982,18 @@ export class DynamicScheduler {
     const sorted = [...validSlots].sort((a, b) => a.start.getTime() - b.start.getTime())
 
     let currentTime = dayStart
+    const jitterSeed = dayStart.getDate() + (dayStart.getMonth() + 1) * 13
+    const staggerMinutes = Math.min(20, (jitterSeed % 4) * 5) // 0,5,10,15,20 pattern to spread starts
 
     for (const busy of sorted) {
       // If there's a gap before this busy slot
       if (isBefore(currentTime, busy.start)) {
         const gap = (busy.start.getTime() - currentTime.getTime()) / (1000 * 60)
         if (gap >= this.config.sessionDuration.min + this.config.bufferTime) {
+          // Apply a small day-level stagger to avoid identical start times every day
+          const staggeredStart = addMinutes(currentTime, Math.min(staggerMinutes, Math.max(0, gap - this.config.sessionDuration.min)))
           available.push({
-            start: currentTime,
+            start: staggeredStart,
             end: busy.start
           })
         }
@@ -966,8 +1009,9 @@ export class DynamicScheduler {
     if (isBefore(currentTime, dayEnd)) {
       const gap = (dayEnd.getTime() - currentTime.getTime()) / (1000 * 60)
       if (gap >= this.config.sessionDuration.min) {
+        const staggeredStart = addMinutes(currentTime, Math.min(staggerMinutes, Math.max(0, gap - this.config.sessionDuration.min)))
         available.push({
-          start: currentTime,
+          start: staggeredStart,
           end: dayEnd
         })
       }

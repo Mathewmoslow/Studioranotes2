@@ -40,7 +40,8 @@ const COURSE_PALETTES = [
   {
     id: 'bright-study',
     label: 'Bright Study',
-    colors: ['#2563eb', '#a855f7', '#f59e0b', '#0ea5e9', '#10b981', '#7ca1f3', '#db99fa', '#6ec9f2', '#70d5b3', '#f9c56d'],
+    // High-contrast first four to avoid near-duplicates in small course sets
+    colors: ['#2563eb', '#22c55e', '#f97316', '#8b5cf6', '#0ea5e9', '#10b981', '#7ca1f3', '#db99fa', '#6ec9f2', '#f9c56d'],
   },
   {
     id: 'coastline',
@@ -919,10 +920,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 const dueBlocks = normalizedDayBlocks.filter(b => b.type === 'due' || b.type === 'deadline');
                 const remainingBlocks = normalizedDayBlocks.filter(b => b.type !== 'due' && b.type !== 'deadline');
 
-                // Group DUE events/blocks by course (same day)
+                // Group DUE events/blocks by course and due day (ignore time to collapse 11:59pm piles)
                 const groupedDue = new Map<string, any[]>();
                 const addDue = (item: any, course: any) => {
-                  const key = course?.id || course?.code || 'unknown';
+                  const startKey = format(ensureDate(item.startTime), 'yyyy-MM-dd');
+                  const key = `${course?.id || course?.code || 'unknown'}-${startKey}`;
                   if (!groupedDue.has(key)) groupedDue.set(key, []);
                   groupedDue.get(key)!.push(item);
                 };

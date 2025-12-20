@@ -81,17 +81,31 @@ export default function SettingsPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Stack spacing={3}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography variant="h4" fontWeight={700}>Settings</Typography>
-            <Typography color="text.secondary">Tune your study schedule. Changes apply to future scheduling.</Typography>
-          </Box>
-          <Button variant="contained" onClick={handleSave}>Save</Button>
-        </Box>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
+      <Box
+        sx={{
+          background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
+          color: '#fff',
+          py: 4,
+          mb: 3,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
+            <Box>
+              <Typography variant="h4" fontWeight={800}>Studiora.io Settings</Typography>
+              <Typography color="rgba(255,255,255,0.85)">Fine-tune sessions, breaks, and study windows. Changes apply to future scheduling.</Typography>
+            </Box>
+            <Button variant="contained" onClick={handleSave} sx={{ bgcolor: '#0f172a', '&:hover': { bgcolor: '#111827' } }}>
+              Save
+            </Button>
+          </Stack>
+        </Container>
+      </Box>
 
-        <Paper sx={{ p: 3 }}>
+      <Container maxWidth="lg" sx={{ pb: 6 }}>
+        <Stack spacing={3}>
+        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>Study hours & days</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
@@ -144,7 +158,7 @@ export default function SettingsPage() {
           </Stack>
         </Paper>
 
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>Sessions & breaks</Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
@@ -180,7 +194,7 @@ export default function SettingsPage() {
           </Grid>
         </Paper>
 
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
           <Typography variant="h6" fontWeight={700} gutterBottom>Preferred times</Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {studyTimeChips.map((chip) => (
@@ -195,6 +209,7 @@ export default function SettingsPage() {
           </Stack>
         </Paper>
       </Stack>
-    </Container>
+      </Container>
+    </Box>
   );
 }
