@@ -707,24 +707,24 @@ export default function NotesPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, pb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Box>
-            <Typography variant="h3" fontWeight={700} gutterBottom>
-              Notes Hub
+            <Typography variant="h4" fontWeight={700} gutterBottom>
+              Notes
             </Typography>
-            <Stack direction="row" spacing={2}>
-              <Chip icon={<Description />} label={`${savedNotes.length} Total`} color="primary" />
-              <Chip icon={<Star />} label={`${savedNotes.filter(n => n.starred).length} Starred`} color="secondary" />
-              <Chip icon={<AutoAwesome />} label={`${savedNotes.filter(n => n.aiGenerated).length} AI Generated`} />
+            <Stack direction="row" spacing={1}>
+              <Chip icon={<Description />} label={`${savedNotes.length} Total`} size="small" variant="outlined" />
+              <Chip icon={<Star />} label={`${savedNotes.filter(n => n.starred).length} Starred`} size="small" variant="outlined" />
+              <Chip icon={<AutoAwesome />} label={`${savedNotes.filter(n => n.aiGenerated).length} AI`} size="small" variant="outlined" />
             </Stack>
           </Box>
           {savedNotes.length > 0 && (
             <Button
               variant="outlined"
+              size="small"
               startIcon={<MenuBook />}
               onClick={handleOpenExportDialog}
-              sx={{ mt: 1 }}
             >
               Export Textbook
             </Button>
@@ -756,28 +756,30 @@ export default function NotesPage() {
           {/* Tab 1: Recent Notes */}
           <TabPanel value={tabValue} index={1}>
             {/* Search and Filters */}
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
               <TextField
                 placeholder="Search notes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 size="small"
-                sx={{ flexGrow: 1, maxWidth: 400 }}
+                sx={{ flexGrow: 1, maxWidth: 300 }}
                 InputProps={{
                   startAdornment: <InputAdornment position="start"><Search /></InputAdornment>
                 }}
               />
               <Button
+                size="small"
                 startIcon={<FilterList />}
                 onClick={(e) => setFilterAnchorEl(e.currentTarget)}
               >
-                Filter: {selectedFilter}
+                {selectedFilter === 'all' ? 'Filter' : selectedFilter}
               </Button>
               <Button
+                size="small"
                 startIcon={sort === 'newest' ? <ArrowDownward /> : sort === 'oldest' ? <ArrowUpward /> : <Description />}
                 onClick={() => setSort(prev => prev === 'newest' ? 'oldest' : prev === 'oldest' ? 'title' : 'newest')}
               >
-                Sort: {sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : 'Title'}
+                {sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : 'A-Z'}
               </Button>
 
               <Menu

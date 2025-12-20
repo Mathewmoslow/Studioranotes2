@@ -302,65 +302,84 @@ export default function CourseDetailPage() {
           startIcon={<ArrowBack />}
           onClick={() => router.push('/courses')}
           sx={{ mb: 2 }}
+          size="small"
         >
           Back to Courses
         </Button>
 
-        <Paper
-          elevation={0}
+        <Box
           sx={{
-            p: 3,
-            borderTop: `4px solid ${course.color}`,
-            bgcolor: 'background.paper',
+            pb: 3,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
           }}
         >
-          <Grid container spacing={3} alignItems="center">
+          <Grid container spacing={3} alignItems="flex-start">
             <Grid size={{ xs: 12, md: 8 }}>
-              <Typography variant="h4" fontWeight={700} gutterBottom>
-                {course.code} - {course.name}
-              </Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 32,
+                    bgcolor: course.color,
+                    borderRadius: 1,
+                  }}
+                />
+                <Typography variant="h4" fontWeight={700}>
+                  {course.code ? `${course.code} — ` : ''}{course.name}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ ml: 2.5 }}>
                 {course.instructor && (
                   <Chip
                     icon={<School />}
                     label={course.instructor}
+                    size="small"
+                    variant="outlined"
                   />
                 )}
                 {course.semester && (
                   <Chip
                     icon={<CalendarToday />}
                     label={`${course.semester} ${course.year}`}
+                    size="small"
+                    variant="outlined"
                   />
                 )}
                 {course.creditHours && (
                   <Chip
                     icon={<Schedule />}
                     label={`${course.creditHours} credits`}
+                    size="small"
+                    variant="outlined"
                   />
                 )}
               </Stack>
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
+              <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
                 {course.canvasId && (
                   <Button
                     variant="outlined"
+                    size="small"
                     startIcon={<Sync />}
                     onClick={syncWithCanvas}
                     disabled={syncing}
                   >
-                    {syncing ? 'Syncing...' : 'Sync Canvas'}
+                    {syncing ? 'Syncing...' : 'Sync'}
                   </Button>
                 )}
                 <Button
                   variant="outlined"
+                  size="small"
                   startIcon={<TipsAndUpdates />}
                   onClick={() => setContextGenieOpen(true)}
                 >
-                  Context Genie
+                  Genie
                 </Button>
                 <Button
                   variant="contained"
+                  size="small"
                   startIcon={<AutoAwesome />}
                   onClick={() => setGenerateModalOpen(true)}
                 >
@@ -369,18 +388,18 @@ export default function CourseDetailPage() {
               </Stack>
             </Grid>
           </Grid>
-        </Paper>
+        </Box>
       </Box>
 
       {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={currentTab} onChange={(_, v) => setCurrentTab(v)}>
           <Tab label="Overview" />
           <Tab label={`Notes (${savedNotes.length})`} />
           <Tab label={`Assignments (${courseTasks.length})`} />
           <Tab label="Schedule" />
         </Tabs>
-      </Paper>
+      </Box>
 
       {/* Overview Tab */}
       <TabPanel value={currentTab} index={0}>
@@ -669,14 +688,9 @@ export default function CourseDetailPage() {
                   <Grid size={12} key={task.id}>
                     <Card
                       sx={{
-                        borderLeft: `4px solid ${getUrgencyColor()}`,
-                        backgroundColor: task.status === 'completed' ? 'rgba(243,244,246,0.5)' : 'background.paper',
+                        borderLeft: `3px solid ${getUrgencyColor()}`,
+                        backgroundColor: task.status === 'completed' ? '#f9fafb' : 'background.paper',
                         opacity: task.status === 'completed' ? 0.7 : 1,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          boxShadow: 2,
-                          transform: 'translateX(4px)'
-                        }
                       }}
                     >
                       <CardContent sx={{ p: 2 }}>
@@ -685,9 +699,9 @@ export default function CourseDetailPage() {
                           <Grid size="auto">
                             <Box
                               sx={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 2,
+                                width: 40,
+                                height: 40,
+                                borderRadius: 1,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -784,11 +798,12 @@ export default function CourseDetailPage() {
                               variant="determinate"
                               value={task.progress}
                               sx={{
-                                height: 6,
-                                borderRadius: 3,
-                                backgroundColor: 'rgba(0,0,0,0.1)',
+                                height: 4,
+                                borderRadius: 0,
+                                backgroundColor: '#e5e7eb',
                                 '& .MuiLinearProgress-bar': {
-                                  backgroundColor: course.color
+                                  backgroundColor: course.color,
+                                  borderRadius: 0
                                 }
                               }}
                             />
