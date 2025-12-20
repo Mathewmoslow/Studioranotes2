@@ -38,7 +38,9 @@ import {
   AutoAwesome,
   School,
   CalendarMonth,
-  LocalOffer
+  LocalOffer,
+  ArrowUpward,
+  ArrowDownward
 } from '@mui/icons-material'
 import { useScheduleStore } from '@/stores/useScheduleStore'
 import GenerateNoteModal from '@/components/GenerateNoteModal'
@@ -80,6 +82,7 @@ export default function NotesPage() {
   const [noteModalOpen, setNoteModalOpen] = useState(false)
   const [savedNotes, setSavedNotes] = useState<any[]>([])
   const [selectedNote, setSelectedNote] = useState<any | null>(null)
+  const [sort, setSort] = useState<'newest' | 'oldest' | 'title'>('newest')
 
   useEffect(() => {
     const notes = localStorage.getItem('generated-notes')
@@ -100,18 +103,24 @@ export default function NotesPage() {
     setSavedNotes(next)
   }
 
-  // Filter notes based on search and filters
-  const filteredNotes = savedNotes.filter(note => {
-    const matchesSearch = (note.topic || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (note.content || '').toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCourse = !selectedCourse || note.courseId === selectedCourse
-    const matchesFilter = selectedFilter === 'all' ||
-                          (selectedFilter === 'starred' && note.starred) ||
-                          (selectedFilter === 'archived' && note.archived) ||
-                          (selectedFilter === 'ai' && note.aiGenerated)
-
-    return matchesSearch && matchesCourse && matchesFilter
-  })
+  const filteredNotes = savedNotes
+    .filter(note => {
+      const matchesSearch =
+        (note.topic || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (note.content || '').toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCourse = !selectedCourse || note.courseId === selectedCourse
+      const matchesFilter = selectedFilter === 'all' ||
+                            (selectedFilter === 'starred' && note.starred) ||
+                            (selectedFilter === 'archived' && note.archived) ||
+                            (selectedFilter === 'ai' && note.aiGenerated)
+      return matchesSearch && matchesCourse && matchesFilter
+    })
+    .sort((a, b) => {
+      if (sort === 'title') return (a.topic || '').localeCompare(b.topic || '')
+      const da = new Date(a.timestamp || a.createdAt || 0).getTime()
+      const db = new Date(b.timestamp || b.createdAt || 0).getTime()
+      return sort === 'newest' ? db - da : da - db
+    })
 
   const handleToggleStar = (noteId: string, currentStarred: boolean) => {
     const next = savedNotes.map(n => n.id === noteId ? { ...n, starred: !currentStarred } : n)
@@ -176,6 +185,15 @@ export default function NotesPage() {
             Filter: {selectedFilter}
           </Button>
 
+          <Button
+            startIcon={sort === 'newest' ? <ArrowDownward /> : sort === 'oldest' ? <ArrowUpward /> : <Description />}
+            onClick={() => {
+              setSort(prev => prev === 'newest' ? 'oldest' : prev === 'oldest' ? 'title' : 'newest')
+            }}
+          >
+            Sort: {sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : 'Title'}
+          </Button>
+
           <Menu
             anchorEl={filterAnchorEl}
             open={Boolean(filterAnchorEl)}
@@ -218,7 +236,7 @@ export default function NotesPage() {
         </Stack>
       </Box>
 
-      {/* Notes Grid */}
+      {/* Notes List */}
       {filteredNotes.length === 0 ? (
         <Card>
           <CardContent>
@@ -238,127 +256,90 @@ export default function NotesPage() {
           </CardContent>
         </Card>
       ) : (
-        <Grid container spacing={3}>
-          {filteredNotes.map((note) => {
-            const course = courses.find(c => c.id === note.courseId)
-
-            return (
-              <Grid key={note.id} size={{ xs: 12, md: 6, lg: 4 }}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    position: 'relative',
-                    '&:hover': {
-                      boxShadow: 3,
-                      transform: 'translateY(-2px)',
-                      transition: 'all 0.2s'
-                    }
-                  }}
-                >
-                  {note.aiGenerated && (
-                    <Chip
-                      icon={<AutoAwesome />}
-                      label="AI Generated"
-                      size="small"
+        <Card variant="outlined">
+          <CardContent sx={{ p: 0 }}>
+            <List>
+              {filteredNotes.map((note, idx) => {
+                const course = courses.find(c => c.id === note.courseId)
+                return (
+                  <React.Fragment key={note.id}>
+                    {idx > 0 && <Divider />}
+                    <ListItem
+                      secondaryAction={
+                        <Stack direction="row" spacing={1}>
+                          <IconButton size="small" onClick={() => handleToggleStar(note.id, note.starred)}>
+                            {note.starred ? <Star color="warning" /> : <StarBorder />}
+                          </IconButton>
+                          <IconButton size="small" onClick={() => handleToggleArchive(note.id, note.archived)}>
+                            {note.archived ? <Unarchive /> : <Archive />}
+                          </IconButton>
+                          <IconButton size="small" color="error" onClick={() => handleDeleteNote(note.id)}>
+                            <Delete />
+                          </IconButton>
+                        </Stack>
+                      }
+                      onClick={() => setSelectedNote(note)}
                       sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        zIndex: 1
-                      }}
-                    />
-                  )}
-
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="h6" fontWeight={600}>
-                        {note.topic || note.title || 'Untitled note'}
-                      </Typography>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleToggleStar(note.id, note.starred)}
-                      >
-                        {note.starred ? <Star color="warning" /> : <StarBorder />}
-                      </IconButton>
-                    </Box>
-
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        mb: 2,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: 'action.hover' }
                       }}
                     >
-                      {(note.summary || note.customPrompt || note.sourceText || '').slice(0, 220) || 'Generated note'}
-                    </Typography>
-
-                    {/* Metadata */}
-                    <Stack spacing={1}>
-                      {course && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <School fontSize="small" color="action" />
-                          <Typography variant="caption" color="text.secondary">
-                            {course.code}
-                          </Typography>
-                        </Box>
-                      )}
-
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <CalendarMonth fontSize="small" color="action" />
-                        <Typography variant="caption" color="text.secondary">
-                          {format(new Date(note.timestamp || note.createdAt || Date.now()), 'MMM d, yyyy')}
-                        </Typography>
-                      </Box>
-
-                      {(note.tags || []).length > 0 && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                          <LocalOffer fontSize="small" color="action" />
-                          {(note.tags || []).slice(0, 2).map(tag => (
-                            <Chip
-                              key={tag}
-                              label={tag}
-                              size="small"
-                              sx={{ height: 20 }}
-                            />
-                          ))}
-                          {(note.tags || []).length > 2 && (
-                            <Typography variant="caption" color="text.secondary">
-                              +{(note.tags || []).length - 2} more
+                      <ListItemIcon>
+                        <Description />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Typography fontWeight={600}>
+                              {note.topic || note.title || 'Untitled note'}
                             </Typography>
-                          )}
-                        </Box>
-                      )}
-                    </Stack>
-
-                    {/* Actions */}
-                    <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                      <Button size="small" fullWidth onClick={() => setSelectedNote(note)}>
-                        View
-                      </Button>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleToggleArchive(note.id, note.archived)}
-                      >
-                        {note.archived ? <Unarchive /> : <Archive />}
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteNote(note.id)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )
-          })}
-        </Grid>
+                            {note.aiGenerated && (
+                              <Chip
+                                icon={<AutoAwesome />}
+                                label="AI"
+                                size="small"
+                                color="primary"
+                                sx={{ height: 22 }}
+                              />
+                            )}
+                          </Stack>
+                        }
+                        secondary={
+                          <Stack spacing={0.5}>
+                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                              {course && (
+                                <Chip
+                                  size="small"
+                                  label={course.code || course.name}
+                                  icon={<School fontSize="small" />}
+                                  variant="outlined"
+                                  sx={{ height: 22 }}
+                                />
+                              )}
+                              <Chip
+                                size="small"
+                                label={format(new Date(note.timestamp || note.createdAt || Date.now()), 'MMM d, yyyy')}
+                                icon={<CalendarMonth fontSize="small" />}
+                                variant="outlined"
+                                sx={{ height: 22 }}
+                              />
+                              {(note.tags || []).slice(0, 2).map(tag => (
+                                <Chip key={tag} size="small" label={tag} variant="outlined" sx={{ height: 22 }} />
+                              ))}
+                            </Stack>
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {(note.summary || note.customPrompt || note.sourceText || '').slice(0, 160) || 'Generated note'}
+                            </Typography>
+                          </Stack>
+                        }
+                      />
+                    </ListItem>
+                  </React.Fragment>
+                )
+              })}
+            </List>
+          </CardContent>
+        </Card>
       )}
 
       {/* Generate Note FAB */}
@@ -412,7 +393,7 @@ export default function NotesPage() {
                 '& .note-body': { fontSize: '0.95rem' },
                 '& .note-body p': { marginBottom: '10px' },
               }}
-              dangerouslySetInnerHTML={{ __html: selectedNote.content }}
+              dangerouslySetInnerHTML={{ __html: selectedNote.content || '<p>No content available.</p>' }}
             />
           </DialogContent>
           <DialogActions>

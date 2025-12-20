@@ -84,29 +84,46 @@ export default function DocumentUpload({
 
       for (let i = 0; i < uploadFiles.length; i++) {
         const file = uploadFiles[i]
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('type', detectDocumentType(file.name))
-
         setUploadProgress((i / uploadFiles.length) * 100)
 
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        })
+        // Try server upload first; if blocked (403), fall back to client-side text extraction.
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('type', detectDocumentType(file.name))
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Upload failed')
-        }
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          })
 
-        const data = await response.json()
-        results.push(data)
+          if (!response.ok) {
+            const text = await response.text()
+            throw new Error(`Upload failed (${response.status}): ${text || response.statusText}`)
+          }
 
-        // Extract text for note generation
-        if (data.text) {
-          setExtractedText(data.text)
-          onTextExtracted?.(data.text)
+          const data = await response.json()
+          results.push(data)
+
+          if (data.text) {
+            setExtractedText(data.text)
+            onTextExtracted?.(data.text)
+          }
+        } catch (uploadErr) {
+          // Fallback for text-based files: read locally.
+          if (file.type.startsWith('text/') || file.name.toLowerCase().endsWith('.md') || file.name.toLowerCase().endsWith('.csv')) {
+            const text = await file.text()
+            const localResult = {
+              metadata: { fileName: file.name },
+              wordCount: text.split(/\s+/).length,
+              text,
+            }
+            results.push(localResult)
+            setExtractedText(text)
+            onTextExtracted?.(text)
+          } else {
+            throw uploadErr
+          }
         }
       }
 
@@ -114,7 +131,17 @@ export default function DocumentUpload({
       setUploadProgress(100)
       onUploadComplete?.(results)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed')
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Upload failed'
+
+      // Friendlier copy for PDFs when upload blocked
+      if ((filesToUpload || files).some(f => f.type === 'application/pdf')) {
+        setError(`${message}. If this is a PDF and uploads are blocked, please paste text instead or allow the /api/upload endpoint.`)
+      } else {
+        setError(message)
+      }
     } finally {
       setUploading(false)
     }
