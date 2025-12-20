@@ -308,6 +308,22 @@ const NoteRenderer: React.FC<NoteRendererProps> = ({ content }) => {
             pb: 0.5,
             borderBottom: '2px solid #3498db',
           },
+          '& .header-template': {
+            background: 'linear-gradient(135deg, #2c3e50, #34495e)',
+            color: 'white',
+            p: 5,
+            textAlign: 'center',
+            mb: 3,
+            '& h1': {
+              color: 'white !important',
+              fontSize: '2.5rem',
+              mb: 1,
+            },
+            '& p': {
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: '1.1rem',
+            },
+          },
           '& .topic-block-template': {
             border: '2px solid #e1e8ed',
             borderRadius: 2,

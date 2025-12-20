@@ -298,6 +298,8 @@ export function getStyleCSS(style: 'editorial-chic' | 'vibrant-textbook'): strin
     h3 { font-size: 1.5rem; font-weight: 600; color: var(--primary-medium); margin: 30px 0 15px; padding-left: 10px; border-left: 3px solid var(--accent-blue); }
     h4 { font-size: 1.3rem; font-weight: 600; color: var(--primary-light); margin: 25px 0 10px; }
     .header-template { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 40px; text-align: center; }
+    .header-template h1 { color: white !important; font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .header-template p { color: rgba(255,255,255,0.9); font-size: 1.1rem; }
     .topic-block-template { border: 2px solid #e1e8ed; border-radius: 10px; margin: 30px 0; overflow: hidden; }
     .topic-header-template { background: var(--accent-blue); color: white; padding: 15px 20px; font-size: 1.4rem; font-weight: 600; }
     .topic-content-template { padding: 25px; }
