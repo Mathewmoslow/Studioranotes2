@@ -506,11 +506,11 @@ export default function CourseDetailPage() {
                         size="small"
                         startIcon={<FileDownload />}
                         onClick={() => {
-                          const blob = new Blob([note.content], { type: 'text/markdown' })
+                          const blob = new Blob([note.content], { type: 'text/html' })
                           const url = URL.createObjectURL(blob)
                           const a = document.createElement('a')
                           a.href = url
-                          a.download = `${note.topic || 'note'}.md`
+                          a.download = `${note.topic || 'note'}.html`
                           a.click()
                         }}
                       >
@@ -845,9 +845,13 @@ export default function CourseDetailPage() {
             {selectedNote.topic || 'Note'}
           </DialogTitle>
           <DialogContent>
-            <Box sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
-              {selectedNote.content}
-            </Box>
+            <Box
+              sx={{
+                '& .note-body': { fontSize: '0.95rem' },
+                '& .note-body p': { marginBottom: '10px' },
+              }}
+              dangerouslySetInnerHTML={{ __html: selectedNote.content }}
+            />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setSelectedNote(null)}>Close</Button>

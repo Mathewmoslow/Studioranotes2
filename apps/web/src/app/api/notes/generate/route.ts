@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import OpenAI from 'openai'
+import { getNoteStyle, NoteStyleKey } from '@/lib/noteStyles'
 
 // Initialize OpenAI client (will use env variable when available)
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null
 
-// Original NotesAI formats
-type NoteStyle = 'comprehensive' | 'concise' | 'exploratory' | 'guided' | 'flexible'
 type NoteType = 'outline' | 'summary' | 'flashcards' | 'concept_map' | 'qa'
 type NoteContext = 'pre-lecture' | 'post-lecture' | 'assignment' | 'study-guide' | 'lecture' | 'textbook' | 'clinical' | 'lab'
 
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
       // Context (when/what)
       context, // 'pre-lecture', 'post-lecture', 'assignment', 'study-guide', 'lecture', 'textbook', etc.
       // Style (how detailed)
-      style = 'comprehensive', // 'comprehensive', 'concise', 'exploratory', 'guided', 'flexible'
+      style = 'comprehensive',
       // Type (format)
       type = 'outline', // 'outline', 'summary', 'flashcards', 'concept_map', 'qa'
       // Content
@@ -55,13 +54,19 @@ export async function POST(request: NextRequest) {
       sourceText // For textbook/document parsing
     } = body
 
+    const styleKey = (style as NoteStyleKey) || 'default'
+    const styleDef = getNoteStyle(styleKey)
+
     // Build style instructions
     const styleInstructions = {
       comprehensive: 'Create extremely detailed and thorough notes covering all aspects. Include examples, explanations, context, and related concepts. Leave no stone unturned.',
       concise: 'Create brief, to-the-point notes focusing only on key concepts and essential information. Be succinct and clear.',
       exploratory: 'Create notes that encourage discovery and deeper thinking. Include thought-provoking questions, connections to other topics, and areas for further exploration.',
       guided: 'Create structured notes with clear guidance for studying. Include step-by-step explanations, study tips, and learning objectives.',
-      flexible: 'Create adaptable notes that can be used in multiple ways. Balance detail with brevity, include various perspectives.'
+      flexible: 'Create adaptable notes that can be used in multiple ways. Balance detail with brevity, include various perspectives.',
+      'editorial-chic': styleDef.prompt,
+      'vibrant-textbook': styleDef.prompt,
+      default: 'Use simple, clear study notes with headings, bullets, and concise explanations.',
     }
 
     // Build format instructions
@@ -74,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate appropriate prompt based on context and style
-    let prompt = `${styleInstructions[style as NoteStyle] || styleInstructions.comprehensive}\n\n${formatInstructions[type as NoteType] || formatInstructions.outline}\n\n`
+    let prompt = `${styleInstructions[styleKey] || styleInstructions.default}\n\n${formatInstructions[type as NoteType] || formatInstructions.outline}\n\n`
 
     switch (context) {
       case 'pre-lecture':
@@ -90,7 +95,7 @@ export async function POST(request: NextRequest) {
         ${syllabus ? `Course syllabus excerpt: ${syllabus}` : ''}
         ${additionalContext ? `Additional context: ${additionalContext}` : ''}
 
-        Format the notes in Markdown with clear sections and bullet points.`
+        Format the notes as semantic HTML (headings, lists, paragraphs) inside a container with class "note-body".`
         break
 
       case 'lecture':
@@ -109,16 +114,16 @@ export async function POST(request: NextRequest) {
 
         ${additionalContext ? `Additional context: ${additionalContext}` : ''}
 
-        Format as comprehensive study notes in Markdown.`
+        Format as comprehensive study notes in HTML inside a container with class "note-body".`
         break
 
       case 'textbook':
-        prompt += `Create study notes from the following textbook content for ${courseName}:\n\n${sourceText || topic}\n\nFocus on: Key concepts, important definitions, formulas, and applications.\n\nFormat in Markdown.`
+        prompt += `Create study notes from the following textbook content for ${courseName}:\n\n${sourceText || topic}\n\nFocus on: Key concepts, important definitions, formulas, and applications.\n\nFormat in HTML (headings, lists, paragraphs) inside a container with class "note-body".`
         break
 
       case 'clinical':
       case 'lab':
-        prompt += `Create practical notes for ${context === 'clinical' ? 'clinical' : 'laboratory'} work in ${courseName} on "${topic}".\n\nInclude:\n- Procedures and protocols\n- Safety considerations\n- Key observations to make\n- Common pitfalls\n- Clinical/lab skills needed\n\n${additionalContext ? `Context: ${additionalContext}` : ''}\n\nFormat in Markdown.`
+        prompt += `Create practical notes for ${context === 'clinical' ? 'clinical' : 'laboratory'} work in ${courseName} on "${topic}".\n\nInclude:\n- Procedures and protocols\n- Safety considerations\n- Key observations to make\n- Common pitfalls\n- Clinical/lab skills needed\n\n${additionalContext ? `Context: ${additionalContext}` : ''}\n\nFormat in HTML with headings, lists, and callouts.`
         break
 
       case 'assignment':
@@ -135,7 +140,7 @@ export async function POST(request: NextRequest) {
         - Common pitfalls to avoid
         - Resources for further study
 
-        Format in Markdown with clear sections.`
+        Format in HTML with clear sections.`
         break
 
       case 'study-guide':
@@ -153,11 +158,11 @@ export async function POST(request: NextRequest) {
 
         ${syllabus ? `Course syllabus: ${syllabus}` : ''}
 
-        Format as a complete study guide in Markdown.`
+        Format as a complete study guide in HTML inside a container with class "note-body".`
         break
 
       default:
-        prompt += `Generate helpful study notes for ${courseName} on "${topic}". Format in Markdown.`
+        prompt += `Generate helpful study notes for ${courseName} on "${topic}". Format in semantic HTML inside a container with class "note-body".`
     }
 
     // Generate note using OpenAI
@@ -166,7 +171,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: 'system',
-          content: `You are an expert academic note-taker and study assistant. Generate notes in the ${style} style using the ${type} format. Focus on helping students understand and retain information effectively.`
+          content: `You are an expert academic note-taker and study assistant. Generate notes in the ${styleKey} style using the ${type} format. Focus on helping students understand and retain information effectively. Output clean semantic HTML only; no scripts.`
         },
         {
           role: 'user',
@@ -178,13 +183,17 @@ export async function POST(request: NextRequest) {
     })
 
     const generatedContent = completion.choices[0]?.message?.content || ''
+    const cssBlock = styleDef?.css ? `<style>${styleDef.css}</style>` : ''
+    const htmlWrapped = cssBlock
+      ? `${cssBlock}<article class="note-body">${generatedContent}</article>`
+      : generatedContent
 
     return NextResponse.json({
       success: true,
       note: {
         title: `${context === 'pre-lecture' ? 'Pre-Lecture' : context === 'post-lecture' ? 'Post-Lecture' : context === 'assignment' ? 'Assignment' : context === 'textbook' ? 'Textbook' : 'Study'} Notes: ${topic}`,
-        content: generatedContent,
-        style,
+        content: htmlWrapped,
+        style: styleKey,
         type,
         context,
         courseName,

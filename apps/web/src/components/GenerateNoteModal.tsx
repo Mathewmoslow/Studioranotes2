@@ -46,7 +46,7 @@ export default function GenerateNoteModal({
     courseName: preSelectedCourse?.name || '',
     topic: '',
     sourceText: '',
-    noteStyle: 'comprehensive',
+    noteStyle: 'editorial-chic',
     noteType: 'outline',
     noteContext: 'lecture',
     customPrompt: '',
@@ -89,11 +89,9 @@ export default function GenerateNoteModal({
   }
 
   const noteStyles = [
-    { value: 'comprehensive', label: 'Comprehensive', desc: 'Detailed coverage of all concepts' },
-    { value: 'concise', label: 'Concise', desc: 'Key points and essential information' },
-    { value: 'exploratory', label: 'Exploratory', desc: 'Deep dive with additional context' },
-    { value: 'guided', label: 'Guided', desc: 'Step-by-step explanations' },
-    { value: 'flexible', label: 'Flexible', desc: 'Adaptive to your needs' },
+    { value: 'editorial-chic', label: 'Editorial Chic', desc: 'Serif-forward, high-contrast, magazine-inspired notes' },
+    { value: 'vibrant-textbook', label: 'Vibrant Textbook', desc: 'Bold gradients, dark canvas, colorful accents' },
+    { value: 'default', label: 'Default (Markdown)', desc: 'Simple markdown output' },
   ]
 
   const noteTypes = [
