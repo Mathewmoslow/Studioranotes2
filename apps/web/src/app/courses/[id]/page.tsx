@@ -51,6 +51,8 @@ import { format } from 'date-fns'
 import { useScheduleStore } from '@/stores/useScheduleStore'
 import GenerateNoteModal from '@/components/GenerateNoteModal'
 import ContextGenie from '@/components/ContextGenie'
+import { NoteGenerationForm, NoteRenderer, RichTextEditor, ConvertStyleDialog } from '@/components/notes'
+import { Edit, Style } from '@mui/icons-material'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -92,7 +94,9 @@ export default function CourseDetailPage() {
   const [currentTab, setCurrentTab] = useState(0)
   const [generateModalOpen, setGenerateModalOpen] = useState(false)
   const [contextGenieOpen, setContextGenieOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState(null)
+  const [selectedNote, setSelectedNote] = useState<any | null>(null)
+  const [editingNote, setEditingNote] = useState<any | null>(null)
+  const [convertingNote, setConvertingNote] = useState<any | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [lastSync, setLastSync] = useState<Date | null>(null)
   const [syncSummaryOpen, setSyncSummaryOpen] = useState(false)
@@ -150,6 +154,7 @@ export default function CourseDetailPage() {
   }
 
   const handleDeleteNote = (noteId: string) => {
+    if (!confirm('Are you sure you want to delete this note?')) return
     const notes = localStorage.getItem('generated-notes')
     if (notes) {
       const allNotes = JSON.parse(notes)
@@ -157,6 +162,61 @@ export default function CourseDetailPage() {
       localStorage.setItem('generated-notes', JSON.stringify(allNotes))
       setSavedNotes(prev => prev.filter(n => n.id !== noteId))
     }
+  }
+
+  // Handle new note generated from inline form
+  const handleNoteGenerated = (newNote: any) => {
+    setSavedNotes(prev => [newNote, ...prev])
+    // Also persist to localStorage
+    const notes = localStorage.getItem('generated-notes') || '{}'
+    const allNotes = JSON.parse(notes)
+    allNotes[newNote.id] = { ...newNote }
+    delete allNotes[newNote.id].id
+    localStorage.setItem('generated-notes', JSON.stringify(allNotes))
+  }
+
+  // Handle saving edited note
+  const handleSaveEdit = (content: string) => {
+    if (!editingNote) return
+    const notes = localStorage.getItem('generated-notes') || '{}'
+    const allNotes = JSON.parse(notes)
+    if (allNotes[editingNote.id]) {
+      allNotes[editingNote.id].content = content
+      allNotes[editingNote.id].lastEdited = new Date().toISOString()
+      localStorage.setItem('generated-notes', JSON.stringify(allNotes))
+      setSavedNotes(prev => prev.map(n =>
+        n.id === editingNote.id ? { ...n, content, lastEdited: new Date().toISOString() } : n
+      ))
+    }
+    setEditingNote(null)
+  }
+
+  // Handle conversion complete
+  const handleConversionComplete = (convertedNote: { id: string; html: string; targetStyle: string }) => {
+    if (!convertingNote) return
+    const styledNote = {
+      id: `styled-${Date.now()}`,
+      title: `${convertingNote.title || convertingNote.topic} (${convertedNote.targetStyle === 'editorial-chic' ? 'Editorial' : 'Textbook'})`,
+      topic: convertingNote.title || convertingNote.topic,
+      content: convertedNote.html,
+      courseId: id,
+      courseName: course?.name,
+      noteStyle: convertedNote.targetStyle,
+      editable: false,
+      aiGenerated: true,
+      timestamp: new Date().toISOString(),
+      convertedFrom: convertingNote.id,
+    }
+    // Save to localStorage
+    const notes = localStorage.getItem('generated-notes') || '{}'
+    const allNotes = JSON.parse(notes)
+    allNotes[styledNote.id] = { ...styledNote }
+    delete allNotes[styledNote.id].id
+    localStorage.setItem('generated-notes', JSON.stringify(allNotes))
+    // Update state
+    setSavedNotes(prev => [styledNote, ...prev])
+    setConvertingNote(null)
+    setSelectedNote(styledNote)
   }
 
   const getTaskIcon = (type: string) => {
@@ -455,79 +515,103 @@ export default function CourseDetailPage() {
       {/* Notes Tab */}
       <TabPanel value={currentTab} index={1}>
         <Grid container spacing={3}>
-          {savedNotes.length === 0 ? (
-            <Grid size={12}>
-              <Card>
-                <CardContent>
-                  <Box sx={{ textAlign: 'center', py: 6 }}>
-                    <Description sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h5" gutterBottom>
-                      No notes yet
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Generate your first note for this course
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<AutoAwesome />}
-                      onClick={() => setGenerateModalOpen(true)}
-                      sx={{ mt: 3 }}
-                    >
-                      Generate Note
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ) : (
-            savedNotes.map((note) => (
-              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={note.id}>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {note.topic || 'Untitled Note'}
-                    </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                      <Chip label={note.noteStyle} size="small" />
-                      <Chip label={note.noteType} size="small" />
-                    </Stack>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {format(new Date(note.timestamp), 'MMM d, yyyy h:mm a')}
-                    </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                      <Button
-                        size="small"
-                        startIcon={<Visibility />}
-                        onClick={() => setSelectedNote(note)}
-                      >
-                        View
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={<FileDownload />}
-                        onClick={() => {
-                          const blob = new Blob([note.content], { type: 'text/html' })
-                          const url = URL.createObjectURL(blob)
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = `${note.topic || 'note'}.html`
-                          a.click()
-                        }}
-                      >
-                        Export
-                      </Button>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteNote(note.id)}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Stack>
-                  </CardContent>
-                </Card>
+          {/* Inline Note Generation Form */}
+          <Grid size={12}>
+            <NoteGenerationForm
+              preSelectedCourse={{ id: course.id, name: course.name, code: course.code }}
+              onNoteGenerated={handleNoteGenerated}
+              variant="card"
+            />
+          </Grid>
+
+          {/* Notes List */}
+          {savedNotes.length > 0 && (
+            <>
+              <Grid size={12}>
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Your Notes ({savedNotes.length})
+                </Typography>
               </Grid>
-            ))
+              {savedNotes.map((note) => {
+                const isEditable = note.noteStyle === 'simple-editable' || note.editable
+                return (
+                  <Grid size={{ xs: 12, md: 6, lg: 4 }} key={note.id}>
+                    <Card sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          {note.topic || note.title || 'Untitled Note'}
+                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ mb: 2 }} flexWrap="wrap">
+                          {note.noteStyle && (
+                            <Chip
+                              label={note.noteStyle === 'simple-editable' ? 'Editable' : note.noteStyle}
+                              size="small"
+                              color={isEditable ? 'success' : 'default'}
+                              icon={isEditable ? <Edit fontSize="small" /> : undefined}
+                            />
+                          )}
+                          {note.aiGenerated && (
+                            <Chip label="AI" size="small" color="primary" icon={<AutoAwesome fontSize="small" />} />
+                          )}
+                        </Stack>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          {format(new Date(note.timestamp || note.createdAt || Date.now()), 'MMM d, yyyy h:mm a')}
+                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap">
+                          <Button
+                            size="small"
+                            startIcon={<Visibility />}
+                            onClick={() => setSelectedNote(note)}
+                          >
+                            View
+                          </Button>
+                          {isEditable && (
+                            <>
+                              <Button
+                                size="small"
+                                startIcon={<Edit />}
+                                onClick={() => setEditingNote(note)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                size="small"
+                                color="secondary"
+                                startIcon={<Style />}
+                                onClick={() => setConvertingNote(note)}
+                              >
+                                Style
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            size="small"
+                            startIcon={<FileDownload />}
+                            onClick={() => {
+                              const blob = new Blob([note.content], { type: 'text/html' })
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = `${note.topic || note.title || 'note'}.html`
+                              a.click()
+                            }}
+                          >
+                            Export
+                          </Button>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteNote(note.id)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Stack>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                )
+              })}
+            </>
           )}
         </Grid>
       </TabPanel>
@@ -834,30 +918,86 @@ export default function CourseDetailPage() {
       </Dialog>
 
       {/* View Note Dialog */}
-      {selectedNote && (
+      {selectedNote && !editingNote && (
         <Dialog
           open={Boolean(selectedNote)}
           onClose={() => setSelectedNote(null)}
           maxWidth="md"
           fullWidth
         >
-          <DialogTitle>
-            {selectedNote.topic || 'Note'}
+          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h6">{selectedNote.topic || selectedNote.title || 'Note'}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {course.name}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1}>
+              {(selectedNote.noteStyle === 'simple-editable' || selectedNote.editable) && (
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<Edit />}
+                    onClick={() => { setEditingNote(selectedNote); setSelectedNote(null) }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<Style />}
+                    onClick={() => { setConvertingNote(selectedNote); setSelectedNote(null) }}
+                  >
+                    Convert to Styled
+                  </Button>
+                </>
+              )}
+            </Stack>
           </DialogTitle>
           <DialogContent>
-            <Box
-              sx={{
-                '& .note-body': { fontSize: '0.95rem' },
-                '& .note-body p': { marginBottom: '10px' },
-              }}
-              dangerouslySetInnerHTML={{ __html: selectedNote.content }}
-            />
+            <NoteRenderer content={selectedNote.content || '<p>No content available.</p>'} />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setSelectedNote(null)}>Close</Button>
           </DialogActions>
-      </Dialog>
-    )}
-  </Container>
-)
+        </Dialog>
+      )}
+
+      {/* Edit Note Dialog */}
+      {editingNote && (
+        <Dialog
+          open={Boolean(editingNote)}
+          onClose={() => setEditingNote(null)}
+          maxWidth="lg"
+          fullWidth
+        >
+          <DialogTitle>
+            Edit: {editingNote.topic || editingNote.title || 'Note'}
+          </DialogTitle>
+          <DialogContent sx={{ height: '70vh' }}>
+            <RichTextEditor
+              initialContent={editingNote.content || ''}
+              onSave={handleSaveEdit}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditingNote(null)}>Cancel</Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {/* Convert Style Dialog */}
+      {convertingNote && (
+        <ConvertStyleDialog
+          open={Boolean(convertingNote)}
+          onClose={() => setConvertingNote(null)}
+          noteId={convertingNote.id}
+          noteTitle={convertingNote.title || convertingNote.topic || 'Untitled'}
+          noteContent={convertingNote.content || ''}
+          courseName={course.name}
+          onConversionComplete={handleConversionComplete}
+        />
+      )}
+    </Container>
+  )
 }
