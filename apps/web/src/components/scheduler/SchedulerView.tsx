@@ -1924,14 +1924,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
               </Button>
             </Tooltip>
 
-            {/* Health indicators - hidden on mobile */}
-            {health && !isMobileView && (
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <Chip size="small" label="OpenAI" color={health.openaiEnabled ? 'success' : 'error'} />
-                <Chip size="small" label="Fixture" color={health.fixtureEnabled ? 'success' : 'error'} />
-                <Chip size="small" label="Mock" color={health.mockExtraction ? 'error' : 'success'} />
-              </Stack>
-            )}
           </Box>
         </Box>
 
