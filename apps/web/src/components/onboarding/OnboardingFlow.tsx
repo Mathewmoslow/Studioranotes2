@@ -1765,7 +1765,7 @@ const importCanvasCourses = async () => {
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               If your syllabus wasn't in Canvas or you have additional course information, paste it here.
-              Our AI will extract hidden tasks, deadlines, and requirements.
+              ContextGenie will extract hidden tasks, deadlines, and requirements.
             </Typography>
 
             {canvasCourses.length === 0 ? (
@@ -1812,7 +1812,7 @@ const importCanvasCourses = async () => {
                           }}
                         />
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                          Our AI will look for: recurring tasks, informal deadlines, participation requirements,
+                          ContextGenie will look for: recurring tasks, informal deadlines, participation requirements,
                           hidden prerequisites, and prep work mentioned casually.
                         </Typography>
                         {Array.isArray(course.pages) && course.pages.length > 0 && (
