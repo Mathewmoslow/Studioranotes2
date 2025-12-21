@@ -36,6 +36,8 @@ import {
   Checkbox,
   FormControlLabel,
   Alert,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import {
   Search,
@@ -111,6 +113,8 @@ const EmptyState = ({ icon, title, description, action }: {
 )
 
 export default function NotesPage() {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { data: session } = useSession()
   const { courses } = useScheduleStore()
 
@@ -739,10 +743,26 @@ export default function NotesPage() {
             value={tabValue}
             onChange={(_, v) => setTabValue(v)}
             sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+            variant={isMobile ? 'fullWidth' : 'standard'}
           >
-            <Tab icon={<AutoAwesome />} label="Generate" iconPosition="start" />
-            <Tab icon={<Description />} label="Recent Notes" iconPosition="start" />
-            <Tab icon={<FolderOpen />} label="By Course" iconPosition="start" />
+            <Tab
+              icon={<AutoAwesome />}
+              label={isMobile ? 'New' : 'Generate'}
+              iconPosition="start"
+              sx={{ minWidth: isMobile ? 'auto' : 120 }}
+            />
+            <Tab
+              icon={<Description />}
+              label={isMobile ? 'Recent' : 'Recent Notes'}
+              iconPosition="start"
+              sx={{ minWidth: isMobile ? 'auto' : 120 }}
+            />
+            <Tab
+              icon={<FolderOpen />}
+              label={isMobile ? 'Courses' : 'By Course'}
+              iconPosition="start"
+              sx={{ minWidth: isMobile ? 'auto' : 120 }}
+            />
           </Tabs>
 
           {/* Tab 0: Generate */}

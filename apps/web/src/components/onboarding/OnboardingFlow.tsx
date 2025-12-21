@@ -30,8 +30,11 @@ import {
   DialogContent,
   DialogActions,
   FormHelperText,
-  Grid
+  Grid,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
+import NumberStepper from '@/components/ui/NumberStepper'
 import {
   School,
   Schedule,
@@ -71,6 +74,8 @@ interface OnboardingFlowProps {
 }
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { data: session } = useSession()
   const { addCourse, generateSmartSchedule, updatePreferences, updateCourse, tasks, updateTask, updateEvent } = useScheduleStore()
   const [activeStep, setActiveStep] = useState(0)
@@ -1067,57 +1072,64 @@ const importCanvasCourses = async () => {
     switch (step) {
       case 0:
         return (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
-              Welcome to StudiOra Notes, {session?.user?.name || 'Student'}!
+          <Box sx={{ textAlign: 'center', py: isMobile ? 2 : 4 }}>
+            <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} gutterBottom>
+              Welcome{isMobile ? '!' : `, ${session?.user?.name || 'Student'}!`}
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-              Let's set up your personalized academic workspace in just a few steps.
-            </Typography>
+            {!isMobile && (
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                Let's set up your personalized academic workspace in just a few steps.
+              </Typography>
+            )}
+            {isMobile && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Let's get you set up.
+              </Typography>
+            )}
 
-            <Grid container spacing={3} sx={{ mt: 2 }}>
-              <Grid item xs={12} md={4}>
-                <Card>
-                  <CardContent>
-                    <School sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
+            <Stack spacing={2} sx={{ mt: isMobile ? 2 : 3 }}>
+              <Card sx={{ textAlign: 'left' }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: isMobile ? 1.5 : 2 }}>
+                  <School sx={{ fontSize: isMobile ? 32 : 40, color: 'primary.main' }} />
+                  <Box>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
                       Smart Scheduling
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      AI-powered study blocks that adapt to your energy levels
+                      AI-powered study blocks
                     </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  </Box>
+                </CardContent>
+              </Card>
 
-              <Grid item xs={12} md={4}>
-                <Card>
-                  <CardContent>
-                    <AutoAwesome sx={{ fontSize: 40, color: 'secondary.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
+              <Card sx={{ textAlign: 'left' }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: isMobile ? 1.5 : 2 }}>
+                  <AutoAwesome sx={{ fontSize: isMobile ? 32 : 40, color: 'secondary.main' }} />
+                  <Box>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
                       AI Notes
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Generate comprehensive notes from any source material
+                      Generate notes from any source
                     </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  </Box>
+                </CardContent>
+              </Card>
 
-              <Grid item xs={12} md={4}>
-                <Card>
-                  <CardContent>
-                    <CloudUpload sx={{ fontSize: 40, color: 'success.main', mb: 2 }} />
-                    <Typography variant="h6" gutterBottom>
+              <Card sx={{ textAlign: 'left' }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: isMobile ? 1.5 : 2 }}>
+                  <CloudUpload sx={{ fontSize: isMobile ? 32 : 40, color: 'success.main' }} />
+                  <Box>
+                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
                       Canvas Sync
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Auto-import assignments and deadlines from Canvas LMS
+                      Auto-import from Canvas LMS
                     </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Stack>
           </Box>
         )
 
@@ -1541,168 +1553,127 @@ const importCanvasCourses = async () => {
                 Task Duration Defaults
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Set how much time you want us to set aside to study or complete each type. We’ll also auto-fill missing hours from imports silently.
+                Set study time per task type. {isMobile ? 'Tap +/- to adjust.' : 'These defaults auto-fill when Canvas data is missing.'}
               </Typography>
 
-              <FormHelperText sx={{ mb: 2 }}>
-                Applies to: assignments/DO items, exams/quizzes, projects, per-chapter readings, videos/prep/pre-recorded lectures, skills practice (labs/sim), homework. Imported durations (e.g., video lengths) are used when present; otherwise we use these defaults.
-              </FormHelperText>
-
-              <Grid container spacing={2}>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Assignment (hours)"
-                    type="number"
-                    value={formData.taskDurations.assignment}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        assignment: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 20, step: 0.5 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Exam (hours)"
-                    type="number"
-                    value={formData.taskDurations.exam}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        exam: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 20, step: 0.5 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Project (hours)"
-                    type="number"
-                    value={formData.taskDurations.project}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        project: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 40, step: 0.5 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Reading (per chapter)"
-                    type="number"
-                    value={formData.taskDurations.reading}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        reading: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 10, step: 0.5 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Quiz (hours)"
-                    type="number"
-                    value={formData.taskDurations.quiz}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        quiz: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 10, step: 0.5 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Skills practice (labs/sim)"
-                    type="number"
-                    value={formData.taskDurations.lab}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        lab: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 10, step: 0.5 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Video / pre-recorded lecture (hours)"
-                    type="number"
-                    value={formData.taskDurations.video}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        video: Math.max(0.25, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.25, max: 6, step: 0.25 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Prep / miscellaneous (hours)"
-                    type="number"
-                    value={formData.taskDurations.prep}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        prep: Math.max(0.25, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.25, max: 6, step: 0.25 } }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Lecture / review (hours)"
-                    type="number"
-                    value={formData.taskDurations.lecture}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      taskDurations: {
-                        ...formData.taskDurations,
-                        lecture: Math.max(0.5, Number(e.target.value))
-                      }
-                    })}
-                    InputProps={{ inputProps: { min: 0.5, max: 6, step: 0.25 } }}
-                    size="small"
-                  />
-                </Grid>
-              </Grid>
+              {/* Mobile: 2-column grid of steppers, Desktop: 3-column */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+                  gap: isMobile ? 1.5 : 2,
+                  mt: 2,
+                }}
+              >
+                <NumberStepper
+                  label="Assignment"
+                  value={formData.taskDurations.assignment}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, assignment: v }
+                  })}
+                  min={0.5}
+                  max={20}
+                  step={0.5}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Exam Prep"
+                  value={formData.taskDurations.exam}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, exam: v }
+                  })}
+                  min={0.5}
+                  max={20}
+                  step={0.5}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Project"
+                  value={formData.taskDurations.project}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, project: v }
+                  })}
+                  min={0.5}
+                  max={40}
+                  step={0.5}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Reading"
+                  value={formData.taskDurations.reading}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, reading: v }
+                  })}
+                  min={0.5}
+                  max={10}
+                  step={0.5}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Quiz"
+                  value={formData.taskDurations.quiz}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, quiz: v }
+                  })}
+                  min={0.5}
+                  max={10}
+                  step={0.5}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Lab/Skills"
+                  value={formData.taskDurations.lab}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, lab: v }
+                  })}
+                  min={0.5}
+                  max={10}
+                  step={0.5}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Video"
+                  value={formData.taskDurations.video}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, video: v }
+                  })}
+                  min={0.25}
+                  max={6}
+                  step={0.25}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Prep/Misc"
+                  value={formData.taskDurations.prep}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, prep: v }
+                  })}
+                  min={0.25}
+                  max={6}
+                  step={0.25}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+                <NumberStepper
+                  label="Lecture"
+                  value={formData.taskDurations.lecture}
+                  onChange={(v) => setFormData({
+                    ...formData,
+                    taskDurations: { ...formData.taskDurations, lecture: v }
+                  })}
+                  min={0.5}
+                  max={6}
+                  step={0.25}
+                  size={isMobile ? 'small' : 'medium'}
+                />
+              </Box>
             </Box>
           </Box>
         )
@@ -1892,41 +1863,83 @@ const importCanvasCourses = async () => {
   return (
     <>
     <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
-      <Box
-        sx={{
-          background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
-          color: '#fff',
-          py: 5,
-          mb: 4,
-          textAlign: 'center',
-        }}
-      >
-        <Container maxWidth="md">
-          <Typography variant="h4" fontWeight={800} gutterBottom>
-            Welcome to Studiora.io
+      {/* Hero - hidden on mobile */}
+      {!isMobile && (
+        <Box
+          sx={{
+            background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
+            color: '#fff',
+            py: 5,
+            mb: 4,
+            textAlign: 'center',
+          }}
+        >
+          <Container maxWidth="md">
+            <Typography variant="h4" fontWeight={800} gutterBottom>
+              Welcome to Studiora.io
+            </Typography>
+            <Typography sx={{ opacity: 0.9 }}>
+              Connect your courses, set preferences, and let deterministic scheduling + AI notes keep you aligned.
+            </Typography>
+          </Container>
+        </Box>
+      )}
+
+      {/* Mobile header */}
+      {isMobile && (
+        <Box
+          sx={{
+            background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
+            color: '#fff',
+            py: 2,
+            px: 2,
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h6" fontWeight={700}>
+            Studiora Setup
           </Typography>
-          <Typography sx={{ opacity: 0.9 }}>
-            Connect your courses, set preferences, and let deterministic scheduling + AI notes keep you aligned.
-          </Typography>
-        </Container>
-      </Box>
-      <Container maxWidth="md" sx={{ pb: 6 }}>
-        <Paper sx={{ p: 4, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}>
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
+        </Box>
+      )}
+
+      <Container maxWidth="md" sx={{ pb: 6, px: isMobile ? 2 : 3, pt: isMobile ? 2 : 0 }}>
+        <Paper sx={{ p: isMobile ? 2 : 4, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}>
+          {/* Stepper - vertical on mobile, horizontal on desktop */}
+          <Stepper
+            activeStep={activeStep}
+            orientation={isMobile ? 'vertical' : 'horizontal'}
+            sx={{ mb: isMobile ? 2 : 4 }}
+          >
+            {steps.map((label, index) => (
               <Step key={label}>
-                <StepLabel>{label}</StepLabel>
+                <StepLabel
+                  sx={{
+                    '& .MuiStepLabel-label': {
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                    },
+                  }}
+                >
+                  {isMobile ? (index === activeStep ? label : '') : label}
+                </StepLabel>
               </Step>
             ))}
           </Stepper>
 
           {getStepContent(activeStep)}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          {/* Navigation buttons - full width on mobile */}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            spacing={2}
+            sx={{ mt: isMobile ? 3 : 4 }}
+          >
             <Button
               disabled={activeStep === 0 || activeStep === steps.length - 1}
               onClick={handleBack}
               variant="outlined"
+              fullWidth={isMobile}
+              size={isMobile ? 'large' : 'medium'}
             >
               Back
             </Button>
@@ -1936,11 +1949,13 @@ const importCanvasCourses = async () => {
                 variant="contained"
                 onClick={handleNext}
                 disabled={importingCourses}
+                fullWidth={isMobile}
+                size={isMobile ? 'large' : 'medium'}
               >
                 {activeStep === steps.length - 2 ? 'Finish Setup' : 'Next'}
               </Button>
             )}
-          </Box>
+          </Stack>
         </Paper>
       </Container>
     </Box>
