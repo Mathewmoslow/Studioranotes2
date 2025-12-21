@@ -13,9 +13,19 @@ import {
   TextField,
   Typography,
   Chip,
+  Avatar,
+  IconButton,
+  Divider,
+  Alert,
 } from '@mui/material';
+import {
+  PhotoCamera,
+  PersonAdd,
+  Share,
+  School,
+} from '@mui/icons-material';
 import { useScheduleStore } from '@/stores/useScheduleStore';
-import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 const studyTimeChips = [
   { key: 'earlyMorning', label: 'Early Morning' },
@@ -36,27 +46,27 @@ const dayLabels: Record<typeof dayKeys[number], string> = {
   sunday: 'Sun',
 };
 
-export default function SettingsPage() {
-  const router = useRouter();
+export default function MyStudiora() {
+  const { data: session } = useSession();
   const { preferences, updatePreferences, updateSchedulerConfig } = useScheduleStore();
   const prefs = useMemo(() => preferences || {}, [preferences]);
 
+  // Profile state
+  const [displayName, setDisplayName] = useState(session?.user?.name || '');
+  const [major, setMajor] = useState('');
+  const [year, setYear] = useState('');
+  const [school, setSchool] = useState('');
+
+  // Preferences state
   const [studyStart, setStudyStart] = useState(prefs.studyHours?.start || '09:00');
   const [studyEnd, setStudyEnd] = useState(prefs.studyHours?.end || '21:00');
-  const [maxDaily, setMaxDaily] = useState(prefs.maxDailyStudyHours || 8);
   const [sessionDuration, setSessionDuration] = useState(prefs.sessionDuration || 50);
-  const [shortBreak, setShortBreak] = useState(useScheduleStore.getState().schedulerConfig.breakDuration.short);
-  const [longBreak, setLongBreak] = useState(useScheduleStore.getState().schedulerConfig.breakDuration.long);
   const [studyDays, setStudyDays] = useState(prefs.studyDays || {
     monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: false, sunday: false
   });
-  const [allowWeekend, setAllowWeekend] = useState(Boolean(prefs.allowWeekendStudy));
-  const [weekendHours, setWeekendHours] = useState(prefs.hoursPerWeekend || 5);
-  const [weekdayHours, setWeekdayHours] = useState(prefs.hoursPerWeekday || 3);
   const [preferredTimes, setPreferredTimes] = useState<any>(
     prefs.preferredStudyTimes || { morning: true, afternoon: true, evening: false, earlyMorning: false, night: false }
   );
-  const [useAutoEstimation, setUseAutoEstimation] = useState(prefs.useAutoEstimation ?? false);
   const [defaultDurations, setDefaultDurations] = useState({
     assignment: prefs.defaultHoursPerType?.assignment || 3,
     exam: prefs.defaultHoursPerType?.exam || 8,
@@ -64,49 +74,42 @@ export default function SettingsPage() {
     reading: prefs.defaultHoursPerType?.reading || 2,
     quiz: prefs.defaultHoursPerType?.quiz || 2,
     lab: prefs.defaultHoursPerType?.lab || 4,
-    homework: prefs.defaultHoursPerType?.homework || 2,
-    video: prefs.defaultHoursPerType?.video || 1.5,
-    prep: prefs.defaultHoursPerType?.prep || 1.5,
   });
 
   const toggleDay = (key: typeof dayKeys[number]) => {
-    const next = { ...studyDays, [key]: !studyDays[key] };
-    setStudyDays(next);
-    if (key === 'saturday' || key === 'sunday') {
-      setAllowWeekend(next.saturday || next.sunday);
-    }
+    setStudyDays({ ...studyDays, [key]: !studyDays[key] });
   };
 
   const toggleChip = (key: string) => {
-    const next = { ...preferredTimes, [key]: !preferredTimes[key] };
-    setPreferredTimes(next);
+    setPreferredTimes({ ...preferredTimes, [key]: !preferredTimes[key] });
   };
 
   const handleSave = () => {
     updatePreferences({
       studyHours: { start: studyStart, end: studyEnd },
-      maxDailyStudyHours: Number(maxDaily),
       sessionDuration: Number(sessionDuration),
-      hoursPerWeekend: Number(weekendHours),
-      hoursPerWeekday: Number(weekdayHours),
       studyDays,
-      allowWeekendStudy: allowWeekend,
       preferredStudyTimes: preferredTimes,
-      useAutoEstimation,
-      defaultHoursPerType: {
-        ...defaultDurations,
-      },
+      defaultHoursPerType: defaultDurations,
     });
-    updateSchedulerConfig({
-      breakDuration: { short: Number(shortBreak), long: Number(longBreak) },
-    });
+  };
 
-    // Navigate back to dashboard after saving
-    router.push('/');
+  const handleInviteFriends = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Join me on Studiora',
+        text: 'Check out Studiora - AI-powered study scheduling!',
+        url: 'https://studiora.io',
+      });
+    } else {
+      navigator.clipboard.writeText('https://studiora.io');
+      alert('Link copied to clipboard!');
+    }
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb', pb: 6 }}>
+      {/* Header */}
       <Box
         sx={{
           background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
@@ -116,168 +119,195 @@ export default function SettingsPage() {
         }}
       >
         <Container maxWidth="lg">
-          <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
-            <Box>
-              <Typography variant="h4" fontWeight={800}>Studiora.io Settings</Typography>
-              <Typography color="rgba(255,255,255,0.85)">Fine-tune sessions, breaks, and study windows. Changes apply to future scheduling.</Typography>
-            </Box>
-            <Button variant="contained" onClick={handleSave} sx={{ bgcolor: '#0f172a', '&:hover': { bgcolor: '#111827' } }}>
-              Save
-            </Button>
-          </Stack>
+          <Typography variant="h4" fontWeight={800}>myStudiora</Typography>
+          <Typography color="rgba(255,255,255,0.85)">Your profile and study preferences</Typography>
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ pb: 6 }}>
+      <Container maxWidth="lg">
         <Stack spacing={3}>
-        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
-          <Typography variant="h6" fontWeight={700} gutterBottom>Study hours & days</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Start time"
-                type="time"
-                fullWidth
-                value={studyStart}
-                onChange={(e) => setStudyStart(e.target.value)}
-                inputProps={{ step: 300 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="End time"
-                type="time"
-                fullWidth
-                value={studyEnd}
-                onChange={(e) => setStudyEnd(e.target.value)}
-                inputProps={{ step: 300 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Max hours per day"
-                type="number"
-                fullWidth
-                value={maxDaily}
-                onChange={(e) => setMaxDaily(e.target.value)}
-                inputProps={{ min: 1, max: 18 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControlLabel
-                control={<Checkbox checked={allowWeekend} onChange={(e) => setAllowWeekend(e.target.checked)} />}
-                label="Allow weekend study"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Weekday target hours"
-                type="number"
-                fullWidth
-                value={weekdayHours}
-                onChange={(e) => setWeekdayHours(e.target.value)}
-                inputProps={{ min: 1, max: 12 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Weekend target hours"
-                type="number"
-                fullWidth
-                value={weekendHours}
-                onChange={(e) => setWeekendHours(e.target.value)}
-                inputProps={{ min: 1, max: 12 }}
-              />
-            </Grid>
-          </Grid>
-          <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
-            {dayKeys.map((key) => (
-              <Chip
-                key={key}
-                label={dayLabels[key]}
-                color={studyDays[key] ? 'primary' : 'default'}
-                onClick={() => toggleDay(key)}
-                variant={studyDays[key] ? 'filled' : 'outlined'}
-              />
-            ))}
-          </Stack>
-        </Paper>
+          {/* Profile Section */}
+          <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>Profile</Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="flex-start">
+              {/* Avatar */}
+              <Box sx={{ textAlign: 'center' }}>
+                <Avatar
+                  src={session?.user?.image || undefined}
+                  sx={{ width: 100, height: 100, mb: 1, bgcolor: 'primary.main' }}
+                >
+                  {displayName?.charAt(0) || 'U'}
+                </Avatar>
+                <IconButton size="small" color="primary">
+                  <PhotoCamera fontSize="small" />
+                </IconButton>
+              </Box>
 
-        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
-          <Typography variant="h6" fontWeight={700} gutterBottom>Sessions & breaks</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Session duration (min)"
-                type="number"
-                fullWidth
-                value={sessionDuration}
-                onChange={(e) => setSessionDuration(e.target.value)}
-                inputProps={{ min: 20, max: 180 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Short break (min)"
-                type="number"
-                fullWidth
-                value={shortBreak}
-                onChange={(e) => setShortBreak(e.target.value)}
-                inputProps={{ min: 1, max: 60 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Long break (min)"
-                type="number"
-                fullWidth
-                value={longBreak}
-                onChange={(e) => setLongBreak(e.target.value)}
-                inputProps={{ min: 5, max: 120 }}
-              />
-            </Grid>
-          </Grid>
-        </Paper>
+              {/* Profile Fields */}
+              <Grid container spacing={2} sx={{ flex: 1 }}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Display Name"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="School"
+                    value={school}
+                    onChange={(e) => setSchool(e.target.value)}
+                    size="small"
+                    placeholder="University of..."
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Major"
+                    value={major}
+                    onChange={(e) => setMajor(e.target.value)}
+                    size="small"
+                    placeholder="Computer Science"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Year"
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    size="small"
+                    placeholder="Junior"
+                  />
+                </Grid>
+              </Grid>
+            </Stack>
+          </Paper>
 
-        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
-          <Typography variant="h6" fontWeight={700} gutterBottom>Preferred times</Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {studyTimeChips.map((chip) => (
-              <Chip
-                key={chip.key}
-                label={chip.label}
-                color={preferredTimes[chip.key] ? 'primary' : 'default'}
-                variant={preferredTimes[chip.key] ? 'filled' : 'outlined'}
-                onClick={() => toggleChip(chip.key)}
-              />
-            ))}
-          </Stack>
-        </Paper>
+          {/* Invite Friends */}
+          <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>Connect with Friends</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Invite classmates to Studiora and study together.
+            </Typography>
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                startIcon={<Share />}
+                onClick={handleInviteFriends}
+              >
+                Share Invite Link
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<PersonAdd />}
+                disabled
+              >
+                Find Classmates (Coming Soon)
+              </Button>
+            </Stack>
+          </Paper>
 
-        <Paper sx={{ p: 3, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-            <Typography variant="h6" fontWeight={700}>Task duration defaults</Typography>
-            <FormControlLabel
-              control={<Checkbox checked={useAutoEstimation} onChange={(e) => setUseAutoEstimation(e.target.checked)} />}
-              label="Enable auto-estimation"
-            />
-          </Stack>
-          <Grid container spacing={2}>
-            {Object.entries(defaultDurations).map(([key, value]) => (
-              <Grid item xs={12} sm={6} md={4} key={key}>
+          {/* Study Schedule */}
+          <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>Study Schedule</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6} sm={3}>
                 <TextField
-                  label={`${key.charAt(0).toUpperCase()}${key.slice(1)} (hrs)`}
-                  type="number"
+                  label="Start time"
+                  type="time"
                   fullWidth
-                  value={value}
-                  onChange={(e) => setDefaultDurations({ ...defaultDurations, [key]: Number(e.target.value) })}
-                  inputProps={{ min: 0.5, max: 12, step: 0.5 }}
+                  size="small"
+                  value={studyStart}
+                  onChange={(e) => setStudyStart(e.target.value)}
                 />
               </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      </Stack>
+              <Grid item xs={6} sm={3}>
+                <TextField
+                  label="End time"
+                  type="time"
+                  fullWidth
+                  size="small"
+                  value={studyEnd}
+                  onChange={(e) => setStudyEnd(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Session duration (min)"
+                  type="number"
+                  fullWidth
+                  size="small"
+                  value={sessionDuration}
+                  onChange={(e) => setSessionDuration(Number(e.target.value))}
+                  inputProps={{ min: 20, max: 120 }}
+                />
+              </Grid>
+            </Grid>
+
+            <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Study Days</Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {dayKeys.map((key) => (
+                <Chip
+                  key={key}
+                  label={dayLabels[key]}
+                  color={studyDays[key] ? 'primary' : 'default'}
+                  onClick={() => toggleDay(key)}
+                  variant={studyDays[key] ? 'filled' : 'outlined'}
+                  sx={{ mb: 1 }}
+                />
+              ))}
+            </Stack>
+
+            <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Preferred Times</Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {studyTimeChips.map((chip) => (
+                <Chip
+                  key={chip.key}
+                  label={chip.label}
+                  color={preferredTimes[chip.key] ? 'primary' : 'default'}
+                  variant={preferredTimes[chip.key] ? 'filled' : 'outlined'}
+                  onClick={() => toggleChip(chip.key)}
+                  sx={{ mb: 1 }}
+                />
+              ))}
+            </Stack>
+          </Paper>
+
+          {/* Task Defaults */}
+          <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>Task Duration Defaults (hours)</Typography>
+            <Grid container spacing={2}>
+              {Object.entries(defaultDurations).map(([key, value]) => (
+                <Grid item xs={6} sm={4} md={2} key={key}>
+                  <TextField
+                    label={key.charAt(0).toUpperCase() + key.slice(1)}
+                    type="number"
+                    fullWidth
+                    size="small"
+                    value={value}
+                    onChange={(e) => setDefaultDurations({ ...defaultDurations, [key]: Number(e.target.value) })}
+                    inputProps={{ min: 0.5, max: 20, step: 0.5 }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+
+          {/* Save Button */}
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleSave}
+            sx={{ alignSelf: 'flex-end' }}
+          >
+            Save Changes
+          </Button>
+        </Stack>
       </Container>
     </Box>
   );

@@ -25,7 +25,7 @@ import {
   School,
   CalendarMonth,
   Description,
-  Settings,
+  Person,
   AccountCircle,
 } from '@mui/icons-material'
 
@@ -56,7 +56,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setDrawerOpen(false)
   }
 
-  const currentPageName = navItems.find(item => item.path === pathname)?.label || 'Studiora'
+  const currentPageName = pathname === '/settings'
+    ? 'myStudiora'
+    : navItems.find(item => item.path === pathname)?.label || 'Studiora'
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -86,8 +88,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {currentPageName}
           </Typography>
 
-          <Tooltip title="Profile">
-            <IconButton>
+          <Tooltip title="myStudiora">
+            <IconButton onClick={() => router.push('/settings')}>
               <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
                 <AccountCircle />
               </Avatar>
@@ -146,11 +148,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <Divider />
         <List>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => handleNavClick('/settings')}>
-              <ListItemIcon>
-                <Settings />
+            <ListItemButton
+              selected={pathname === '/settings'}
+              onClick={() => handleNavClick('/settings')}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: 'action.selected',
+                  borderRight: 3,
+                  borderColor: 'primary.main',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: pathname === '/settings' ? 'primary.main' : 'inherit' }}>
+                <Person />
               </ListItemIcon>
-              <ListItemText primary="Settings" />
+              <ListItemText primary="myStudiora" />
             </ListItemButton>
           </ListItem>
         </List>
