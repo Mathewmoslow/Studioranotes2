@@ -1384,6 +1384,55 @@ export const useScheduleStore = create<ScheduleStore>()(
         persistedState.events = mergeEventLists([], persistedState.events || []);
         persistedState.preferences = persistedState.preferences || defaultPreferences;
 
+        // Create deadline events for tasks that don't have them
+        if (persistedState.tasks && persistedState.events) {
+          const existingTaskIdsWithEvents = new Set(
+            persistedState.events
+              .filter((e: any) => e.type === 'deadline' && e.taskId)
+              .map((e: any) => e.taskId)
+          );
+
+          const tasksNeedingDeadlineEvents = persistedState.tasks.filter(
+            (task: any) => task.id && !existingTaskIdsWithEvents.has(task.id)
+          );
+
+          if (tasksNeedingDeadlineEvents.length > 0) {
+            console.log(`🔔 Hydration: Creating ${tasksNeedingDeadlineEvents.length} missing deadline events`);
+
+            const newDeadlineEvents = tasksNeedingDeadlineEvents.map((task: any) => {
+              const dueDate = new Date(task.dueDate);
+              const dueHour = dueDate.getHours();
+              let displayStartTime: Date;
+              let displayEndTime: Date;
+
+              if (dueHour >= 22 || dueHour < 6) {
+                // Late night/early morning deadlines - show at 5 PM
+                displayStartTime = new Date(dueDate);
+                displayStartTime.setHours(17, 0, 0, 0);
+                displayEndTime = new Date(displayStartTime);
+                displayEndTime.setHours(17, 30, 0, 0);
+              } else {
+                // Regular deadlines - show 30 min before due time
+                displayStartTime = new Date(dueDate.getTime() - 30 * 60 * 1000);
+                displayEndTime = dueDate;
+              }
+
+              return {
+                id: `deadline-${task.id}`,
+                title: `DUE: ${task.title}`,
+                type: 'deadline',
+                courseId: task.courseId,
+                startTime: displayStartTime,
+                endTime: displayEndTime,
+                description: `Deadline: ${dueDate.toLocaleString()}`,
+                taskId: task.id,
+              };
+            });
+
+            persistedState.events = [...persistedState.events, ...newDeadlineEvents];
+          }
+        }
+
         return persistedState;
       },
     }

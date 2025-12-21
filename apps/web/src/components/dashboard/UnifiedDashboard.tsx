@@ -16,7 +16,6 @@ import {
 } from '@mui/icons-material'
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
 
-import DashboardLayout from './DashboardLayout'
 import SchedulerView from '../scheduler/SchedulerView'
 import DueThisWeekBanner from './DueThisWeekBanner'
 import CompactTermIndicator from './CompactTermIndicator'
@@ -56,7 +55,7 @@ export default function UnifiedDashboard() {
   const weekLabel = `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`
 
   return (
-    <DashboardLayout>
+    <Box>
       {/* Due This Week Banner */}
       <DueThisWeekBanner
         selectedCourses={selectedCourses}
@@ -133,6 +132,6 @@ export default function UnifiedDashboard() {
           currentWeek={currentWeek}
         />
       </Box>
-    </DashboardLayout>
+    </Box>
   )
 }
