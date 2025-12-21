@@ -257,6 +257,10 @@ interface ScheduleStore {
   generateSmartSchedule: (startDate?: Date, endDate?: Date) => void;
   updateEnergyPattern: (hour: number, energyLevel: number) => void;
   updateSchedulerConfig: (config: Partial<ScheduleStore['schedulerConfig']>) => void;
+
+  // Drag-drop rescheduling
+  findConflicts: (blockId: string, newStart: Date, newEnd: Date) => TimeBlock[];
+  rescheduleBlock: (blockId: string, newStart: Date, newEnd: Date, cascade?: boolean) => { success: boolean; conflicts: TimeBlock[] };
   
   // Preferences
   updatePreferences: (preferences: Partial<UserPreferences>) => void;
@@ -1198,7 +1202,104 @@ export const useScheduleStore = create<ScheduleStore>()(
           schedulerConfig: { ...state.schedulerConfig, ...config }
         }));
       },
-      
+
+      // Find blocks that would conflict with a proposed time change
+      findConflicts: (blockId, newStart, newEnd) => {
+        const state = get();
+        const conflicts: TimeBlock[] = [];
+
+        state.timeBlocks.forEach(block => {
+          // Skip the block being moved
+          if (block.id === blockId) return;
+
+          const blockStart = block.startTime instanceof Date ? block.startTime : new Date(block.startTime);
+          const blockEnd = block.endTime instanceof Date ? block.endTime : new Date(block.endTime);
+
+          // Check for overlap
+          const overlaps = newStart < blockEnd && newEnd > blockStart;
+          if (overlaps) {
+            conflicts.push(block);
+          }
+        });
+
+        return conflicts;
+      },
+
+      // Reschedule a block to a new time, optionally cascading conflicts
+      rescheduleBlock: (blockId, newStart, newEnd, cascade = false) => {
+        const state = get();
+        const conflicts = state.findConflicts(blockId, newStart, newEnd);
+
+        // If there are conflicts and cascade is not enabled, return the conflicts
+        if (conflicts.length > 0 && !cascade) {
+          return { success: false, conflicts };
+        }
+
+        // If cascading, shift conflicting blocks
+        if (cascade && conflicts.length > 0) {
+          const duration = newEnd.getTime() - newStart.getTime();
+
+          // Sort conflicts by start time
+          conflicts.sort((a, b) => {
+            const aStart = a.startTime instanceof Date ? a.startTime : new Date(a.startTime);
+            const bStart = b.startTime instanceof Date ? b.startTime : new Date(b.startTime);
+            return aStart.getTime() - bStart.getTime();
+          });
+
+          // Shift each conflicting block forward
+          const updatedBlocks = [...state.timeBlocks];
+          let shiftAmount = 0;
+
+          conflicts.forEach(conflict => {
+            const idx = updatedBlocks.findIndex(b => b.id === conflict.id);
+            if (idx === -1) return;
+
+            const conflictStart = conflict.startTime instanceof Date ? conflict.startTime : new Date(conflict.startTime);
+            const conflictEnd = conflict.endTime instanceof Date ? conflict.endTime : new Date(conflict.endTime);
+            const conflictDuration = conflictEnd.getTime() - conflictStart.getTime();
+
+            // Calculate how much to shift (move it to after the new block ends)
+            const requiredStart = new Date(newEnd.getTime() + shiftAmount + 15 * 60 * 1000); // 15-min gap
+            const requiredEnd = new Date(requiredStart.getTime() + conflictDuration);
+
+            updatedBlocks[idx] = {
+              ...updatedBlocks[idx],
+              startTime: requiredStart,
+              endTime: requiredEnd,
+            };
+
+            shiftAmount += conflictDuration + 15 * 60 * 1000; // Add duration + 15 min gap
+          });
+
+          // Update the moved block
+          const movedIdx = updatedBlocks.findIndex(b => b.id === blockId);
+          if (movedIdx !== -1) {
+            updatedBlocks[movedIdx] = {
+              ...updatedBlocks[movedIdx],
+              startTime: newStart,
+              endTime: newEnd,
+              isManual: true, // Mark as manually placed
+            };
+          }
+
+          set({ timeBlocks: updatedBlocks });
+          console.log(`📦 Rescheduled block ${blockId}, cascaded ${conflicts.length} conflicting blocks`);
+          return { success: true, conflicts: [] };
+        }
+
+        // No conflicts or cascade handled above - just move the block
+        set((state) => ({
+          timeBlocks: state.timeBlocks.map((block) =>
+            block.id === blockId
+              ? { ...block, startTime: newStart, endTime: newEnd, isManual: true }
+              : block
+          ),
+        }));
+
+        console.log(`📦 Rescheduled block ${blockId} to ${newStart.toLocaleTimeString()} - ${newEnd.toLocaleTimeString()}`);
+        return { success: true, conflicts: [] };
+      },
+
       setAutoReschedule: (enabled) => {
         set({ autoRescheduleEnabled: enabled });
         console.log(`Auto-reschedule ${enabled ? 'enabled' : 'disabled'}`);

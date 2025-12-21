@@ -19,10 +19,16 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemIcon,
   Chip,
   useTheme,
   useMediaQuery,
+  Divider,
 } from '@mui/material';
+import {
+  SwapHoriz as SwapIcon,
+  Warning as WarningIcon,
+} from '@mui/icons-material';
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
@@ -323,7 +329,17 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [dueModal, setDueModal] = useState<{ open: boolean; items: any[]; date?: Date }>({ open: false, items: [] });
   const [health, setHealth] = useState<{ openaiEnabled: boolean; fixtureEnabled: boolean; mockExtraction: boolean } | null>(null);
 
-  // Touch drag support
+  // Conflict dialog for drag-drop rescheduling
+  const [conflictDialog, setConflictDialog] = useState<{
+    open: boolean;
+    blockId: string;
+    newStart: Date;
+    newEnd: Date;
+    conflicts: any[];
+  }>({ open: false, blockId: '', newStart: new Date(), newEnd: new Date(), conflicts: [] });
+
+  // Touch drag support - uses store's rescheduleBlock for conflict detection
+  const { rescheduleBlock: storeRescheduleBlock } = useScheduleStore.getState();
   const touchDrag = useTouchDrag({
     onDragStart: (item) => setDraggedItem(item),
     onDragEnd: (dropTarget) => {
@@ -338,7 +354,18 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
         if (draggedItem.type === 'event') {
           updateEvent(draggedItem.id, { startTime: newStartTime, endTime: newEndTime });
         } else {
-          updateTimeBlock(draggedItem.id, { startTime: newStartTime, endTime: newEndTime });
+          // Use rescheduleBlock with conflict detection for study blocks
+          const result = storeRescheduleBlock(draggedItem.id, newStartTime, newEndTime, false);
+          if (!result.success && result.conflicts.length > 0) {
+            // Show conflict dialog
+            setConflictDialog({
+              open: true,
+              blockId: draggedItem.id,
+              newStart: newStartTime,
+              newEnd: newEndTime,
+              conflicts: result.conflicts,
+            });
+          }
         }
       }
       setDraggedItem(null);
@@ -362,6 +389,8 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     scheduleTask,
     generateSmartSchedule,
     scheduleWarnings,
+    rescheduleBlock,
+    findConflicts,
   } = useScheduleStore();
 
   // Responsive scaling for tighter/mobile views
@@ -876,20 +905,20 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
   
   const handleDrop = (e: React.DragEvent, day: Date, hour: number) => {
     e.preventDefault();
-    
+
     if (!draggedItem) return;
-    
+
     // Calculate new start time based on drop position
     const newStartTime = new Date(day);
     newStartTime.setHours(hour, 0, 0, 0);
-    
+
     // Calculate duration
     const originalStart = ensureDate(draggedItem.startTime);
     const originalEnd = ensureDate(draggedItem.endTime);
     const duration = originalEnd.getTime() - originalStart.getTime();
-    
+
     const newEndTime = new Date(newStartTime.getTime() + duration);
-    
+
     // Update the item based on type
     if (draggedItem.type === 'event') {
       updateEvent(draggedItem.id, {
@@ -897,16 +926,56 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
         endTime: newEndTime
       });
     } else if (draggedItem.type === 'block') {
-      updateTimeBlock(draggedItem.id, {
-        startTime: newStartTime,
-        endTime: newEndTime
-      });
+      // Use rescheduleBlock with conflict detection for study blocks
+      const result = rescheduleBlock(draggedItem.id, newStartTime, newEndTime, false);
+
+      if (!result.success && result.conflicts.length > 0) {
+        // Show conflict dialog
+        setConflictDialog({
+          open: true,
+          blockId: draggedItem.id,
+          newStart: newStartTime,
+          newEnd: newEndTime,
+          conflicts: result.conflicts,
+        });
+      }
     }
-    
+
     // Reset drag state
     setDraggedItem(null);
     setDragOverDate(null);
     setDragOverHour(null);
+  };
+
+  // Handle conflict dialog actions
+  const handleConflictCascade = () => {
+    rescheduleBlock(conflictDialog.blockId, conflictDialog.newStart, conflictDialog.newEnd, true);
+    setConflictDialog({ open: false, blockId: '', newStart: new Date(), newEnd: new Date(), conflicts: [] });
+  };
+
+  const handleConflictCancel = () => {
+    setConflictDialog({ open: false, blockId: '', newStart: new Date(), newEnd: new Date(), conflicts: [] });
+  };
+
+  const handleConflictSwap = (conflictId: string) => {
+    // Swap the two blocks' times
+    const conflict = conflictDialog.conflicts.find(c => c.id === conflictId);
+    if (!conflict) return;
+
+    const originalBlock = timeBlocks.find(b => b.id === conflictDialog.blockId);
+    if (!originalBlock) return;
+
+    const conflictStart = conflict.startTime instanceof Date ? conflict.startTime : new Date(conflict.startTime);
+    const conflictEnd = conflict.endTime instanceof Date ? conflict.endTime : new Date(conflict.endTime);
+    const originalStart = originalBlock.startTime instanceof Date ? originalBlock.startTime : new Date(originalBlock.startTime);
+    const originalEnd = originalBlock.endTime instanceof Date ? originalBlock.endTime : new Date(originalBlock.endTime);
+
+    // Move original block to conflict's time
+    updateTimeBlock(conflictDialog.blockId, { startTime: conflictStart, endTime: conflictEnd, isManual: true });
+    // Move conflict to original's time
+    updateTimeBlock(conflictId, { startTime: originalStart, endTime: originalEnd });
+
+    setConflictDialog({ open: false, blockId: '', newStart: new Date(), newEnd: new Date(), conflicts: [] });
   };
   
   // Mobile-friendly vertical week view
@@ -2116,6 +2185,60 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setDueModal({ open: false, items: [] })}>Close</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Conflict Resolution Dialog */}
+        <Dialog open={conflictDialog.open} onClose={handleConflictCancel} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningIcon color="warning" />
+            Schedule Conflict Detected
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Moving this block to {format(conflictDialog.newStart, 'h:mm a')} would overlap with:
+            </Typography>
+            <List dense>
+              {conflictDialog.conflicts.map((conflict) => {
+                const task = tasks.find(t => t.id === conflict.taskId);
+                const conflictStart = conflict.startTime instanceof Date ? conflict.startTime : new Date(conflict.startTime);
+                const conflictEnd = conflict.endTime instanceof Date ? conflict.endTime : new Date(conflict.endTime);
+                return (
+                  <ListItem
+                    key={conflict.id}
+                    secondaryAction={
+                      <Button
+                        size="small"
+                        startIcon={<SwapIcon />}
+                        onClick={() => handleConflictSwap(conflict.id)}
+                      >
+                        Swap
+                      </Button>
+                    }
+                  >
+                    <ListItemIcon>
+                      <WarningIcon fontSize="small" color="warning" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={task?.title || 'Study Block'}
+                      secondary={`${format(conflictStart, 'h:mm a')} - ${format(conflictEnd, 'h:mm a')}`}
+                    />
+                  </ListItem>
+                );
+              })}
+            </List>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="body2" color="text.secondary">
+              Choose an action:
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button onClick={handleConflictCancel} color="inherit">
+              Cancel
+            </Button>
+            <Button onClick={handleConflictCascade} variant="contained" color="primary">
+              Move Anyway (shift others)
+            </Button>
           </DialogActions>
         </Dialog>
 

@@ -359,6 +359,33 @@ export type NoteStyle =
   | 'flexible'
   | 'exploratory'
 
+// ============= TimeBlock Type (used by scheduler) =============
+export interface TimeBlock {
+  id: string
+  taskId: string
+  startTime: Date
+  endTime: Date
+  completed: boolean
+  type?: string
+  isManual?: boolean // True when user manually placed/moved this block
+}
+
+// ============= Event Type (calendar events) =============
+export interface Event {
+  id: string
+  title: string
+  type: string
+  courseId?: string
+  taskId?: string
+  startTime: Date
+  endTime: Date
+  location?: string
+  description?: string
+  completed?: boolean
+  completedAt?: Date
+  source?: string | string[]
+}
+
 // ============= Schedule Types =============
 export interface ScheduleEvent {
   id: string
