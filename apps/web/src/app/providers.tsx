@@ -6,6 +6,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { AutoSyncProvider } from '@/components/AutoSyncProvider'
 
 const theme = createTheme({
   palette: {
@@ -162,7 +163,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          {children}
+          <AutoSyncProvider>
+            {children}
+          </AutoSyncProvider>
         </LocalizationProvider>
       </ThemeProvider>
     </SessionProvider>

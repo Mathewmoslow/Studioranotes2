@@ -439,6 +439,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       const data = await response.json()
       setCanvasConnected(true)
 
+      // Store Canvas credentials for auto-sync feature
+      localStorage.setItem('canvas-credentials', JSON.stringify({
+        url: formData.canvasUrl,
+        token: formData.canvasToken,
+        connectedAt: new Date().toISOString()
+      }))
+
       // Fetch courses
       await fetchCanvasCourses()
 

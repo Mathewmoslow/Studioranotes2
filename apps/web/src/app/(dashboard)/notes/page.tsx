@@ -59,6 +59,7 @@ import {
   Download,
   MenuBook,
   SelectAll,
+  PictureAsPdf,
 } from '@mui/icons-material'
 import { useScheduleStore } from '@/stores/useScheduleStore'
 import { format } from 'date-fns'
@@ -236,23 +237,61 @@ export default function NotesPage() {
   }
 
   // Download note as HTML file
-  const handleDownloadNote = useCallback((note: any) => {
+  const handleDownloadNote = useCallback((note: any, format: 'html' | 'pdf' = 'html') => {
     const content = note.content || '<p>No content</p>'
     const title = note.title || note.topic || 'note'
-    const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.html`
 
-    // Create a Blob with the HTML content
-    const blob = new Blob([content], { type: 'text/html;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
+    if (format === 'pdf') {
+      // Open print dialog for PDF export
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${title}</title>
+              <style>
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  max-width: 800px;
+                  margin: 40px auto;
+                  padding: 20px;
+                  line-height: 1.6;
+                }
+                h1, h2, h3 { color: #1a1a1a; }
+                @media print {
+                  body { margin: 0; padding: 20px; }
+                }
+              </style>
+            </head>
+            <body>
+              <h1>${title}</h1>
+              ${content}
+            </body>
+          </html>
+        `)
+        printWindow.document.close()
+        printWindow.focus()
+        // Give time for styles to load, then print
+        setTimeout(() => {
+          printWindow.print()
+          printWindow.close()
+        }, 500)
+      }
+    } else {
+      // HTML download
+      const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.html`
+      const blob = new Blob([content], { type: 'text/html;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
 
-    // Create download link and trigger
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }
   }, [])
 
   // Handle conversion complete - save the new styled note
@@ -646,8 +685,11 @@ export default function NotesPage() {
                       </IconButton>
                     </>
                   )}
-                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDownloadNote(note) }} title="Download HTML">
+                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDownloadNote(note, 'html') }} title="Download HTML">
                     <Download />
+                  </IconButton>
+                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDownloadNote(note, 'pdf') }} title="Export PDF">
+                    <PictureAsPdf />
                   </IconButton>
                   <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleToggleStar(note.id, note.starred) }}>
                     {note.starred ? <Star color="warning" /> : <StarBorder />}
@@ -931,9 +973,16 @@ export default function NotesPage() {
               <Button
                 variant="outlined"
                 startIcon={<Download />}
-                onClick={() => handleDownloadNote(selectedNote)}
+                onClick={() => handleDownloadNote(selectedNote, 'html')}
               >
-                Download
+                HTML
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<PictureAsPdf />}
+                onClick={() => handleDownloadNote(selectedNote, 'pdf')}
+              >
+                PDF
               </Button>
               {selectedNote.courseId && (
                 <Button href={`/courses/${selectedNote.courseId}`} variant="outlined" size="small">
