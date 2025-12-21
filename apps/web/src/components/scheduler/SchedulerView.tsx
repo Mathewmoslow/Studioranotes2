@@ -321,7 +321,6 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const [dragOverHour, setDragOverHour] = useState<number | null>(null);
   const cleanupRan = useRef(false);
   const [dueModal, setDueModal] = useState<{ open: boolean; items: any[]; date?: Date }>({ open: false, items: [] });
-  const [health, setHealth] = useState<{ openaiEnabled: boolean; fixtureEnabled: boolean; mockExtraction: boolean } | null>(null);
 
   // Touch drag support
   const touchDrag = useTouchDrag({
@@ -687,14 +686,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     removeHistoricalCourses(cutoff);
     cleanupRan.current = true;
   }, [removeHistoricalCourses]);
-
-  useEffect(() => {
-    // Health indicators (OpenAI, fixture/mock status)
-    fetch('/api/health')
-      .then(res => res.json())
-      .then(setHealth)
-      .catch(() => setHealth(null));
-  }, []);
 
   // Detect and handle overlapping events - only group actually overlapping items
   const detectOverlaps = (items: any[]) => {
@@ -1823,8 +1814,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     );
   };
   
-  // Hide top harness buttons when navigated from mock-test to avoid confusion
-  const hideHarnessControls = Boolean(typeof window !== 'undefined' && window.location.pathname.includes('/dev/scheduler-mock'));
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -1926,14 +1915,6 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
 
           </Box>
         </Box>
-
-        {hideHarnessControls && (
-          <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-            <Alert severity="info" sx={{ flex: 1 }}>
-              Data already loaded from mock-test. Use the Generate button above to reschedule; top harness buttons are hidden.
-            </Alert>
-          </Box>
-        )}
 
         {overdueTasks.length > 0 && (
           <Paper variant="outlined" sx={{ p: 1.25, mb: 1.5, borderColor: 'error.light', bgcolor: 'error.lighter' }}>
