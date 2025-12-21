@@ -345,12 +345,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     },
   });
 
-  // Update view type when device changes
-  useEffect(() => {
-    if (device.isMobile && viewType === 'week') {
-      setViewType('day');
-    }
-  }, [device.isMobile, viewType]);
+  // No longer force day view on mobile - we now have a mobile-friendly vertical week view
 
   const {
     preferences,
@@ -912,8 +907,121 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
     setDragOverHour(null);
   };
   
+  // Mobile-friendly vertical week view
+  const MobileWeekView = () => {
+    const weekStart = startOfWeek(currentDate);
+    const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 1)); // Mon-Fri
+
+    return (
+      <Stack spacing={1.5} sx={{ pb: 2 }}>
+        {weekDays.map((day) => {
+          const dayEvents = getUniqueEventsForDay(day);
+          const dayBlocks = getUniqueBlocksForDay(day);
+          const filteredEvents = filterByCourse(dayEvents);
+          const filteredBlocks = filterByCourse(dayBlocks.map(block => {
+            const task = getTaskForBlock(block.id);
+            return { ...block, courseId: task?.courseId };
+          }));
+          const allItems = [...filteredEvents, ...filteredBlocks].sort((a, b) => {
+            const aTime = ensureDate(a.startTime).getTime();
+            const bTime = ensureDate(b.startTime).getTime();
+            return aTime - bTime;
+          });
+          const isDayToday = isToday(day);
+
+          return (
+            <Card
+              key={day.toISOString()}
+              sx={{
+                border: isDayToday ? '2px solid' : '1px solid',
+                borderColor: isDayToday ? 'primary.main' : 'divider',
+                bgcolor: isDayToday ? 'primary.50' : 'background.paper',
+              }}
+            >
+              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                {/* Day header */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2" fontWeight={700} color={isDayToday ? 'primary.main' : 'text.primary'}>
+                    {format(day, 'EEEE')}
+                  </Typography>
+                  <Chip
+                    label={format(day, 'MMM d')}
+                    size="small"
+                    color={isDayToday ? 'primary' : 'default'}
+                    sx={{ height: 22, fontSize: '0.7rem' }}
+                  />
+                </Stack>
+
+                {/* Events/blocks list */}
+                {allItems.length === 0 ? (
+                  <Typography variant="caption" color="text.secondary">
+                    No scheduled items
+                  </Typography>
+                ) : (
+                  <Stack spacing={0.75}>
+                    {allItems.slice(0, 6).map((item: any, idx) => {
+                      const task = item.taskId ? getTaskForBlock(item.id) : null;
+                      const course = task ? getCourse(task.courseId) : getCourseForEvent(item);
+                      const courseColor = course?.color || FALLBACK_COLOR;
+                      const startTime = ensureDate(item.startTime);
+                      const endTime = ensureDate(item.endTime);
+                      const title = item.title || task?.title || 'Study Block';
+
+                      return (
+                        <Box
+                          key={item.id || idx}
+                          onClick={() => {
+                            if (item.taskId || item.type === 'study') {
+                              setSelectedTimeBlock(item);
+                            } else {
+                              setSelectedEvent(item);
+                            }
+                          }}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            p: 0.75,
+                            borderRadius: 1,
+                            borderLeft: `3px solid ${courseColor}`,
+                            bgcolor: hexToRgba(courseColor, 0.08),
+                            cursor: 'pointer',
+                            '&:active': { bgcolor: hexToRgba(courseColor, 0.15) },
+                          }}
+                        >
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" fontWeight={500} noWrap>
+                              {title}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                    {allItems.length > 6 && (
+                      <Typography variant="caption" color="text.secondary" sx={{ pl: 1 }}>
+                        +{allItems.length - 6} more
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </Stack>
+    );
+  };
+
   const WeekDayView = () => {
     const days = getDaysToDisplay();
+
+    // Use mobile vertical view for week on small screens
+    if (isMobileView && viewType === 'week') {
+      return <MobileWeekView />;
+    }
 
     return (
       <Paper
