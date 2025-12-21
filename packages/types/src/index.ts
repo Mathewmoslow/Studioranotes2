@@ -1,5 +1,8 @@
 // Unified type definitions for StudiOra Notes
 
+// ============= User Role Types =============
+export type UserRole = 'student' | 'instructor'
+
 // ============= User & Auth Types =============
 export interface User {
   id: string
@@ -117,6 +120,7 @@ export interface Task {
 }
 
 export type TaskType =
+  // Student task types
   | 'assignment'
   | 'exam'
   | 'quiz'
@@ -128,6 +132,14 @@ export type TaskType =
   | 'discussion'
   | 'paper'
   | 'other'
+  // Instructor task types
+  | 'grading'          // Grade student submissions
+  | 'lecture-prep'     // Prepare lecture materials
+  | 'office-hours'     // Block office hours time
+  | 'content-creation' // Create course content
+  | 'grade-entry'      // Enter grades in system
+  | 'feedback'         // Write detailed feedback
+  | 'meeting'          // Department/admin meetings
 
 export type TimePreference = 'early-morning' | 'morning' | 'afternoon' | 'evening' | 'night'
 
@@ -233,10 +245,16 @@ export type StudyBlockType =
  * Each category has distinct visual styling for better calendar readability
  */
 export type BlockCategory =
-  | 'DO'      // Work to be done (assignments, reading, studying)
-  | 'DUE'     // Hard deadlines (exam times, submission deadlines)
-  | 'CLASS'   // Scheduled classes (lectures, labs, tutorials)
+  // Student categories
+  | 'DO'       // Work to be done (assignments, reading, studying)
+  | 'DUE'      // Hard deadlines (exam times, submission deadlines)
+  | 'CLASS'    // Scheduled classes (lectures, labs, tutorials)
   | 'CLINICAL' // Clinical rotations and practical sessions
+  // Instructor categories
+  | 'GRADING'  // Grading work (assignments, exams, feedback)
+  | 'PREP'     // Lecture prep and content creation
+  | 'OFFICE'   // Office hours
+  | 'ADMIN'    // Meetings and administrative tasks
 
 /**
  * Visual styling for different block categories
@@ -255,6 +273,7 @@ export interface BlockVisualStyle {
  * Default visual styles for block categories
  */
 export const BLOCK_VISUAL_STYLES: Record<BlockCategory, BlockVisualStyle> = {
+  // Student block styles
   DO: {
     category: 'DO',
     pattern: 'diagonal-stripes',
@@ -289,6 +308,43 @@ export const BLOCK_VISUAL_STYLES: Record<BlockCategory, BlockVisualStyle> = {
     borderStyle: 'double',
     borderWidth: 4,
     icon: '🏥',
+    gradient: false
+  },
+  // Instructor block styles
+  GRADING: {
+    category: 'GRADING',
+    pattern: 'solid',
+    opacity: 0.75,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    icon: '✏️',
+    gradient: false
+  },
+  PREP: {
+    category: 'PREP',
+    pattern: 'diagonal-stripes',
+    opacity: 0.60,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    icon: '📝',
+    gradient: false
+  },
+  OFFICE: {
+    category: 'OFFICE',
+    pattern: 'solid',
+    opacity: 0.50,
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    icon: '🚪',
+    gradient: false
+  },
+  ADMIN: {
+    category: 'ADMIN',
+    pattern: 'dots',
+    opacity: 0.40,
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    icon: '📋',
     gradient: false
   }
 }

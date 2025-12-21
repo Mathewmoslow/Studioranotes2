@@ -43,6 +43,8 @@ import {
   Check,
   Error as ErrorIcon,
   ExpandMore,
+  MenuBook,
+  Person,
 } from '@mui/icons-material'
 import { useSession } from 'next-auth/react'
 import { useScheduleStore } from '@/stores/useScheduleStore'
@@ -52,6 +54,7 @@ import ReconcileTasksModal from '@/components/modals/ReconcileTasksModal'
 import { isBefore } from 'date-fns'
 
 const steps = [
+  'Select Your Role',
   'Welcome',
   'University & Canvas Setup',
   'Study Preferences',
@@ -77,7 +80,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const { data: session } = useSession()
-  const { addCourse, generateSmartSchedule, updatePreferences, updateCourse, tasks, updateTask, updateEvent } = useScheduleStore()
+  const { addCourse, generateSmartSchedule, updatePreferences, updateCourse, tasks, updateTask, updateEvent, setUserRole, userRole } = useScheduleStore()
   const [activeStep, setActiveStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [canvasConnected, setCanvasConnected] = useState(false)
@@ -94,6 +97,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [pendingMeetingCourses, setPendingMeetingCourses] = useState<any[]>([])
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false)
   const [meetingDrafts, setMeetingDrafts] = useState<Record<string, any>>({})
+  const [selectedRole, setSelectedRole] = useState<'student' | 'instructor' | null>(userRole || null)
   const [formData, setFormData] = useState({
     university: '',
     canvasUrl: '',
@@ -340,13 +344,22 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const handleNext = async () => {
     setError(null)
 
-    // Handle Canvas connection step (now combined with university setup)
-    if (activeStep === 1 && formData.canvasUrl && formData.canvasToken) {
+    // Handle role selection step (step 0)
+    if (activeStep === 0) {
+      if (selectedRole) {
+        setUserRole(selectedRole)
+        // Store in localStorage for persistence
+        localStorage.setItem('studiora_user_role', selectedRole)
+      }
+    }
+
+    // Handle Canvas connection step (now combined with university setup, step 2)
+    if (activeStep === 2 && formData.canvasUrl && formData.canvasToken) {
       await connectToCanvas()
     }
 
-    // When moving from Study Preferences (step 2) to Final (step 3)
-    if (activeStep === 2) {
+    // When moving from Study Preferences (step 3) to Additional Context (step 4)
+    if (activeStep === 3) {
       // Save preferences with university config
       const universityConfig = getUniversityConfig(formData.university)
       localStorage.setItem('onboarding_preferences', JSON.stringify({
@@ -382,8 +395,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       })
     }
 
-    // When moving from Additional Context (step 3) to Final (step 4)
-    if (activeStep === 3) {
+    // When moving from Additional Context (step 4) to Final (step 5)
+    if (activeStep === 4) {
       // Move to final step
       setActiveStep((prevActiveStep) => prevActiveStep + 1)
 
@@ -1109,7 +1122,83 @@ const importCanvasCourses = async () => {
         return (
           <Box sx={{ textAlign: 'center', py: isMobile ? 2 : 4 }}>
             <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} gutterBottom>
-              Welcome{isMobile ? '!' : `, ${session?.user?.name || 'Student'}!`}
+              How will you use Studiora?
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+              Select your role to personalize your experience
+            </Typography>
+
+            <Stack spacing={3} sx={{ maxWidth: 500, mx: 'auto' }}>
+              <Card
+                onClick={() => setSelectedRole('student')}
+                sx={{
+                  cursor: 'pointer',
+                  border: 2,
+                  borderColor: selectedRole === 'student' ? 'primary.main' : 'divider',
+                  backgroundColor: selectedRole === 'student' ? 'action.selected' : 'transparent',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'primary.light',
+                    transform: 'translateY(-2px)',
+                    boxShadow: 2,
+                  },
+                }}
+              >
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, py: 3 }}>
+                  <Person sx={{ fontSize: 56, color: 'primary.main' }} />
+                  <Box sx={{ textAlign: 'left' }}>
+                    <Typography variant="h5" fontWeight={700}>
+                      I'm a Student
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Track assignments, generate study notes, and optimize your schedule
+                    </Typography>
+                  </Box>
+                  {selectedRole === 'student' && (
+                    <Check sx={{ fontSize: 32, color: 'primary.main', ml: 'auto' }} />
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card
+                onClick={() => setSelectedRole('instructor')}
+                sx={{
+                  cursor: 'pointer',
+                  border: 2,
+                  borderColor: selectedRole === 'instructor' ? 'secondary.main' : 'divider',
+                  backgroundColor: selectedRole === 'instructor' ? 'action.selected' : 'transparent',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'secondary.light',
+                    transform: 'translateY(-2px)',
+                    boxShadow: 2,
+                  },
+                }}
+              >
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 3, py: 3 }}>
+                  <MenuBook sx={{ fontSize: 56, color: 'secondary.main' }} />
+                  <Box sx={{ textAlign: 'left' }}>
+                    <Typography variant="h5" fontWeight={700}>
+                      I'm an Instructor
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Create lecture materials, manage grading schedules, and compile textbooks
+                    </Typography>
+                  </Box>
+                  {selectedRole === 'instructor' && (
+                    <Check sx={{ fontSize: 32, color: 'secondary.main', ml: 'auto' }} />
+                  )}
+                </CardContent>
+              </Card>
+            </Stack>
+          </Box>
+        )
+
+      case 1:
+        return (
+          <Box sx={{ textAlign: 'center', py: isMobile ? 2 : 4 }}>
+            <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} gutterBottom>
+              Welcome{isMobile ? '!' : `, ${session?.user?.name || (selectedRole === 'instructor' ? 'Professor' : 'Student')}!`}
             </Typography>
             {!isMobile && (
               <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
@@ -1168,7 +1257,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 1:
+      case 2:
         return (
           <Box sx={{ py: 4 }}>
             <Typography variant="h5" fontWeight={600} gutterBottom>
@@ -1454,7 +1543,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 2:
+      case 3:
         return (
           <Box sx={{ py: 4 }}>
             <Typography variant="h5" fontWeight={600} gutterBottom>
@@ -1713,7 +1802,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 3:
+      case 4:
         // Use ref to get current selected courses (more reliable than state)
         const currentSelectedCourses = selectedCoursesRef.current || selectedCourses
         console.log('📋 Additional Context step - Debug:', {
@@ -1820,7 +1909,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 4:
+      case 5:
         return (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             {importingCourses ? (
@@ -1999,7 +2088,7 @@ const importCanvasCourses = async () => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={importingCourses}
+                disabled={importingCourses || (activeStep === 0 && !selectedRole)}
                 fullWidth={isMobile}
                 size={isMobile ? 'large' : 'medium'}
               >

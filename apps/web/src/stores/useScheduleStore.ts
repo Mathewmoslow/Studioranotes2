@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { Course, Task, TimeBlock, Event, UserPreferences } from '@studioranotes/types';
+import { Course, Task, TimeBlock, Event, UserPreferences, UserRole } from '@studioranotes/types';
 import { addDays, startOfDay, endOfDay, isBefore, isAfter, differenceInDays, subDays, isSameDay, format } from 'date-fns';
 import { notificationService } from '../lib/notificationService';
 import { DynamicScheduler as OldDynamicScheduler } from '../lib/algorithms/dynamicScheduler';
@@ -200,6 +200,7 @@ interface ScheduleStore {
   timeBlocks: TimeBlock[];
   events: Event[];
   preferences: UserPreferences;
+  userRole: UserRole | null;
   settings: {
     googleBackupEnabled?: boolean;
     autoBackupInterval?: number;
@@ -258,6 +259,9 @@ interface ScheduleStore {
   updateEnergyPattern: (hour: number, energyLevel: number) => void;
   updateSchedulerConfig: (config: Partial<ScheduleStore['schedulerConfig']>) => void;
   
+  // User role
+  setUserRole: (role: UserRole) => void;
+
   // Preferences
   updatePreferences: (preferences: Partial<UserPreferences>) => void;
   updateSettings: (settings: Partial<ScheduleStore['settings']>) => void;
@@ -275,6 +279,9 @@ interface ScheduleStore {
   getTasksForDate: (date: Date) => Task[];
   getUpcomingTasks: (days: number) => Task[];
   getTasksByCourse: (courseId: string) => Task[];
+
+  // Data cleanup
+  deduplicateTasks: () => number;
 }
 
 const defaultPreferences: UserPreferences = {
@@ -372,6 +379,7 @@ export const useScheduleStore = create<ScheduleStore>()(
       timeBlocks: [],
       events: [],
       preferences: defaultPreferences,
+      userRole: null,
       settings: {
         googleBackupEnabled: false,
         autoBackupInterval: 30,
@@ -487,9 +495,25 @@ export const useScheduleStore = create<ScheduleStore>()(
       
       // Task actions
       addTask: (taskData) => {
-        const taskId = uuidv4();
         const state = get();
-        
+
+        // Check for duplicate task (same title + courseId + similar due date)
+        const isDuplicate = state.tasks.some(existing => {
+          const titleMatch = existing.title.toLowerCase().trim() === taskData.title.toLowerCase().trim();
+          const courseMatch = existing.courseId === taskData.courseId;
+          const existingDue = new Date(existing.dueDate).getTime();
+          const newDue = new Date(taskData.dueDate).getTime();
+          const sameDueDay = Math.abs(existingDue - newDue) < 24 * 60 * 60 * 1000; // Within 24 hours
+          return titleMatch && courseMatch && sameDueDay;
+        });
+
+        if (isDuplicate) {
+          console.log(`⏭️ Skipping duplicate task: "${taskData.title}" for course ${taskData.courseId}`);
+          return;
+        }
+
+        const taskId = uuidv4();
+
         // Determine buffer days based on task type and preferences
         let bufferDays = 3; // default
         if (taskData.type === 'exam') {
@@ -516,27 +540,45 @@ export const useScheduleStore = create<ScheduleStore>()(
         }));
         
         // Create a deadline event (visual representation of DUE date)
-        // Block should END at the due time, not start at it
+        // Position the deadline block at a reasonable time on the due day
+        const dueDate = new Date(taskData.dueDate);
+        const dueHour = dueDate.getHours();
+
+        // If due at an unusual time (like 11:59 PM), show at a more visible time
+        let displayStartTime: Date;
+        let displayEndTime: Date;
+
+        if (dueHour >= 22 || dueHour < 6) {
+          // Late night/early morning deadlines - show at 5 PM
+          displayStartTime = new Date(dueDate);
+          displayStartTime.setHours(17, 0, 0, 0);
+          displayEndTime = new Date(displayStartTime);
+          displayEndTime.setHours(17, 30, 0, 0);
+        } else {
+          // Regular deadlines - show 30 min before due time
+          displayStartTime = new Date(dueDate.getTime() - 30 * 60 * 1000);
+          displayEndTime = dueDate;
+        }
+
         const deadlineEvent: Event = {
           id: uuidv4(),
           title: `DUE: ${taskData.title}`,
           type: 'deadline',
           courseId: taskData.courseId,
-          startTime: new Date(taskData.dueDate.getTime() - 2 * 60 * 60 * 1000), // Start 2 hours before deadline (1hr work + 1hr buffer)
-          endTime: new Date(taskData.dueDate.getTime() - 60 * 60 * 1000), // End 1 hour before deadline for upload buffer
-          description: `Deadline for ${taskData.title}`,
+          startTime: displayStartTime,
+          endTime: displayEndTime,
+          description: `Deadline: ${dueDate.toLocaleString()}`,
           taskId: taskId,
         };
         
         set((state) => ({
           events: [...state.events, deadlineEvent],
         }));
-        
-        // Schedule DO blocks for the task (work time before deadline)
-        if (taskData.estimatedHours && taskData.estimatedHours > 0) {
-          get().scheduleTask(taskId);
-        }
-        
+
+        // NOTE: We don't call scheduleTask here because generateSmartSchedule will be called
+        // by the UI components (SchedulerView, OnboardingFlow, etc.) to generate all blocks.
+        // This prevents duplicate blocks from being created.
+
         // Schedule notifications for the new task
         const updatedState = get();
         notificationService.scheduleTaskNotifications(updatedState.tasks);
@@ -1203,7 +1245,13 @@ export const useScheduleStore = create<ScheduleStore>()(
         set({ autoRescheduleEnabled: enabled });
         console.log(`Auto-reschedule ${enabled ? 'enabled' : 'disabled'}`);
       },
-      
+
+      // User role
+      setUserRole: (role) => {
+        set({ userRole: role });
+        console.log(`User role set to: ${role}`);
+      },
+
       updatePreferences: (preferences) => set((state) => ({
         preferences: { ...state.preferences, ...preferences },
       })),
@@ -1252,6 +1300,35 @@ export const useScheduleStore = create<ScheduleStore>()(
       getTasksByCourse: (courseId) => {
         const { tasks } = get();
         return tasks.filter(task => task.courseId === courseId);
+      },
+
+      deduplicateTasks: () => {
+        const state = get();
+        const seen = new Map<string, Task>();
+        const duplicateIds: string[] = [];
+
+        // Find duplicates - keep the first occurrence of each unique task
+        state.tasks.forEach(task => {
+          const key = `${task.title.toLowerCase().trim()}-${task.courseId}-${new Date(task.dueDate).toDateString()}`;
+          if (seen.has(key)) {
+            duplicateIds.push(task.id);
+          } else {
+            seen.set(key, task);
+          }
+        });
+
+        if (duplicateIds.length > 0) {
+          console.log(`🧹 Removing ${duplicateIds.length} duplicate tasks`);
+
+          // Remove duplicate tasks and their associated events/blocks
+          set((state) => ({
+            tasks: state.tasks.filter(t => !duplicateIds.includes(t.id)),
+            events: state.events.filter(e => !duplicateIds.includes(e.taskId || '')),
+            timeBlocks: state.timeBlocks.filter(b => !duplicateIds.includes(b.taskId || '')),
+          }));
+        }
+
+        return duplicateIds.length;
       }
     }),
     {
@@ -1261,8 +1338,40 @@ export const useScheduleStore = create<ScheduleStore>()(
         // Fix any corrupted task data during hydration
         if (persistedState && persistedState.tasks) {
           persistedState.tasks = persistedState.tasks.map((task: any) => ensureTaskIntegrity(task));
+
+          // Deduplicate tasks on hydration
+          const seen = new Map<string, any>();
+          const uniqueTasks: any[] = [];
+          const duplicateTaskIds: string[] = [];
+
+          persistedState.tasks.forEach((task: any) => {
+            const key = `${(task.title || '').toLowerCase().trim()}-${task.courseId}-${new Date(task.dueDate).toDateString()}`;
+            if (!seen.has(key)) {
+              seen.set(key, task);
+              uniqueTasks.push(task);
+            } else {
+              duplicateTaskIds.push(task.id);
+            }
+          });
+
+          if (duplicateTaskIds.length > 0) {
+            console.log(`🧹 Hydration: Removing ${duplicateTaskIds.length} duplicate tasks`);
+            persistedState.tasks = uniqueTasks;
+
+            // Also remove associated events and timeBlocks for duplicates
+            if (persistedState.events) {
+              persistedState.events = persistedState.events.filter(
+                (e: any) => !duplicateTaskIds.includes(e.taskId || '')
+              );
+            }
+            if (persistedState.timeBlocks) {
+              persistedState.timeBlocks = persistedState.timeBlocks.filter(
+                (b: any) => !duplicateTaskIds.includes(b.taskId || '')
+              );
+            }
+          }
         }
-        
+
         // Ensure all arrays exist
         persistedState.courses = persistedState.courses || [];
         persistedState.timeBlocks = Array.isArray(persistedState.timeBlocks)
@@ -1274,7 +1383,7 @@ export const useScheduleStore = create<ScheduleStore>()(
           : [];
         persistedState.events = mergeEventLists([], persistedState.events || []);
         persistedState.preferences = persistedState.preferences || defaultPreferences;
-        
+
         return persistedState;
       },
     }
