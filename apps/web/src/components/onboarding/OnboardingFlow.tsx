@@ -1891,19 +1891,35 @@ const importCanvasCourses = async () => {
           sx={{
             background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
             color: '#fff',
-            py: 2,
+            py: 1.5,
             px: 2,
             textAlign: 'center',
           }}
         >
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="subtitle1" fontWeight={700}>
             Studiora Setup
           </Typography>
         </Box>
       )}
 
-      <Container maxWidth="md" sx={{ pb: 6, px: isMobile ? 2 : 3, pt: isMobile ? 2 : 0 }}>
-        <Paper sx={{ p: isMobile ? 2 : 4, borderRadius: 2, boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}>
+      {/* Edge-to-edge on mobile, contained on desktop */}
+      <Box
+        sx={{
+          maxWidth: isMobile ? '100%' : 'md',
+          mx: 'auto',
+          pb: isMobile ? 2 : 6,
+          px: isMobile ? 0 : 3,
+          pt: isMobile ? 0 : 0,
+        }}
+      >
+        <Paper
+          sx={{
+            p: isMobile ? 1.5 : 4,
+            borderRadius: isMobile ? 0 : 2,
+            boxShadow: isMobile ? 'none' : '0 8px 24px rgba(0,0,0,0.06)',
+            minHeight: isMobile ? 'calc(100vh - 52px)' : 'auto',
+          }}
+        >
           {/* Stepper - vertical on mobile, horizontal on desktop */}
           <Stepper
             activeStep={activeStep}
@@ -1957,7 +1973,7 @@ const importCanvasCourses = async () => {
             )}
           </Stack>
         </Paper>
-      </Container>
+      </Box>
     </Box>
 
       {/* Reconcile Tasks Modal */}

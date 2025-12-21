@@ -140,7 +140,7 @@ export default function UnifiedDashboard() {
       </Box>
 
       <TabPanel value={currentTab} index={0}>
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
           {/* Quick Stats Row */}
           <Grid size={{ xs: 12, sm: 4 }}>
             <Card>

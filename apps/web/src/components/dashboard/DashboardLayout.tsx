@@ -234,18 +234,19 @@ export default function DashboardLayout({
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, sm: 3 },
+          p: { xs: 1, sm: 2, md: 3 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           transition: theme.transitions.create(['width', 'margin'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
           mt: 8,
+          minWidth: 0, // Prevent flex item overflow
         }}
       >
-        <Container maxWidth="xl" sx={{ px: { xs: 0, sm: 2 } }}>
+        <Box sx={{ maxWidth: 'xl', mx: 'auto', px: { xs: 0, sm: 1 } }}>
           {children}
-        </Container>
+        </Box>
       </Box>
     </Box>
   )
