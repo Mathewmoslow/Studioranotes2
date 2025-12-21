@@ -1545,110 +1545,44 @@ const importCanvasCourses = async () => {
 
       case 3:
         return (
-          <Box sx={{ py: 4 }}>
-            <Typography variant="h5" fontWeight={600} gutterBottom>
-              Set Your Study Preferences
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              We'll use these to create your personalized study schedule
-            </Typography>
-
-            <Grid container spacing={3}>
-              <Grid item sm={12} md={6}>
+          <Box sx={{ py: 3 }}>
+            {/* Question 1: Study Window */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                When can you study on weekdays?
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                We'll only schedule study blocks within this window.
+              </Typography>
+              <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                 <TextField
-                  fullWidth
-                  label="Weekday Start Time"
+                  label="From"
                   type="time"
                   value={formData.studyHoursStart}
                   onChange={(e) => setFormData({ ...formData, studyHoursStart: e.target.value })}
                   InputLabelProps={{ shrink: true }}
+                  size="small"
+                  sx={{ width: 140 }}
                 />
-              </Grid>
-              <Grid item sm={12} md={6}>
+                <Typography color="text.secondary">to</Typography>
                 <TextField
-                  fullWidth
-                  label="Weekday End Time"
+                  label="Until"
                   type="time"
                   value={formData.studyHoursEnd}
                   onChange={(e) => setFormData({ ...formData, studyHoursEnd: e.target.value })}
                   InputLabelProps={{ shrink: true }}
+                  size="small"
+                  sx={{ width: 140 }}
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Weekend Study Hours (per day)"
-                  type="number"
-                  value={formData.weekendStudyHours}
-                  onChange={(e) => setFormData({ ...formData, weekendStudyHours: Number(e.target.value) })}
-                  inputProps={{ min: 0, max: 16, step: 0.5 }}
-                  helperText="Hours you want to study on Sat/Sun. Weekday window applies Mon–Fri."
-                />
-              </Grid>
-            </Grid>
+              </Stack>
+            </Box>
 
-            <FormControl fullWidth sx={{ mt: 3, mb: 3 }}>
-              <InputLabel>Session Duration</InputLabel>
-              <Select
-                value={formData.sessionDuration}
-                onChange={(e) => setFormData({ ...formData, sessionDuration: Number(e.target.value) })}
-                label="Session Duration"
-              >
-                <MenuItem value={25}>25 minutes (Pomodoro)</MenuItem>
-                <MenuItem value={45}>45 minutes</MenuItem>
-                <MenuItem value={60}>60 minutes</MenuItem>
-                <MenuItem value={90}>90 minutes</MenuItem>
-              </Select>
-            </FormControl>
-
-            <Typography variant="subtitle1" gutterBottom>
-              Preferred Study Times (within your weekday window)
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-              {['Early Morning', 'Morning', 'Afternoon', 'Evening', 'Night'].map((time) => (
-                <Chip
-                  key={time}
-                  label={time}
-                  onClick={() => {
-                    const newTimes = formData.preferredTimes.includes(time)
-                      ? formData.preferredTimes.filter(t => t !== time)
-                      : [...formData.preferredTimes, time]
-                    setFormData({ ...formData, preferredTimes: newTimes })
-                  }}
-                  color={formData.preferredTimes.includes(time) ? 'primary' : 'default'}
-                  sx={{ mb: 1 }}
-                />
-              ))}
-            </Stack>
-
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Weekend Availability
+            {/* Question 2: Study Days */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                Which days do you study?
               </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Weekend study hours (per day)"
-                    type="number"
-                    value={formData.weekendStudyHours}
-                    onChange={(e) => {
-                      const value = Number(e.target.value)
-                      setFormData({
-                        ...formData,
-                        weekendStudyHours: Math.max(0, isNaN(value) ? 0 : value)
-                      })
-                    }}
-                    InputProps={{ inputProps: { min: 0, max: 16 } }}
-                    helperText="Hours you want to study on Sat/Sun."
-                  />
-                </Grid>
-              </Grid>
-
-              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                Study Days
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
                 {studyDayOptions.map((day) => {
                   const isActive = formData.studyDays[day.key]
                   return (
@@ -1660,141 +1594,153 @@ const importCanvasCourses = async () => {
                       variant={isActive ? 'filled' : 'outlined'}
                       onClick={() => setFormData({
                         ...formData,
-                        studyDays: {
-                          ...formData.studyDays,
-                          [day.key]: !isActive
-                        }
+                        studyDays: { ...formData.studyDays, [day.key]: !isActive }
                       })}
+                      sx={{ mb: 1 }}
                     />
                   )
                 })}
               </Stack>
+              <TextField
+                label="Weekend hours per day"
+                type="number"
+                value={formData.weekendStudyHours}
+                onChange={(e) => setFormData({ ...formData, weekendStudyHours: Math.max(0, Number(e.target.value) || 0) })}
+                InputProps={{ inputProps: { min: 0, max: 16 } }}
+                size="small"
+                sx={{ width: 180 }}
+              />
             </Box>
 
-            {/* Task Duration Defaults */}
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Task Duration Defaults
+            {/* Question 3: Session Length */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                How long should each study session be?
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {[
+                  { value: 25, label: '25 min' },
+                  { value: 45, label: '45 min' },
+                  { value: 60, label: '1 hour' },
+                  { value: 90, label: '90 min' },
+                ].map((option) => (
+                  <Chip
+                    key={option.value}
+                    label={option.label}
+                    clickable
+                    color={formData.sessionDuration === option.value ? 'primary' : 'default'}
+                    variant={formData.sessionDuration === option.value ? 'filled' : 'outlined'}
+                    onClick={() => setFormData({ ...formData, sessionDuration: option.value })}
+                    sx={{ mb: 1 }}
+                  />
+                ))}
+              </Stack>
+            </Box>
+
+            {/* Question 4: Preferred Times */}
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                When are you most productive?
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Set study time per task type. {isMobile ? 'Tap +/- to adjust.' : 'These defaults auto-fill when Canvas data is missing.'}
+                Select all that apply. We'll prioritize these times.
               </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {['Early Morning', 'Morning', 'Afternoon', 'Evening', 'Night'].map((time) => (
+                  <Chip
+                    key={time}
+                    label={time}
+                    clickable
+                    color={formData.preferredTimes.includes(time) ? 'primary' : 'default'}
+                    variant={formData.preferredTimes.includes(time) ? 'filled' : 'outlined'}
+                    onClick={() => {
+                      const newTimes = formData.preferredTimes.includes(time)
+                        ? formData.preferredTimes.filter(t => t !== time)
+                        : [...formData.preferredTimes, time]
+                      setFormData({ ...formData, preferredTimes: newTimes })
+                    }}
+                    sx={{ mb: 1 }}
+                  />
+                ))}
+              </Stack>
+            </Box>
 
-              {/* Mobile: 2-column grid of steppers, Desktop: 3-column */}
+            {/* Question 5: Task Durations */}
+            <Box>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                How long do you spend on each type of task?
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                These are defaults—you can adjust per assignment later.
+              </Typography>
               <Box
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
                   gap: isMobile ? 1.5 : 2,
-                  mt: 2,
                 }}
               >
                 <NumberStepper
                   label="Assignment"
                   value={formData.taskDurations.assignment}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, assignment: v }
-                  })}
-                  min={0.5}
-                  max={20}
-                  step={0.5}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, assignment: v } })}
+                  min={0.5} max={20} step={0.5}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Exam Prep"
                   value={formData.taskDurations.exam}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, exam: v }
-                  })}
-                  min={0.5}
-                  max={20}
-                  step={0.5}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, exam: v } })}
+                  min={0.5} max={20} step={0.5}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Project"
                   value={formData.taskDurations.project}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, project: v }
-                  })}
-                  min={0.5}
-                  max={40}
-                  step={0.5}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, project: v } })}
+                  min={0.5} max={40} step={0.5}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Reading"
                   value={formData.taskDurations.reading}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, reading: v }
-                  })}
-                  min={0.5}
-                  max={10}
-                  step={0.5}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, reading: v } })}
+                  min={0.5} max={10} step={0.5}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Quiz"
                   value={formData.taskDurations.quiz}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, quiz: v }
-                  })}
-                  min={0.5}
-                  max={10}
-                  step={0.5}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, quiz: v } })}
+                  min={0.5} max={10} step={0.5}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Lab/Skills"
                   value={formData.taskDurations.lab}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, lab: v }
-                  })}
-                  min={0.5}
-                  max={10}
-                  step={0.5}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, lab: v } })}
+                  min={0.5} max={10} step={0.5}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Video"
                   value={formData.taskDurations.video}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, video: v }
-                  })}
-                  min={0.25}
-                  max={6}
-                  step={0.25}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, video: v } })}
+                  min={0.25} max={6} step={0.25}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Prep/Misc"
                   value={formData.taskDurations.prep}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, prep: v }
-                  })}
-                  min={0.25}
-                  max={6}
-                  step={0.25}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, prep: v } })}
+                  min={0.25} max={6} step={0.25}
                   size={isMobile ? 'small' : 'medium'}
                 />
                 <NumberStepper
                   label="Lecture"
                   value={formData.taskDurations.lecture}
-                  onChange={(v) => setFormData({
-                    ...formData,
-                    taskDurations: { ...formData.taskDurations, lecture: v }
-                  })}
-                  min={0.5}
-                  max={6}
-                  step={0.25}
+                  onChange={(v) => setFormData({ ...formData, taskDurations: { ...formData.taskDurations, lecture: v } })}
+                  min={0.5} max={6} step={0.25}
                   size={isMobile ? 'small' : 'medium'}
                 />
               </Box>
