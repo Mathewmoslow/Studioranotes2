@@ -1333,8 +1333,9 @@ export const useScheduleStore = create<ScheduleStore>()(
     }),
     {
       name: 'schedule-store',
-      version: 1,
+      version: 2,
       migrate: (persistedState: any, version: number) => {
+        console.log(`🔄 Migrating store from version ${version} to 2...`);
         // Fix any corrupted task data during hydration
         if (persistedState && persistedState.tasks) {
           persistedState.tasks = persistedState.tasks.map((task: any) => ensureTaskIntegrity(task));
@@ -1397,7 +1398,9 @@ export const useScheduleStore = create<ScheduleStore>()(
           );
 
           if (tasksNeedingDeadlineEvents.length > 0) {
-            console.log(`🔔 Hydration: Creating ${tasksNeedingDeadlineEvents.length} missing deadline events`);
+            console.log(`🔔 Hydration: Creating ${tasksNeedingDeadlineEvents.length} missing deadline events for tasks:`,
+              tasksNeedingDeadlineEvents.map((t: any) => ({ id: t.id, title: t.title, dueDate: t.dueDate }))
+            );
 
             const newDeadlineEvents = tasksNeedingDeadlineEvents.map((task: any) => {
               const dueDate = new Date(task.dueDate);
@@ -1430,9 +1433,11 @@ export const useScheduleStore = create<ScheduleStore>()(
             });
 
             persistedState.events = [...persistedState.events, ...newDeadlineEvents];
+            console.log(`✅ Created deadline events. Total events now: ${persistedState.events.length}`);
           }
         }
 
+        console.log(`📊 Migration complete. Tasks: ${persistedState.tasks?.length || 0}, Events: ${persistedState.events?.length || 0}`);
         return persistedState;
       },
     }
