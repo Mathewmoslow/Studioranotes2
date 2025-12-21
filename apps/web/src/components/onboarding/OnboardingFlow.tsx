@@ -755,7 +755,13 @@ const importCanvasCourses = async () => {
         canvasId: course.canvasId || course.id // Ensure canvasId is set
       }))
 
+      // Get existing task IDs for duplicate detection
+      const { tasks: existingTasks, courses: existingCourses } = useScheduleStore.getState()
+      const existingTaskIds = existingTasks.map(t => t.canvasId || t.id).filter(Boolean)
+      const existingCourseIds = existingCourses.map(c => c.canvasId || c.id).filter(Boolean)
+
       console.log('📤 Sending courses to API:', coursesForAPI)
+      console.log('📤 Existing task IDs for dedup:', existingTaskIds.length)
 
       const response = await fetch('/api/canvas/courses', {
         method: 'POST',
@@ -763,7 +769,9 @@ const importCanvasCourses = async () => {
         body: JSON.stringify({
           courses: coursesForAPI,
           canvasUrl: formData.canvasUrl,
-          canvasToken: formData.canvasToken
+          canvasToken: formData.canvasToken,
+          existingTaskIds,
+          existingCourseIds
         })
       })
 
@@ -781,11 +789,19 @@ const importCanvasCourses = async () => {
           return currentSelectedCourses.includes(courseId)
         })
 
+        // Extract import stats from API response
+        const importStats = data.importStats || {
+          coursesImported: selectedImportedCourses.length,
+          assignmentsImported: 0,
+          assignmentsSkipped: 0
+        }
+
         console.log('📊 Import Results:', {
           selectedCoursesCount: currentSelectedCourses.length,
           selectedCourseIds: currentSelectedCourses,
           importedCoursesCount: data.importedCourses?.length || 0,
           selectedImportedCount: selectedImportedCourses.length,
+          importStats,
           importedCourses: data.importedCourses?.map((c: any) => ({
             id: c.id,
             canvasId: c.canvasId,
@@ -989,6 +1005,18 @@ const importCanvasCourses = async () => {
           return !hasRecurring && !hasMeetingEvents
         })
 
+        // Build detailed status message with import stats
+        const buildImportMessage = (prefix: string) => {
+          let msg = `${prefix} ${selectedImportedCourses.length} courses`
+          if (importStats.assignmentsImported > 0) {
+            msg += `, ${importStats.assignmentsImported} assignments`
+          }
+          if (importStats.assignmentsSkipped > 0) {
+            msg += ` (${importStats.assignmentsSkipped} duplicates skipped)`
+          }
+          return msg
+        }
+
         if (coursesNeedingMeetings.length > 0) {
           setPendingMeetingCourses(coursesNeedingMeetings)
           const first = coursesNeedingMeetings[0]
@@ -996,10 +1024,10 @@ const importCanvasCourses = async () => {
           const defaultSlots = [{ dayOfWeek: 1, startTime: '09:00', endTime: '10:00', type: 'lecture', location: '' }]
           setMeetingDrafts(firstId ? { [firstId]: { slots: defaultSlots } } : {})
           setMeetingDialogOpen(true)
-          setImportStatus(`📅 Imported ${selectedImportedCourses.length} courses. Add class meeting times to block your calendar.`)
+          setImportStatus(`📅 ${buildImportMessage('Imported')}. Add class meeting times to block your calendar.`)
         } else {
           generateSmartSchedule()
-          setImportStatus(`✅ All courses imported successfully! ${selectedImportedCourses.length} courses added and scheduled.`)
+          setImportStatus(`✅ ${buildImportMessage('Successfully imported')} and scheduled!`)
           console.log('Successfully imported courses with enhanced data')
         }
       }

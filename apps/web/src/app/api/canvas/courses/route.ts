@@ -100,19 +100,42 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { courses, canvasUrl, canvasToken } = body
+    const { courses, canvasUrl, canvasToken, existingCourseIds = [], existingTaskIds = [] } = body
 
     console.log('🔍 API: Received courses to import:', {
       count: courses?.length,
-      courses: courses?.map((c: any) => ({ id: c.id, canvasId: c.canvasId, name: c.name }))
+      courses: courses?.map((c: any) => ({ id: c.id, canvasId: c.canvasId, name: c.name })),
+      existingCourseIds: existingCourseIds.length,
+      existingTaskIds: existingTaskIds.length
     })
 
     if (!courses || courses.length === 0) {
       return NextResponse.json({
         importedCourses: [],
+        importStats: {
+          coursesImported: 0,
+          coursesSkipped: 0,
+          assignmentsImported: 0,
+          assignmentsSkipped: 0,
+          assignmentsUpdated: 0
+        },
         message: 'No courses to import'
       })
     }
+
+    // Track import statistics
+    const importStats = {
+      coursesImported: 0,
+      coursesSkipped: 0,
+      assignmentsImported: 0,
+      assignmentsSkipped: 0,
+      assignmentsUpdated: 0,
+      skippedAssignmentNames: [] as string[],
+      newAssignmentNames: [] as string[]
+    }
+
+    // Convert existingTaskIds to a Set for O(1) lookup
+    const existingTaskIdSet = new Set(existingTaskIds.map((id: string | number) => String(id)))
 
     // Import courses and fetch additional details
     const importedCourses = []
@@ -143,33 +166,44 @@ export async function POST(request: NextRequest) {
         let assignments = []
         if (assignmentsResponse.ok) {
           const canvasAssignments = await assignmentsResponse.json()
-          assignments = canvasAssignments.map((assignment: any) => {
-          // Normalize title for keyword-based type adjustments
-          const title = assignment.name || ''
-          const titleLower = title.toLowerCase()
 
-          // Conservative type mapping: only tag as exam if explicitly named
-          const hasExamWord =
-            titleLower.includes('exam') ||
-            titleLower.includes('midterm') ||
-            titleLower.includes('final exam') ||
-            titleLower.includes('hesi') ||
-            titleLower.includes('quiz')
+          for (const assignment of canvasAssignments) {
+            const assignmentId = String(assignment.id)
 
-          // One-minute nurse and short video case studies -> video
-          const isOneMinuteNurse = titleLower.includes('one-minute nurse') || titleLower.includes('one minute nurse')
-          const isVideoCaseStudy = titleLower.includes('video case study') || titleLower.includes('video:')
+            // Check for duplicate - skip if already exists
+            if (existingTaskIdSet.has(assignmentId)) {
+              importStats.assignmentsSkipped++
+              importStats.skippedAssignmentNames.push(assignment.name)
+              console.log(`⏭️ Skipping duplicate assignment: ${assignment.name} (ID: ${assignmentId})`)
+              continue
+            }
 
-          let taskType = determineAssignmentType(assignment)
+            // Normalize title for keyword-based type adjustments
+            const title = assignment.name || ''
+            const titleLower = title.toLowerCase()
 
-          if (isOneMinuteNurse || isVideoCaseStudy) {
-            taskType = 'video'
-          } else if (!hasExamWord && taskType === 'exam') {
-            // Demote to assignment if Canvas guessed exam but title lacks exam markers
-            taskType = 'assignment'
-          }
+            // Conservative type mapping: only tag as exam if explicitly named
+            const hasExamWord =
+              titleLower.includes('exam') ||
+              titleLower.includes('midterm') ||
+              titleLower.includes('final exam') ||
+              titleLower.includes('hesi') ||
+              titleLower.includes('quiz')
 
-            return {
+            // One-minute nurse and short video case studies -> video
+            const isOneMinuteNurse = titleLower.includes('one-minute nurse') || titleLower.includes('one minute nurse')
+            const isVideoCaseStudy = titleLower.includes('video case study') || titleLower.includes('video:')
+
+            let taskType = determineAssignmentType(assignment)
+
+            if (isOneMinuteNurse || isVideoCaseStudy) {
+              taskType = 'video'
+            } else if (!hasExamWord && taskType === 'exam') {
+              // Demote to assignment if Canvas guessed exam but title lacks exam markers
+              taskType = 'assignment'
+            }
+
+            assignments.push({
               id: assignment.id,
               name: assignment.name,
               dueDate: assignment.due_at,
@@ -178,10 +212,13 @@ export async function POST(request: NextRequest) {
               descriptionHtml: assignment.description,
               submissionTypes: assignment.submission_types,
               type: taskType,
-              // Leave hours unspecified so user/onboarding defaults can take over
+              isNew: true, // Mark as new for UI feedback
               estimatedHours: 0
-            }
-          })
+            })
+
+            importStats.assignmentsImported++
+            importStats.newAssignmentNames.push(assignment.name)
+          }
         }
 
         // Fetch syllabus if available
@@ -366,15 +403,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`🎯 API: Import complete. Returning ${importedCourses.length} courses`)
+    // Update course count stats
+    importStats.coursesImported = importedCourses.filter(c => c.imported).length
 
-    // Store imported courses in database
-    // For now, return the imported data
+    console.log(`🎯 API: Import complete. Stats:`, {
+      coursesImported: importStats.coursesImported,
+      assignmentsImported: importStats.assignmentsImported,
+      assignmentsSkipped: importStats.assignmentsSkipped
+    })
+
+    // Build detailed message
+    let message = `Successfully imported ${importStats.coursesImported} courses`
+    if (importStats.assignmentsImported > 0) {
+      message += ` with ${importStats.assignmentsImported} new assignments`
+    }
+    if (importStats.assignmentsSkipped > 0) {
+      message += `. Skipped ${importStats.assignmentsSkipped} existing assignments`
+    }
 
     return NextResponse.json({
       success: true,
       importedCourses,
-      message: `Successfully imported ${importedCourses.filter(c => c.imported).length} courses`
+      importStats,
+      message
     })
 
   } catch (error) {
