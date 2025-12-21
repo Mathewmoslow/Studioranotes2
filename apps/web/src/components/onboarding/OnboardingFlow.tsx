@@ -1987,46 +1987,7 @@ const importCanvasCourses = async () => {
   return (
     <>
     <Box sx={{ minHeight: '100vh', bgcolor: '#f7f9fb' }}>
-      {/* Hero - hidden on mobile */}
-      {!isMobile && (
-        <Box
-          sx={{
-            background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
-            color: '#fff',
-            py: 5,
-            mb: 4,
-            textAlign: 'center',
-          }}
-        >
-          <Container maxWidth="md">
-            <Typography variant="h4" fontWeight={800} gutterBottom>
-              Welcome to Studiora.io
-            </Typography>
-            <Typography sx={{ opacity: 0.9 }}>
-              Connect your courses, set preferences, and let deterministic scheduling + AI notes keep you aligned.
-            </Typography>
-          </Container>
-        </Box>
-      )}
-
-      {/* Mobile header */}
-      {isMobile && (
-        <Box
-          sx={{
-            background: 'linear-gradient(120deg, #0ea5e9 0%, #7c3aed 70%)',
-            color: '#fff',
-            py: 1.5,
-            px: 2,
-            textAlign: 'center',
-          }}
-        >
-          <Typography variant="subtitle1" fontWeight={700}>
-            Studiora Setup
-          </Typography>
-        </Box>
-      )}
-
-      {/* Edge-to-edge on mobile, contained on desktop */}
+      {/* Main content */}
       <Box
         sx={{
           maxWidth: isMobile ? '100%' : 'md',
