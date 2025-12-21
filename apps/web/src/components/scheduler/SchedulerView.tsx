@@ -26,8 +26,10 @@ import {
 import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  Today as TodayIcon
+  Today as TodayIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material';
+import { downloadICalFile, convertEventsForExport, convertTasksForExport } from '../../lib/icalExport';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { Event, BlockCategory } from '@studioranotes/types';
 import { format, startOfWeek, addDays, addMinutes, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfDay } from 'date-fns';
@@ -1904,6 +1906,23 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 Month
               </Button>
             </ButtonGroup>
+
+            {/* Export button */}
+            <Tooltip title="Export to Calendar (.ics)">
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DownloadIcon />}
+                onClick={() => {
+                  const calEvents = convertEventsForExport(events)
+                  const calTasks = convertTasksForExport(tasks)
+                  downloadICalFile(calEvents, calTasks, 'studiora-schedule.ics')
+                }}
+                sx={{ ml: 1 }}
+              >
+                {isMobileView ? '' : 'Export'}
+              </Button>
+            </Tooltip>
 
             {/* Health indicators - hidden on mobile */}
             {health && !isMobileView && (
