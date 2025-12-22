@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import OpenAI from 'openai'
+import { getOpenAIClient, createChatCompletionWithFallback } from '@/lib/openai'
 
 // Initialize OpenAI client
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null
+const openai = getOpenAIClient()
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,8 +80,7 @@ Please extract and return a JSON object with:
 
 Return ONLY valid JSON, no markdown formatting or explanation.`
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const { completion, modelUsed } = await createChatCompletionWithFallback({
       messages: [
         {
           role: 'system',
@@ -99,6 +96,7 @@ Return ONLY valid JSON, no markdown formatting or explanation.`
       response_format: { type: "json_object" }
     })
 
+    console.log(`Schedule parsing used model: ${modelUsed}`)
     const extractedSchedule = JSON.parse(completion.choices[0]?.message?.content || '{}')
 
     // Also look for schedule-related files

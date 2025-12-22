@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import OpenAI from 'openai'
+import { getOpenAIClient, createChatCompletionWithFallback, getPrimaryModel } from '@/lib/openai'
 import { marked } from 'marked'
 import dayjs from 'dayjs'
 
 // Initialize OpenAI client
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null
+const openai = getOpenAIClient()
 
 // Helper functions
 function slugify(s: string): string {
@@ -642,9 +640,8 @@ ${module ? `- Module: ${module}` : ''}
 ## FINAL INSTRUCTION:
 Generate notes that are SIGNIFICANTLY more detailed and comprehensive than typical study materials. A student should be able to read these notes and feel fully prepared for any exam on this topic. Do not summarize or abbreviate - EXPAND and ELABORATE on every point.`
 
-    // Call OpenAI - No max_tokens limit for comprehensive content (like NotesAI)
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    // Call OpenAI with fallback chain - No max_tokens limit for comprehensive content
+    const { completion, modelUsed } = await createChatCompletionWithFallback({
       messages: [
         { role: 'system', content: systemPrompt },
         {
@@ -675,10 +672,10 @@ REQUIREMENTS:
 - Include all relevant data, formulas, and specific values`
         }
       ],
-      temperature: 0.2 // Lower temperature for more consistent, thorough output (like NotesAI)
-      // No max_tokens - allow full comprehensive output
+      temperature: 0.2 // Lower temperature for more consistent, thorough output
     })
 
+    console.log(`Note generation used model: ${modelUsed}`)
     const markdownContent = completion.choices[0]?.message?.content || ''
 
     if (!markdownContent.trim()) {

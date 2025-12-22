@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import OpenAI from 'openai'
+import { getOpenAIClient, createChatCompletionWithFallback } from '@/lib/openai'
 import { augmentContextTasks } from '@/lib/contextAugmentor'
 
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null
+const openai = getOpenAIClient()
 
 export async function POST(request: NextRequest) {
   try {
@@ -161,12 +159,11 @@ Rules:
     if (allowMock || !openai) {
       parsed = { extractedTasks: [], examUpdates: [], hiddenPatterns: [], warnings: [] }
     } else {
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      const { completion, modelUsed } = await createChatCompletionWithFallback({
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at finding hidden academic requirements and informal deadlines that professors mention but don’t formalize in Canvas. Respond ONLY with valid JSON matching the requested schema.'
+            content: "You are an expert at finding hidden academic requirements and informal deadlines that professors mention but don't formalize in Canvas. Respond ONLY with valid JSON matching the requested schema."
           },
           {
             role: 'user',
@@ -178,6 +175,7 @@ Rules:
         response_format: { type: "json_object" }
       })
 
+      console.log(`Context extraction used model: ${modelUsed}`)
       const rawContent = completion.choices[0]?.message?.content || '{}'
       try {
         parsed = JSON.parse(rawContent)

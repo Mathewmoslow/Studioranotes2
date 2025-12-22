@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import OpenAI from 'openai'
+import { getOpenAIClient, createChatCompletionWithFallback } from '@/lib/openai'
 import { validateStyledNote, extractNoteContent, getStyleCSS } from '@/lib/validateStyledNote'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import dayjs from 'dayjs'
 
 // Initialize OpenAI client
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null
+const openai = getOpenAIClient()
 
 // Helper to escape HTML
 function escapeHtml(s: string): string {
@@ -636,17 +634,16 @@ ${extracted.sections.map(s => `- ${s.heading}`).join('\n')}
 
 Generate the complete styled HTML document now. Output ONLY the HTML, nothing else.`
 
-    // Call OpenAI - lower temperature for consistent styling
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    // Call OpenAI with fallback chain - lower temperature for consistent styling
+    const { completion, modelUsed } = await createChatCompletionWithFallback({
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.3 // Lower temperature for consistent, high-quality formatting
-      // No max_tokens - allow full comprehensive output
     })
 
+    console.log(`Style conversion used model: ${modelUsed}`)
     let styledHtml = completion.choices[0]?.message?.content || ''
 
     if (!styledHtml.trim()) {
