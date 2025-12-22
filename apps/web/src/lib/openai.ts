@@ -11,20 +11,21 @@ import OpenAI from 'openai'
  */
 
 // Model specifications
+// useLegacyMaxTokens: true = uses max_tokens, false = uses max_completion_tokens
 export const MODEL_SPECS = {
-  // GPT-5 family - 400k context, cheaper for small inputs
-  'gpt-5-nano': { contextWindow: 400_000, maxOutput: 128_000, inputCost: 0.05, outputCost: 0.40 },
-  'gpt-5-mini': { contextWindow: 400_000, maxOutput: 128_000, inputCost: 0.25, outputCost: 2.00 },
-  'gpt-5': { contextWindow: 400_000, maxOutput: 128_000, inputCost: 1.00, outputCost: 4.00 },
+  // GPT-5 family - 400k context, cheaper for small inputs (new API)
+  'gpt-5-nano': { contextWindow: 400_000, maxOutput: 128_000, inputCost: 0.05, outputCost: 0.40, useLegacyMaxTokens: false },
+  'gpt-5-mini': { contextWindow: 400_000, maxOutput: 128_000, inputCost: 0.25, outputCost: 2.00, useLegacyMaxTokens: false },
+  'gpt-5': { contextWindow: 400_000, maxOutput: 128_000, inputCost: 1.00, outputCost: 4.00, useLegacyMaxTokens: false },
 
-  // GPT-4.1 family - 1M context, for large inputs
-  'gpt-4.1-nano': { contextWindow: 1_047_576, maxOutput: 32_768, inputCost: 0.10, outputCost: 0.40 },
-  'gpt-4.1-mini': { contextWindow: 1_047_576, maxOutput: 32_768, inputCost: 0.40, outputCost: 1.60 },
-  'gpt-4.1': { contextWindow: 1_047_576, maxOutput: 32_768, inputCost: 2.00, outputCost: 8.00 },
+  // GPT-4.1 family - 1M context, for large inputs (new API)
+  'gpt-4.1-nano': { contextWindow: 1_047_576, maxOutput: 32_768, inputCost: 0.10, outputCost: 0.40, useLegacyMaxTokens: false },
+  'gpt-4.1-mini': { contextWindow: 1_047_576, maxOutput: 32_768, inputCost: 0.40, outputCost: 1.60, useLegacyMaxTokens: false },
+  'gpt-4.1': { contextWindow: 1_047_576, maxOutput: 32_768, inputCost: 2.00, outputCost: 8.00, useLegacyMaxTokens: false },
 
-  // Legacy fallback
-  'gpt-4o-mini': { contextWindow: 128_000, maxOutput: 16_384, inputCost: 0.15, outputCost: 0.60 },
-  'gpt-4o': { contextWindow: 128_000, maxOutput: 16_384, inputCost: 2.50, outputCost: 10.00 },
+  // Legacy fallback (old API with max_tokens)
+  'gpt-4o-mini': { contextWindow: 128_000, maxOutput: 16_384, inputCost: 0.15, outputCost: 0.60, useLegacyMaxTokens: true },
+  'gpt-4o': { contextWindow: 128_000, maxOutput: 16_384, inputCost: 2.50, outputCost: 10.00, useLegacyMaxTokens: true },
 } as const
 
 export type ModelName = keyof typeof MODEL_SPECS
@@ -205,11 +206,23 @@ export async function createChatCompletionWithFallback(
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
+        // Build request params, converting max_tokens to max_completion_tokens for newer models
+        const requestParams: any = { ...params, model }
+
+        if (params.max_tokens !== undefined) {
+          const useLegacy = spec?.useLegacyMaxTokens ?? false
+          if (useLegacy) {
+            // Keep max_tokens for legacy models (gpt-4o family)
+            requestParams.max_tokens = params.max_tokens
+          } else {
+            // Use max_completion_tokens for newer models (gpt-5, gpt-4.1 families)
+            requestParams.max_completion_tokens = params.max_tokens
+            delete requestParams.max_tokens
+          }
+        }
+
         const completion = await Promise.race([
-          client.chat.completions.create({
-            ...params,
-            model,
-          }),
+          client.chat.completions.create(requestParams),
           new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error('Request timeout')), timeout)
           )
