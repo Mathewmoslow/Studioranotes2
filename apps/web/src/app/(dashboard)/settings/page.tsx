@@ -204,7 +204,7 @@ const MetricCard = ({ title, value, subtitle, icon, color = '#3b82f6', trend, pr
 
 export default function MyStudiora() {
   const { data: session } = useSession();
-  const { preferences, tasks, timeBlocks, events, courses, updatePreferences, activityPrivacy, updateActivityPrivacy } = useScheduleStore();
+  const { preferences, tasks, timeBlocks, events, courses, updatePreferences, activityPrivacy, updateActivityPrivacy, timeTracking, enableTimeTracking } = useScheduleStore();
   const prefs = useMemo(() => preferences || {}, [preferences]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -740,6 +740,25 @@ export default function MyStudiora() {
                       onClick={() => toggleChip(chip.key)}
                     />
                   ))}
+                </Stack>
+
+                <Divider sx={{ my: 2 }} />
+
+                {/* Time Tracking Opt-In */}
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                  <Box>
+                    <Typography variant="caption" fontWeight={600}>
+                      Track Real Time
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      Record actual time spent on tasks to improve DynaSchedule estimates
+                    </Typography>
+                  </Box>
+                  <Switch
+                    checked={timeTracking?.enabled || false}
+                    onChange={(e) => enableTimeTracking(e.target.checked)}
+                    size="small"
+                  />
                 </Stack>
 
                 <Button

@@ -454,8 +454,8 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
         </Stack>
       </DialogContent>
       
-      {/* Time Tracking Banner */}
-      {timeBlock && task && activeTimeEntry?.taskId === task.id && (
+      {/* Time Tracking Banner - only if opted in */}
+      {timeTracking?.enabled && timeBlock && task && activeTimeEntry?.taskId === task.id && (
         <Box sx={{ px: 2, py: 1, bgcolor: '#22c55e', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Stack direction="row" spacing={1} alignItems="center">
             <TimerIcon sx={{ fontSize: 18 }} />
@@ -476,8 +476,8 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
           </Button>
         ) : (
           <>
-            {/* Time Tracking Buttons for DO blocks */}
-            {timeBlock && task && !isCompleted && (
+            {/* Time Tracking Buttons for DO blocks - only if opted in */}
+            {timeTracking?.enabled && timeBlock && task && !isCompleted && (
               activeTimeEntry?.taskId === task.id ? (
                 <Button
                   onClick={() => {

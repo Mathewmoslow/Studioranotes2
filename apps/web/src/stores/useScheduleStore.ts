@@ -290,6 +290,7 @@ interface ScheduleStore {
   updateSchedulerViewPrefs: (prefs: Partial<SchedulerViewPreferences>) => void;
 
   // Time tracking
+  enableTimeTracking: (enabled: boolean) => void;
   startTimeTracking: (taskId: string) => void;
   stopTimeTracking: (notes?: string) => void;
   cancelTimeTracking: () => void;
@@ -1308,19 +1309,20 @@ export const useScheduleStore = create<ScheduleStore>()(
       })),
 
       // Time tracking
+      enableTimeTracking: (enabled) => {
+        set((state) => ({
+          timeTracking: { ...state.timeTracking, enabled },
+        }));
+        console.log(`⏱️ Time tracking ${enabled ? 'enabled' : 'disabled'}`);
+      },
+
       startTimeTracking: (taskId) => {
         const entry: TaskTimeEntry = {
           id: uuidv4(),
           taskId,
           startedAt: new Date(),
         };
-        set({
-          activeTimeEntry: entry,
-          timeTracking: {
-            ...get().timeTracking,
-            enabled: true,
-          },
-        });
+        set({ activeTimeEntry: entry });
         console.log(`⏱️ Started time tracking for task ${taskId}`);
       },
 
