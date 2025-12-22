@@ -30,7 +30,10 @@ import {
   Star,
   StarBorder,
   Assignment as TaskIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  PlayArrow as StartIcon,
+  Stop as StopIcon,
+  Timer as TimerIcon,
 } from '@mui/icons-material';
 import { Event } from '@studioranotes/types';
 import { format } from 'date-fns';
@@ -56,15 +59,19 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
     type: ''
   });
   
-  const { 
-    updateEvent, 
-    deleteEvent, 
-    updateTask, 
-    deleteTask, 
-    deleteTimeBlock, 
-    completeTask, 
-    toggleEventComplete, 
-    toggleTimeBlockComplete 
+  const {
+    updateEvent,
+    deleteEvent,
+    updateTask,
+    deleteTask,
+    deleteTimeBlock,
+    completeTask,
+    toggleEventComplete,
+    toggleTimeBlockComplete,
+    activeTimeEntry,
+    startTimeTracking,
+    stopTimeTracking,
+    timeTracking,
   } = useScheduleStore();
   
   if (!event && !timeBlock) return null;
@@ -447,13 +454,56 @@ const EventModalMUI: React.FC<EventModalProps> = ({ event, timeBlock, courses, o
         </Stack>
       </DialogContent>
       
-      <DialogActions sx={{ p: 2, gap: 1 }}>
+      {/* Time Tracking Banner */}
+      {timeBlock && task && activeTimeEntry?.taskId === task.id && (
+        <Box sx={{ px: 2, py: 1, bgcolor: '#22c55e', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <TimerIcon sx={{ fontSize: 18 }} />
+            <Typography variant="body2" fontWeight={600}>
+              Tracking time...
+            </Typography>
+          </Stack>
+          <Typography variant="body2">
+            Started {format(new Date(activeTimeEntry.startedAt), 'h:mm a')}
+          </Typography>
+        </Box>
+      )}
+
+      <DialogActions sx={{ p: 2, gap: 1, flexWrap: 'wrap' }}>
         {isReadOnly ? (
           <Button onClick={onClose} color="inherit">
             Close
           </Button>
         ) : (
           <>
+            {/* Time Tracking Buttons for DO blocks */}
+            {timeBlock && task && !isCompleted && (
+              activeTimeEntry?.taskId === task.id ? (
+                <Button
+                  onClick={() => {
+                    stopTimeTracking();
+                    onClose();
+                  }}
+                  variant="contained"
+                  color="warning"
+                  startIcon={<StopIcon />}
+                  sx={{ mr: 'auto' }}
+                >
+                  Stop Tracking
+                </Button>
+              ) : !activeTimeEntry ? (
+                <Button
+                  onClick={() => startTimeTracking(task.id)}
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<StartIcon />}
+                  sx={{ mr: 'auto' }}
+                >
+                  Start Timer
+                </Button>
+              ) : null
+            )}
+
             {timeBlock && task?.dueDate && onViewDue && (
               <Button onClick={onViewDue} color="primary" variant="outlined">
                 View Due Block

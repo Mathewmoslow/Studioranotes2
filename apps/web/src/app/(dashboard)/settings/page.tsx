@@ -19,6 +19,7 @@ import {
   Tooltip,
   Card,
   CardContent,
+  Switch,
 } from '@mui/material';
 import {
   PhotoCamera,
@@ -40,6 +41,60 @@ import {
 import { useScheduleStore } from '@/stores/useScheduleStore';
 import { useSession } from 'next-auth/react';
 import { format, differenceInDays, startOfDay, isAfter, isBefore, subDays } from 'date-fns';
+
+// Mock activity feed data (would come from backend in production)
+const mockActivityFeed = [
+  {
+    avatar: 'S',
+    name: 'Sarah M.',
+    message: 'Started studying NURS 320 - Pharmacology',
+    time: '2 min ago',
+    color: '#3b82f6',
+    badge: null,
+  },
+  {
+    avatar: 'J',
+    name: 'Jake T.',
+    message: 'Completed 3 study blocks today!',
+    time: '15 min ago',
+    color: '#22c55e',
+    badge: 'Grinding',
+  },
+  {
+    avatar: 'M',
+    name: 'Maria L.',
+    message: 'Earned Week Crusher badge',
+    time: '1 hr ago',
+    color: '#f97316',
+    badge: '7 Days',
+  },
+  {
+    avatar: 'A',
+    name: 'Alex K.',
+    message: 'Come join me! Studying at library',
+    time: '2 hrs ago',
+    color: '#8b5cf6',
+    badge: 'Invite',
+  },
+  {
+    avatar: 'R',
+    name: 'Rachel B.',
+    message: 'Hit 50 hours studied this semester!',
+    time: '3 hrs ago',
+    color: '#06b6d4',
+    badge: '50h',
+  },
+];
+
+// Privacy setting labels
+const privacyLabels: Record<string, string> = {
+  shareStudySessions: 'Study sessions',
+  shareTaskCompletion: 'Task completion',
+  shareBadges: 'Badge achievements',
+  shareMilestones: 'Metric milestones',
+  shareStudyInvites: 'Study invites',
+  shareStreaks: 'Streak updates',
+};
 
 const studyTimeChips = [
   { key: 'earlyMorning', label: 'Early Morning' },
@@ -149,7 +204,7 @@ const MetricCard = ({ title, value, subtitle, icon, color = '#3b82f6', trend, pr
 
 export default function MyStudiora() {
   const { data: session } = useSession();
-  const { preferences, tasks, timeBlocks, events, courses, updatePreferences } = useScheduleStore();
+  const { preferences, tasks, timeBlocks, events, courses, updatePreferences, activityPrivacy, updateActivityPrivacy } = useScheduleStore();
   const prefs = useMemo(() => preferences || {}, [preferences]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -413,80 +468,184 @@ export default function MyStudiora() {
             </Stack>
           </Grid>
 
-          {/* Center Profile Column */}
+          {/* Center Column - Profile + Activity Feed */}
           <Grid item xs={12} md={6}>
-            <Stack spacing={3}>
-              {/* Profile Card */}
-              <Paper sx={{ p: 3, borderRadius: 2 }}>
-                <Stack direction="row" spacing={3} alignItems="flex-start">
-                  <Box sx={{ textAlign: 'center' }}>
+            <Stack spacing={2}>
+              {/* Compact Profile Card */}
+              <Paper sx={{ p: 2, borderRadius: 2 }}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Box sx={{ position: 'relative' }}>
                     <Avatar
                       src={session?.user?.image || undefined}
-                      sx={{ width: 100, height: 100, mb: 1, bgcolor: 'primary.main', fontSize: 40 }}
+                      sx={{ width: 60, height: 60, bgcolor: 'primary.main', fontSize: 24 }}
                     >
                       {displayName?.charAt(0) || 'U'}
                     </Avatar>
-                    <IconButton size="small" color="primary">
-                      <PhotoCamera fontSize="small" />
+                    <IconButton
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        bottom: -4,
+                        right: -4,
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        width: 24,
+                        height: 24,
+                      }}
+                    >
+                      <PhotoCamera sx={{ fontSize: 14 }} />
                     </IconButton>
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Display Name"
-                          value={displayName}
-                          onChange={(e) => setDisplayName(e.target.value)}
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="School"
-                          value={school}
-                          onChange={(e) => setSchool(e.target.value)}
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Major"
-                          value={major}
-                          onChange={(e) => setMajor(e.target.value)}
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Year"
-                          value={year}
-                          onChange={(e) => setYear(e.target.value)}
-                          size="small"
-                        />
-                      </Grid>
-                    </Grid>
+                    <Stack direction="row" spacing={1} alignItems="baseline">
+                      <TextField
+                        variant="standard"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Your Name"
+                        InputProps={{ sx: { fontWeight: 700, fontSize: '1.1rem' } }}
+                        sx={{ width: 150 }}
+                      />
+                      <TextField
+                        variant="standard"
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                        placeholder="Year"
+                        InputProps={{ sx: { fontSize: '0.875rem', color: 'text.secondary' } }}
+                        sx={{ width: 80 }}
+                      />
+                    </Stack>
+                    <Stack direction="row" spacing={1}>
+                      <TextField
+                        variant="standard"
+                        value={major}
+                        onChange={(e) => setMajor(e.target.value)}
+                        placeholder="Major"
+                        InputProps={{ sx: { fontSize: '0.875rem' } }}
+                        sx={{ width: 120 }}
+                      />
+                      <Typography variant="body2" color="text.secondary" sx={{ pt: 0.5 }}>@</Typography>
+                      <TextField
+                        variant="standard"
+                        value={school}
+                        onChange={(e) => setSchool(e.target.value)}
+                        placeholder="School"
+                        InputProps={{ sx: { fontSize: '0.875rem' } }}
+                        sx={{ flex: 1 }}
+                      />
+                    </Stack>
                   </Box>
+                </Stack>
+              </Paper>
+
+              {/* Activity Feed */}
+              <Paper sx={{ p: 2, borderRadius: 2, maxHeight: 400, overflow: 'auto' }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" fontWeight={700}>
+                    Friend Activity
+                  </Typography>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {
+                      alert('Study invite sent! Your friends will see you\'re studying.');
+                    }}
+                    sx={{ fontSize: '0.75rem' }}
+                  >
+                    Come Join Me
+                  </Button>
+                </Stack>
+
+                {/* Mock Activity Feed Items */}
+                <Stack spacing={1.5}>
+                  {mockActivityFeed.map((item, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        display: 'flex',
+                        gap: 1.5,
+                        p: 1.5,
+                        bgcolor: '#f8fafc',
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Avatar sx={{ width: 32, height: 32, bgcolor: item.color, fontSize: 14 }}>
+                        {item.avatar}
+                      </Avatar>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {item.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {item.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.25 }}>
+                          {item.time}
+                        </Typography>
+                      </Box>
+                      {item.badge && (
+                        <Chip
+                          label={item.badge}
+                          size="small"
+                          sx={{ height: 20, fontSize: '0.65rem', bgcolor: item.color, color: 'white' }}
+                        />
+                      )}
+                    </Box>
+                  ))}
+
+                  {mockActivityFeed.length === 0 && (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No friend activity yet.
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled">
+                        Invite friends to see their study updates!
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </Paper>
+
+              {/* Privacy Controls */}
+              <Paper sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>
+                  Activity Sharing
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+                  Control what you share. You can only see what others share if you share it too.
+                </Typography>
+                <Stack spacing={1}>
+                  {Object.entries(privacyLabels).map(([key, label]) => (
+                    <Stack key={key} direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2">{label}</Typography>
+                      <Switch
+                        checked={activityPrivacy[key as keyof typeof activityPrivacy]}
+                        onChange={(e) => updateActivityPrivacy({ [key]: e.target.checked })}
+                        size="small"
+                      />
+                    </Stack>
+                  ))}
                 </Stack>
               </Paper>
 
               {/* Badges */}
               {badges.length > 0 && (
                 <Paper sx={{ p: 2, borderRadius: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1.5 }}>
+                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
                     Badges Earned
                   </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                     {badges.map((badge, i) => (
                       <Tooltip key={i} title={badge.desc}>
                         <Chip
-                          icon={<span>{badge.icon}</span>}
+                          icon={<span style={{ fontSize: 14 }}>{badge.icon}</span>}
                           label={badge.name}
+                          size="small"
                           variant="outlined"
-                          sx={{ mb: 1 }}
                         />
                       </Tooltip>
                     ))}
@@ -503,22 +662,22 @@ export default function MyStudiora() {
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       <Lock sx={{ fontSize: 12, mr: 0.5, verticalAlign: 'middle' }} />
-                      Protected from download & screenshots
+                      PDF-level protection from download & screenshots
                     </Typography>
                   </Box>
                   <Button variant="outlined" size="small" startIcon={<Share />} onClick={handleShareNotes}>
-                    Share with Friends
+                    Share
                   </Button>
                 </Stack>
               </Paper>
 
-              {/* Study Schedule Preferences */}
-              <Paper sx={{ p: 3, borderRadius: 2 }}>
-                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+              {/* Study Schedule Preferences - Collapsed */}
+              <Paper sx={{ p: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                   Study Preferences
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} sm={3}>
+                <Grid container spacing={1.5}>
+                  <Grid item xs={4}>
                     <TextField
                       label="Start"
                       type="time"
@@ -528,7 +687,7 @@ export default function MyStudiora() {
                       onChange={(e) => setStudyStart(e.target.value)}
                     />
                   </Grid>
-                  <Grid item xs={6} sm={3}>
+                  <Grid item xs={4}>
                     <TextField
                       label="End"
                       type="time"
@@ -538,9 +697,9 @@ export default function MyStudiora() {
                       onChange={(e) => setStudyEnd(e.target.value)}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid item xs={4}>
                     <TextField
-                      label="Session (min)"
+                      label="Session"
                       type="number"
                       fullWidth
                       size="small"
