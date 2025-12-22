@@ -642,3 +642,105 @@ export interface TimerSession {
   completed: boolean
   breaks?: number
 }
+
+// ============= Scheduler View Preferences =============
+export type SchedulerViewStyle = 'bands' | 'text'
+export type DOTagStyle = 'lettered' | 'plain'
+export type DOTagFill = 'fill' | 'outline'
+
+export interface SchedulerViewPreferences {
+  viewStyle: SchedulerViewStyle // 'bands' = full color blocks, 'text' = compact letter badges
+  doTagStyle: DOTagStyle // 'lettered' = D/W/R/S badges, 'plain' = no letter
+  doTagFill: DOTagFill // 'fill' = solid color, 'outline' = border only
+  showTimeOnBlocks: boolean // Show time range on blocks
+  compactMode: boolean // Collapse multiple items per day
+}
+
+// Letter codes for DO tag types
+export const DO_TAG_LETTERS: Record<string, string> = {
+  assignment: 'W', // Work
+  exam: 'E',
+  quiz: 'Q',
+  project: 'P',
+  reading: 'R',
+  lab: 'L',
+  clinical: 'C',
+  video: 'V',
+  discussion: 'D',
+  paper: 'W',
+  presentation: 'P',
+  review: 'S', // Study
+  prep: 'S',
+  other: 'S',
+}
+
+// ============= Task Time Tracking =============
+export interface TaskTimeEntry {
+  id: string
+  taskId: string
+  startedAt: Date
+  finishedAt?: Date
+  duration?: number // minutes
+  notes?: string
+}
+
+export interface TaskTimeTracking {
+  enabled: boolean // User opted into time tracking
+  entries: TaskTimeEntry[]
+  averageByType: Record<string, number> // Average minutes per task type
+}
+
+// ============= Activity Feed =============
+export type ActivityType =
+  | 'study_started'
+  | 'study_completed'
+  | 'task_completed'
+  | 'badge_earned'
+  | 'metric_milestone'
+  | 'preference_changed'
+  | 'study_invite'
+  | 'streak_update'
+
+export interface ActivityFeedItem {
+  id: string
+  userId: string
+  userName: string
+  userAvatar?: string
+  type: ActivityType
+  message: string
+  metadata?: Record<string, any>
+  timestamp: Date
+  courseId?: string
+  courseName?: string
+}
+
+// ============= Activity Privacy Controls =============
+export interface ActivityPrivacySettings {
+  shareStudySessions: boolean // Share when starting/completing study
+  shareTaskCompletion: boolean // Share when completing tasks
+  shareBadges: boolean // Share badge achievements
+  shareMilestones: boolean // Share metric milestones
+  sharePreferenceChanges: boolean // Share schedule preference changes
+  shareStudyInvites: boolean // Share "come join me" invites
+  shareStreaks: boolean // Share streak updates
+}
+
+// Default privacy - everything shared
+export const DEFAULT_ACTIVITY_PRIVACY: ActivityPrivacySettings = {
+  shareStudySessions: true,
+  shareTaskCompletion: true,
+  shareBadges: true,
+  shareMilestones: true,
+  sharePreferenceChanges: false,
+  shareStudyInvites: true,
+  shareStreaks: true,
+}
+
+// Default scheduler view preferences
+export const DEFAULT_SCHEDULER_VIEW_PREFS: SchedulerViewPreferences = {
+  viewStyle: 'bands',
+  doTagStyle: 'lettered',
+  doTagFill: 'fill',
+  showTimeOnBlocks: true,
+  compactMode: false,
+}

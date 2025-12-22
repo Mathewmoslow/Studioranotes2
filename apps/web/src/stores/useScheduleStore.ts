@@ -1,7 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { Course, Task, TimeBlock, Event, UserPreferences, UserRole } from '@studioranotes/types';
+import {
+  Course,
+  Task,
+  TimeBlock,
+  Event,
+  UserPreferences,
+  UserRole,
+  SchedulerViewPreferences,
+  TaskTimeEntry,
+  TaskTimeTracking,
+  ActivityPrivacySettings,
+  ActivityFeedItem,
+  DEFAULT_SCHEDULER_VIEW_PREFS,
+  DEFAULT_ACTIVITY_PRIVACY,
+} from '@studioranotes/types';
 import { addDays, startOfDay, endOfDay, isBefore, isAfter, differenceInDays, subDays, isSameDay, format } from 'date-fns';
 import { notificationService } from '../lib/notificationService';
 import { DynamicScheduler as OldDynamicScheduler } from '../lib/algorithms/dynamicScheduler';
@@ -225,7 +239,17 @@ interface ScheduleStore {
       dueDate?: Date;
     }>;
   };
-  
+
+  // Scheduler view customization
+  schedulerViewPrefs: SchedulerViewPreferences;
+
+  // Time tracking for tasks
+  timeTracking: TaskTimeTracking;
+  activeTimeEntry: TaskTimeEntry | null;
+
+  // Activity feed and privacy
+  activityPrivacy: ActivityPrivacySettings;
+
   // Course actions
   addCourse: (course: Omit<Course, 'id'>) => void;
   updateCourse: (id: string, course: Partial<Course>) => void;
@@ -261,6 +285,18 @@ interface ScheduleStore {
   
   // User role
   setUserRole: (role: UserRole) => void;
+
+  // Scheduler view preferences
+  updateSchedulerViewPrefs: (prefs: Partial<SchedulerViewPreferences>) => void;
+
+  // Time tracking
+  startTimeTracking: (taskId: string) => void;
+  stopTimeTracking: (notes?: string) => void;
+  cancelTimeTracking: () => void;
+  getAverageTimeForType: (taskType: string) => number | null;
+
+  // Activity privacy
+  updateActivityPrivacy: (settings: Partial<ActivityPrivacySettings>) => void;
 
   // Preferences
   updatePreferences: (preferences: Partial<UserPreferences>) => void;
@@ -398,7 +434,21 @@ export const useScheduleStore = create<ScheduleStore>()(
         message: '',
         details: [],
       },
-      
+
+      // Scheduler view preferences
+      schedulerViewPrefs: DEFAULT_SCHEDULER_VIEW_PREFS,
+
+      // Time tracking
+      timeTracking: {
+        enabled: false,
+        entries: [],
+        averageByType: {},
+      },
+      activeTimeEntry: null,
+
+      // Activity privacy
+      activityPrivacy: DEFAULT_ACTIVITY_PRIVACY,
+
       // Course actions
       addCourse: (course) => {
         // Use provided ID if it exists (for Canvas imports), otherwise generate UUID
@@ -1251,6 +1301,85 @@ export const useScheduleStore = create<ScheduleStore>()(
         set({ userRole: role });
         console.log(`User role set to: ${role}`);
       },
+
+      // Scheduler view preferences
+      updateSchedulerViewPrefs: (prefs) => set((state) => ({
+        schedulerViewPrefs: { ...state.schedulerViewPrefs, ...prefs },
+      })),
+
+      // Time tracking
+      startTimeTracking: (taskId) => {
+        const entry: TaskTimeEntry = {
+          id: uuidv4(),
+          taskId,
+          startedAt: new Date(),
+        };
+        set({
+          activeTimeEntry: entry,
+          timeTracking: {
+            ...get().timeTracking,
+            enabled: true,
+          },
+        });
+        console.log(`⏱️ Started time tracking for task ${taskId}`);
+      },
+
+      stopTimeTracking: (notes) => {
+        const state = get();
+        const activeEntry = state.activeTimeEntry;
+        if (!activeEntry) return;
+
+        const finishedAt = new Date();
+        const duration = Math.round((finishedAt.getTime() - new Date(activeEntry.startedAt).getTime()) / 60000);
+
+        const completedEntry: TaskTimeEntry = {
+          ...activeEntry,
+          finishedAt,
+          duration,
+          notes,
+        };
+
+        // Update averages
+        const task = state.tasks.find(t => t.id === activeEntry.taskId);
+        const taskType = task?.type || 'other';
+        const currentAvg = state.timeTracking.averageByType[taskType] || 0;
+        const entries = state.timeTracking.entries.filter(e => {
+          const t = state.tasks.find(tt => tt.id === e.taskId);
+          return t?.type === taskType;
+        });
+        const newAvg = entries.length > 0
+          ? Math.round((currentAvg * entries.length + duration) / (entries.length + 1))
+          : duration;
+
+        set({
+          activeTimeEntry: null,
+          timeTracking: {
+            ...state.timeTracking,
+            entries: [...state.timeTracking.entries, completedEntry],
+            averageByType: {
+              ...state.timeTracking.averageByType,
+              [taskType]: newAvg,
+            },
+          },
+        });
+
+        console.log(`⏱️ Stopped time tracking. Duration: ${duration} minutes`);
+      },
+
+      cancelTimeTracking: () => {
+        set({ activeTimeEntry: null });
+        console.log(`⏱️ Cancelled time tracking`);
+      },
+
+      getAverageTimeForType: (taskType) => {
+        const state = get();
+        return state.timeTracking.averageByType[taskType] || null;
+      },
+
+      // Activity privacy
+      updateActivityPrivacy: (settings) => set((state) => ({
+        activityPrivacy: { ...state.activityPrivacy, ...settings },
+      })),
 
       updatePreferences: (preferences) => set((state) => ({
         preferences: { ...state.preferences, ...preferences },

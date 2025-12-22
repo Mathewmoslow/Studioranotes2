@@ -37,6 +37,8 @@ import EventModalMUI from './EventModalMUI';
 import { clinicalFilter } from '../../lib/clinicalFilter';
 import { determineBlockCategory } from '../../lib/blockVisuals';
 import { useTouchDrag, useDeviceDetection, getCalendarConfig } from '../../hooks/useTouchDrag';
+import SchedulerViewSettings from './SchedulerViewSettings';
+import { DO_TAG_LETTERS } from '@studioranotes/types';
 
 type ViewType = 'week' | 'day' | 'month';
 
@@ -361,6 +363,7 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
     scheduleTask,
     generateSmartSchedule,
     scheduleWarnings,
+    schedulerViewPrefs,
   } = useScheduleStore();
 
   // Responsive scaling for tighter/mobile views
@@ -1710,7 +1713,7 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                       </Typography>
                       
                       <Stack spacing={0.75} sx={{ mt: 1 }}>
-                        {renderItems.slice(0, 3).map(item => {
+                        {renderItems.slice(0, schedulerViewPrefs?.viewStyle === 'text' ? 5 : 3).map(item => {
                           const visual = safeDeriveVisual('month-item', item.visualKind, item.color, item);
                           const bandLabel =
                             item.visualKind === 'DUE'
@@ -1721,6 +1724,66 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                               ? 'LECTURE'
                               : item.blockLabel || 'STUDY';
 
+                          // Get letter for text view
+                          const taskType = item.blockLabel?.toLowerCase() || 'other';
+                          const letterCode = item.visualKind === 'DUE' ? 'D' : (DO_TAG_LETTERS[taskType] || 'S');
+
+                          // Text view - compact lettered badges
+                          if (schedulerViewPrefs?.viewStyle === 'text') {
+                            const isDue = item.visualKind === 'DUE';
+                            const badgeColor = isDue ? '#ef4444' : item.color;
+                            const isFill = schedulerViewPrefs?.doTagFill === 'fill';
+                            const showLetter = schedulerViewPrefs?.doTagStyle === 'lettered';
+
+                            return (
+                              <Box
+                                key={item.id}
+                                onClick={item.onClick}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.75,
+                                  cursor: 'pointer',
+                                  py: 0.25,
+                                  '&:hover': { opacity: 0.8 }
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: '4px',
+                                    bgcolor: isFill ? badgeColor : 'transparent',
+                                    border: !isFill ? `2px solid ${badgeColor}` : 'none',
+                                    color: isFill ? '#fff' : badgeColor,
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {showLetter && letterCode}
+                                </Box>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    fontWeight: isDue ? 700 : 500,
+                                    color: isDue ? '#ef4444' : item.color,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: '11px',
+                                  }}
+                                >
+                                  {isDue ? `DUE: ${item.title}` : item.title}
+                                </Typography>
+                              </Box>
+                            );
+                          }
+
+                          // Bands view - full color blocks (existing behavior)
                           return (
                             <Card
                               key={item.id}
@@ -1762,9 +1825,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                 <Typography variant="subtitle2" fontWeight={800} noWrap sx={{ fontSize: '12px' }}>
                                   {item.title}
                                 </Typography>
-                                <Typography variant="caption" sx={{ opacity: 0.85, fontSize: '10px' }} noWrap>
-                                  {item.subtitle}
-                                </Typography>
+                                {schedulerViewPrefs?.showTimeOnBlocks !== false && (
+                                  <Typography variant="caption" sx={{ opacity: 0.85, fontSize: '10px' }} noWrap>
+                                    {item.subtitle}
+                                  </Typography>
+                                )}
                               </Stack>
                               {item.visualKind === 'DUE' && (
                                 <Box
@@ -1798,9 +1863,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                           </Typography>
                         )}
 
-                        {renderItems.length > 3 && (
+                        {renderItems.length > (schedulerViewPrefs?.viewStyle === 'text' ? 5 : 3) && (
                           <Typography variant="caption" color="text.secondary">
-                            +{renderItems.length - 3} more
+                            +{renderItems.length - (schedulerViewPrefs?.viewStyle === 'text' ? 5 : 3)} more
                           </Typography>
                         )}
                       </Stack>
@@ -1912,6 +1977,9 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 {isMobileView ? '' : 'Export'}
               </Button>
             </Tooltip>
+
+            {/* View Settings */}
+            <SchedulerViewSettings />
 
           </Box>
         </Box>
