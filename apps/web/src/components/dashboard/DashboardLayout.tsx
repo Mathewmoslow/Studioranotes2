@@ -25,6 +25,7 @@ import {
   School,
   CalendarMonth,
   Description,
+  LibraryBooks,
   Person,
   AccountCircle,
 } from '@mui/icons-material'
@@ -36,6 +37,7 @@ const navItems = [
   { label: 'Courses', icon: <School />, path: '/courses' },
   { label: 'Schedule', icon: <CalendarMonth />, path: '/schedule' },
   { label: 'Notes', icon: <Description />, path: '/notes' },
+  { label: 'Textbook', icon: <LibraryBooks />, path: '/textbook' },
 ]
 
 interface DashboardLayoutProps {
@@ -113,9 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         }}
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6" fontWeight={700}>
-            Studiora
-          </Typography>
+          <Box component="img" src="/logos/logo-blue.svg" alt="Studiora" sx={{ height: 32 }} />
           <IconButton onClick={handleDrawerToggle}>
             <CloseIcon />
           </IconButton>

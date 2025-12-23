@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Box,
@@ -28,7 +29,6 @@ import {
   CalendarToday,
   Assignment,
   CloudUpload,
-  Google,
 } from '@mui/icons-material'
 import Image from 'next/image'
 import UnifiedDashboard from '@/components/dashboard/UnifiedDashboard'
@@ -78,26 +78,30 @@ export default function HomePage() {
           }}
         >
           <Container maxWidth="lg">
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
-              <Avatar sx={{ bgcolor: 'white', width: 44, height: 44 }}>
-                <Image src="/studiora-logo.png" alt="Studiora logo" width={28} height={28} />
-              </Avatar>
-              <Typography variant="h6" fontWeight={700}>Studiora</Typography>
-            </Stack>
+            <Box sx={{ mb: 4 }}>
+              <Image
+                src="/logos/logo-white.svg"
+                alt="Studiora"
+                width={200}
+                height={56}
+                priority
+                style={{ height: 'auto' }}
+              />
+            </Box>
 
             <Grid container spacing={6} alignItems="center">
               <Grid size={{ xs: 12, md: 7 }}>
-                <Typography variant="h3" fontWeight={800} sx={{ mb: 2 }}>
-                  AI-powered study notes.<br />Smart scheduling.
+                <Typography variant="h3" fontWeight={800} sx={{ mb: 2, lineHeight: 1.2 }}>
+                  Smart schedule. Smart study.<br />Smart semester.
                 </Typography>
-                <Typography variant="body1" sx={{ opacity: 0.9, mb: 4, maxWidth: 480 }}>
-                  Generate comprehensive study notes with AI and keep your courses, assignments, and schedule organized in one place.
+                <Typography variant="body1" sx={{ opacity: 0.9, mb: 4, maxWidth: 520 }}>
+                  Schedule your entire semester, including the time needed to study and do assignments with one click. Format and organize your notes or generate Studiora-guided notes from course content.
                 </Typography>
                 <Button
+                  component={Link}
+                  href="/auth/signin"
                   variant="contained"
                   size="large"
-                  startIcon={<Google />}
-                  onClick={() => signIn('google')}
                   sx={{
                     bgcolor: 'white',
                     color: '#1e3a5f',
@@ -107,7 +111,7 @@ export default function HomePage() {
                     '&:hover': { bgcolor: '#f1f5f9' },
                   }}
                 >
-                  Sign in with Google
+                  Get Started Free
                 </Button>
               </Grid>
 
@@ -149,6 +153,42 @@ export default function HomePage() {
                 </Stack>
               </Grid>
             </Grid>
+          </Container>
+        </Box>
+
+        {/* Hero Video Section */}
+        <Box
+          sx={{
+            bgcolor: '#0f172a',
+            py: { xs: 4, md: 6 },
+          }}
+        >
+          <Container maxWidth="lg">
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 2,
+                overflow: 'hidden',
+                aspectRatio: '16/9',
+                maxWidth: 900,
+                mx: 'auto',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              >
+                <source src="/videos/hero-student.mp4" type="video/mp4" />
+              </video>
+            </Box>
           </Container>
         </Box>
 
