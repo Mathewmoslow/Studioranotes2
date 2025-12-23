@@ -29,6 +29,7 @@ import {
   CalendarToday,
   Assignment,
   CloudUpload,
+  PlayCircle,
 } from '@mui/icons-material'
 import Image from 'next/image'
 import UnifiedDashboard from '@/components/dashboard/UnifiedDashboard'
@@ -42,6 +43,7 @@ export default function HomePage() {
   const router = useRouter()
   const [onboardingComplete, setOnboardingComplete] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [videoPlaying, setVideoPlaying] = useState(false)
   const { courses, tasks, events } = useScheduleStore()
 
   // Enable database sync when user is logged in
@@ -91,9 +93,45 @@ export default function HomePage() {
 
             <Grid container spacing={6} alignItems="center">
               <Grid size={{ xs: 12, md: 7 }}>
-                <Typography variant="h3" fontWeight={800} sx={{ mb: 2, lineHeight: 1.2 }}>
-                  Smart schedule. Smart study.<br />Smart semester.
-                </Typography>
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    variant="h3"
+                    fontWeight={800}
+                    sx={{
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                    }}
+                  >
+                    Smart schedule.
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    fontWeight={800}
+                    sx={{
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                    }}
+                  >
+                    Smart study.
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    fontWeight={800}
+                    sx={{
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                      background: 'linear-gradient(90deg, #fff 0%, rgba(255,255,255,0.7) 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    Smart semester.
+                  </Typography>
+                </Box>
                 <Typography variant="body1" sx={{ opacity: 0.9, mb: 4, maxWidth: 520 }}>
                   Schedule your entire semester, including the time needed to study and do assignments with one click. Format and organize your notes or generate Studiora-guided notes from course content.
                 </Typography>
@@ -156,38 +194,166 @@ export default function HomePage() {
           </Container>
         </Box>
 
-        {/* Hero Video Section */}
+        {/* Hero Video Section - Apple-style with thumbnail + play button */}
         <Box
           sx={{
             bgcolor: '#0f172a',
-            py: { xs: 4, md: 6 },
+            py: { xs: 6, md: 10 },
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
+          {/* Subtle gradient overlay for depth */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.1) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
+          />
           <Container maxWidth="lg">
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Typography
+                variant="overline"
+                sx={{
+                  color: 'rgba(255,255,255,0.6)',
+                  letterSpacing: '0.2em',
+                  fontSize: '0.75rem',
+                }}
+              >
+                See it in action
+              </Typography>
+            </Box>
             <Box
+              onClick={() => setVideoPlaying(true)}
               sx={{
                 position: 'relative',
-                borderRadius: 2,
+                borderRadius: 3,
                 overflow: 'hidden',
                 aspectRatio: '16/9',
                 maxWidth: 900,
                 mx: 'auto',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                cursor: videoPlaying ? 'default' : 'pointer',
+                boxShadow: '0 25px 80px -12px rgba(0, 0, 0, 0.8)',
+                transform: 'perspective(1000px) rotateX(2deg)',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': videoPlaying ? {} : {
+                  transform: 'perspective(1000px) rotateX(0deg) scale(1.02)',
+                  boxShadow: '0 35px 100px -12px rgba(37, 99, 235, 0.4)',
+                },
               }}
             >
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-              >
-                <source src="/videos/hero-student.mp4" type="video/mp4" />
-              </video>
+              {videoPlaying ? (
+                <video
+                  autoPlay
+                  controls
+                  playsInline
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                >
+                  <source src="/videos/hero-student.mp4" type="video/mp4" />
+                </video>
+              ) : (
+                <>
+                  {/* Video thumbnail - first frame or custom image */}
+                  <Box
+                    component="video"
+                    muted
+                    playsInline
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  >
+                    <source src="/videos/hero-student.mp4#t=0.1" type="video/mp4" />
+                  </Box>
+                  {/* Dark overlay */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.4) 100%)',
+                    }}
+                  />
+                  {/* Play button - centered, Apple-style */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 88,
+                        height: 88,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(255,255,255,0.95)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'scale(1.1)',
+                          boxShadow: '0 12px 48px rgba(0,0,0,0.4)',
+                        },
+                      }}
+                    >
+                      <PlayCircle
+                        sx={{
+                          fontSize: 56,
+                          color: '#1e3a5f',
+                          ml: 0.5,
+                        }}
+                      />
+                    </Box>
+                    <Typography
+                      sx={{
+                        color: 'white',
+                        fontWeight: 500,
+                        fontSize: '0.9rem',
+                        textShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                      }}
+                    >
+                      Watch the demo
+                    </Typography>
+                  </Box>
+                  {/* Corner badge */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 16,
+                      right: 16,
+                      bgcolor: 'rgba(0,0,0,0.6)',
+                      backdropFilter: 'blur(8px)',
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography sx={{ color: 'white', fontSize: '0.75rem', fontWeight: 500 }}>
+                      2:08
+                    </Typography>
+                  </Box>
+                </>
+              )}
             </Box>
           </Container>
         </Box>
