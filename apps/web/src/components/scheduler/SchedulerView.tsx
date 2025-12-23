@@ -1089,66 +1089,73 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                 const dueBlocks = normalizedDayBlocks.filter(b => b.type === 'due' || b.type === 'deadline');
                 const remainingBlocks = normalizedDayBlocks.filter(b => b.type !== 'due' && b.type !== 'deadline');
 
-                // Group DUE events/blocks by course and due day (ignore time to collapse 11:59pm piles)
-                const groupedDue = new Map<string, any[]>();
-                const addDue = (item: any, course: any) => {
-                  const startKey = format(ensureDate(item.startTime), 'yyyy-MM-dd');
-                  const key = `${course?.id || course?.code || 'unknown'}-${startKey}`;
-                  if (!groupedDue.has(key)) groupedDue.set(key, []);
-                  groupedDue.get(key)!.push(item);
-                };
+                // Collect ALL DUE items for this day (events + blocks)
+                const allDueItems: any[] = [];
 
                 normalizedDayEvents.forEach(evt => {
                   const kind = resolveVisualKindForEvent(evt);
                   if (kind !== 'DUE') return;
                   const course = getCourseForEvent(evt);
-                  addDue(evt, course);
+                  allDueItems.push({ ...evt, course });
                 });
 
                 dueBlocks.forEach(block => {
                   const task = getTaskForBlock(block.id);
                   const course = task ? getCourse(task.courseId) : null;
                   const start = ensureDate(block.startTime);
-                  addDue({
+                  allDueItems.push({
                     ...block,
                     startTime: start,
                     endTime: ensureDate(block.endTime || addMinutes(start, 30)),
                     title: task?.title || 'Due',
                     courseId: task?.courseId,
-                  }, course);
+                    course,
+                  });
+                });
+
+                // Group DUE items by TIME WINDOW (within 1 hour) - collapse ALL courses together
+                const groupedDueByTime = new Map<string, any[]>();
+                allDueItems.forEach(item => {
+                  const startTime = ensureDate(item.startTime);
+                  // Round to nearest hour for grouping
+                  const hourKey = `${format(startTime, 'yyyy-MM-dd')}-${startTime.getHours()}`;
+                  if (!groupedDueByTime.has(hourKey)) groupedDueByTime.set(hourKey, []);
+                  groupedDueByTime.get(hourKey)!.push(item);
                 });
 
                 const collapsedDueItems: any[] = [];
-                groupedDue.forEach((list, key) => {
+                groupedDueByTime.forEach((list, key) => {
                   const first = list[0];
-                  const course = getCourseForEvent(first) || getCourse((first as any).courseId || key);
-                  const titleBase = course?.code || course?.name || 'Due';
                   const earliest = list.reduce((acc: Date, item: any) => {
                     const st = ensureDate(item.startTime);
                     return st < acc ? st : acc;
                   }, ensureDate(list[0].startTime));
-                  const compact = list.length > 3;
+
+                  // Get unique courses in this time group
+                  const uniqueCourses = [...new Set(list.map(item => item.course?.code || item.course?.name).filter(Boolean))];
+                  const courseLabel = uniqueCourses.length === 1 ? uniqueCourses[0] : `${uniqueCourses.length} courses`;
+
                   collapsedDueItems.push({
                     ...first,
                     id: `due-group-${key}-${day.toISOString()}`,
                     type: 'deadline',
-                    title: compact ? `${titleBase}` : list.length > 1 ? `${titleBase} • ${list.length} due` : first.title,
+                    title: list.length === 1 ? first.title : `${list.length} Due`,
                     startTime: earliest,
                     endTime: addMinutes(earliest, 30),
                     isDueGroup: true,
                     dueCount: list.length,
-                    courseId: course?.id,
+                    courseId: first.courseId,
                     onClick: () => setDueModal({
                       open: true,
                       items: list.map((d: any) => ({
                         id: d.id,
                         title: d.title,
-                        subtitle: format(ensureDate(d.startTime), 'h:mm a'),
-                        course
+                        subtitle: `${d.course?.code || d.course?.name || 'Course'} • ${format(ensureDate(d.startTime), 'h:mm a')}`,
+                        course: d.course
                       })),
                       date: day
                     }),
-                    compact,
+                    compact: list.length > 2,
                   });
                 });
 
@@ -1306,11 +1313,11 @@ const getBandLabelForBlock = (taskType?: string, category?: BlockCategory) => {
                                   <Typography variant="caption" fontWeight={800} sx={{ lineHeight: 1, color: RED_BAND }}>
                                     DUE
                                   </Typography>
-                                  <Typography variant="caption" fontWeight={700} sx={{ lineHeight: 1.1 }} noWrap>
-                                    {course?.code || 'Course'}
+                                  <Typography variant="h6" fontWeight={800} sx={{ lineHeight: 1.1 }}>
+                                    {dueCount}
                                   </Typography>
                                   <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
-                                    +{dueCount} due
+                                    items
                                   </Typography>
                                 </Stack>
                               </Card>
