@@ -459,25 +459,32 @@ const SchedulerView: React.FC<SchedulerViewProps> = ({ compact = false }) => {
   const safeBlocks = useMemo(() => (timeBlocks || []).filter((b): b is any => Boolean(b)), [timeBlocks]);
   
   const hoursRange = useMemo(() => {
-    const startTs = days[0] ? new Date(days[0]) : new Date();
-    const endTs = days[days.length - 1] ? addDays(days[days.length - 1], 1) : new Date();
+    const startTs = days[0] ? startOfDay(days[0]) : startOfDay(new Date());
+    const endTs = days[days.length - 1] ? addDays(startOfDay(days[days.length - 1]), 1) : addDays(startOfDay(new Date()), 1);
 
     const allTimes: number[] = [];
     [...safeEvents, ...safeBlocks].forEach(item => {
       const start = ensureDate((item as any).startTime);
       const end = ensureDate((item as any).endTime);
-      if (start >= startTs && start <= endTs) {
+
+      // Check if this item's date falls within the visible range
+      const startDay = startOfDay(start);
+      const endDay = startOfDay(end);
+
+      if (startDay >= startTs && startDay < endTs) {
         allTimes.push(start.getHours() + start.getMinutes() / 60);
       }
-      if (end >= startTs && end <= endTs) {
+      if (endDay >= startTs && endDay < endTs) {
         allTimes.push(end.getHours() + end.getMinutes() / 60);
       }
     });
 
+    // Ensure minimum range of 6 AM to 10 PM for deadline visibility
     const minHour = allTimes.length ? Math.max(6, Math.floor(Math.min(...allTimes)) - 1) : 6;
     const computedMax = allTimes.length ? Math.ceil(Math.max(...allTimes)) + 1 : 22;
-    const maxHour = Math.min(22, Math.max(minHour + 4, computedMax));
-    return { start: minHour, end: maxHour };
+    // Ensure at least 8 AM to 9 PM range (includes 5 PM for moved deadline events)
+    const maxHour = Math.max(21, Math.min(23, Math.max(minHour + 4, computedMax)));
+    return { start: Math.min(minHour, 8), end: maxHour };
   }, [days, events, timeBlocks]);
 
   const hours = useMemo(() => {

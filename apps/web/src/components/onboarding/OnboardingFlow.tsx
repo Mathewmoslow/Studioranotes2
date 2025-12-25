@@ -55,7 +55,6 @@ import { isBefore } from 'date-fns'
 
 const steps = [
   'Select Your Role',
-  'Welcome',
   'University & Canvas Setup',
   'Study Preferences',
   'Additional Context',
@@ -353,13 +352,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       }
     }
 
-    // Handle Canvas connection step (now combined with university setup, step 2)
-    if (activeStep === 2 && formData.canvasUrl && formData.canvasToken) {
+    // Handle Canvas connection step (now combined with university setup, step 1)
+    if (activeStep === 1 && formData.canvasUrl && formData.canvasToken) {
       await connectToCanvas()
     }
 
-    // When moving from Study Preferences (step 3) to Additional Context (step 4)
-    if (activeStep === 3) {
+    // When moving from Study Preferences (step 2) to Additional Context (step 3)
+    if (activeStep === 2) {
       // Save preferences with university config
       const universityConfig = getUniversityConfig(formData.university)
       localStorage.setItem('onboarding_preferences', JSON.stringify({
@@ -395,8 +394,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       })
     }
 
-    // When moving from Additional Context (step 4) to Final (step 5)
-    if (activeStep === 4) {
+    // When moving from Additional Context (step 3) to Final (step 4)
+    if (activeStep === 3) {
       // Move to final step
       setActiveStep((prevActiveStep) => prevActiveStep + 1)
 
@@ -1196,69 +1195,6 @@ const importCanvasCourses = async () => {
 
       case 1:
         return (
-          <Box sx={{ textAlign: 'center', py: isMobile ? 2 : 4 }}>
-            <Typography variant={isMobile ? 'h5' : 'h4'} fontWeight={700} gutterBottom>
-              Welcome{isMobile ? '!' : `, ${session?.user?.name || (selectedRole === 'instructor' ? 'Professor' : 'Student')}!`}
-            </Typography>
-            {!isMobile && (
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                Let's set up your personalized academic workspace in just a few steps.
-              </Typography>
-            )}
-            {isMobile && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Let's get you set up.
-              </Typography>
-            )}
-
-            <Stack spacing={2} sx={{ mt: isMobile ? 2 : 3 }}>
-              <Card sx={{ textAlign: 'left' }}>
-                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: isMobile ? 1.5 : 2 }}>
-                  <School sx={{ fontSize: isMobile ? 32 : 40, color: 'primary.main' }} />
-                  <Box>
-                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
-                      Smart Scheduling
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      AI-powered study blocks
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-
-              <Card sx={{ textAlign: 'left' }}>
-                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: isMobile ? 1.5 : 2 }}>
-                  <AutoAwesome sx={{ fontSize: isMobile ? 32 : 40, color: 'secondary.main' }} />
-                  <Box>
-                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
-                      AI Notes
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Generate notes from any source
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-
-              <Card sx={{ textAlign: 'left' }}>
-                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: isMobile ? 1.5 : 2 }}>
-                  <CloudUpload sx={{ fontSize: isMobile ? 32 : 40, color: 'success.main' }} />
-                  <Box>
-                    <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
-                      Canvas Sync
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Auto-import from Canvas LMS
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Stack>
-          </Box>
-        )
-
-      case 2:
-        return (
           <Box sx={{ py: 4 }}>
             <Typography variant="h5" fontWeight={600} gutterBottom>
               University & Canvas Setup
@@ -1543,7 +1479,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 3:
+      case 2:
         return (
           <Box sx={{ py: 3 }}>
             {/* Question 1: Study Window */}
@@ -1670,9 +1606,6 @@ const importCanvasCourses = async () => {
               <Typography variant="h6" fontWeight={600} gutterBottom>
                 How long do you spend on each type of task?
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                These are defaults—you can adjust per assignment later.
-              </Typography>
               <Box
                 sx={{
                   display: 'grid',
@@ -1748,7 +1681,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 4:
+      case 3:
         // Use ref to get current selected courses (more reliable than state)
         const currentSelectedCourses = selectedCoursesRef.current || selectedCourses
         console.log('📋 Additional Context step - Debug:', {
@@ -1855,7 +1788,7 @@ const importCanvasCourses = async () => {
           </Box>
         )
 
-      case 5:
+      case 4:
         return (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             {importingCourses ? (
